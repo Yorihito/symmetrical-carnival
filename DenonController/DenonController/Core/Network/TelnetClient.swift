@@ -70,22 +70,37 @@ actor TelnetClient {
             }
         }
 
-        try await withCheckedThrowingContinuation { (cont: CheckedContinuation<Void, Error>) in
-            let once = ResumeOnce()
-            conn.stateUpdateHandler = { [weak self] state in
-                switch state {
-                case .ready:
-                    once.resume(with: cont, result: .success(()))
-                    Task { await self?.scheduleReceive() }
-                case .failed(let err):
-                    once.resume(with: cont, result: .failure(err))
-                case .waiting(let err):
-                    once.resume(with: cont, result: .failure(err))
-                default:
-                    break
+        // 10秒タイムアウト付きで接続を待つ
+        try await withThrowingTaskGroup(of: Void.self) { group in
+            group.addTask {
+                try await withCheckedThrowingContinuation { (cont: CheckedContinuation<Void, Error>) in
+                    let once = ResumeOnce()
+                    conn.stateUpdateHandler = { [weak self] state in
+                        switch state {
+                        case .ready:
+                            once.resume(with: cont, result: .success(()))
+                            Task { await self?.scheduleReceive() }
+                        case .failed(let err):
+                            once.resume(with: cont, result: .failure(err))
+                        // .waiting = NWConnection が経路を探している過渡状態。
+                        // 有線+WiFi 混在環境で一時的に発生するが、そのまま .ready に進む。
+                        // ここでエラーにすると NIC が複数ある Mac で必ず失敗する。
+                        case .waiting:
+                            break
+                        default:
+                            break
+                        }
+                    }
+                    conn.start(queue: .global(qos: .userInitiated))
                 }
             }
-            conn.start(queue: .global(qos: .userInitiated))
+            group.addTask {
+                try await Task.sleep(for: .seconds(10))
+                throw AVRError.connectionFailed("タイムアウト（10秒）")
+            }
+            // どちらか先に完了したらもう一方をキャンセル
+            try await group.next()!
+            group.cancelAll()
         }
     }
 
