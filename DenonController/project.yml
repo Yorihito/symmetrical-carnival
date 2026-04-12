@@ -1,0 +1,29 @@
+name: DenonController
+options:
+  bundleIdPrefix: com.ytada
+  deploymentTarget:
+    macOS: "14.0"
+  createIntermediateGroups: true
+  xcodeVersion: "16.0"
+
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    MACOSX_DEPLOYMENT_TARGET: "14.0"
+    ENABLE_HARDENED_RUNTIME: NO
+    CODE_SIGN_STYLE: Automatic
+    DEVELOPMENT_TEAM: ""
+    SWIFT_STRICT_CONCURRENCY: targeted
+
+targets:
+  DenonController:
+    type: application
+    platform: macOS
+    sources:
+      - path: DenonController
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.ytada.DenonController
+        INFOPLIST_FILE: DenonController/Info.plist
+        CODE_SIGN_ENTITLEMENTS: DenonController/DenonController.entitlements
+        PRODUCT_NAME: "Denon Controller"
