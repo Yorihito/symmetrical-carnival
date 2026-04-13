@@ -1,4 +1,22 @@
 import SwiftUI
+import AppKit
+
+/// SwiftUI ビューから親 NSWindow への参照を取得するためのヘルパー
+private struct WindowAccessor: NSViewRepresentable {
+    let onWindow: (NSWindow) -> Void
+
+    func makeNSView(context: Context) -> NSView {
+        let view = NSView()
+        DispatchQueue.main.async {
+            if let window = view.window {
+                self.onWindow(window)
+            }
+        }
+        return view
+    }
+
+    func updateNSView(_ nsView: NSView, context: Context) {}
+}
 
 enum NavSection: String, Hashable, CaseIterable {
     case dashboard = "ダッシュボード"
@@ -54,6 +72,9 @@ struct ContentView: View {
                 .help(vm.connectionStatus.isConnected ? LocalizedStringKey("接続済み — クリックで再設定") : LocalizedStringKey("AVR に接続"))
             }
         }
+        .background(WindowAccessor { window in
+            (NSApp.delegate as? AppDelegate)?.mainWindow = window
+        })
         .sheet(isPresented: $showingConnection) {
             ConnectionView()
         }

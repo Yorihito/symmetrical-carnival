@@ -2,6 +2,9 @@ import AppKit
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
 
+    /// ContentView の親ウィンドウへの弱参照（複数ウィンドウ防止に使用）
+    weak var mainWindow: NSWindow?
+
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         false
     }

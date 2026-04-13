@@ -190,8 +190,8 @@ struct MenuBarPopoverView: View {
             Spacer()
 
             Button {
-                if let existing = NSApp.windows.first(where: { $0.identifier?.rawValue == "main" }) {
-                    existing.makeKeyAndOrderFront(nil)
+                if let window = (NSApp.delegate as? AppDelegate)?.mainWindow {
+                    window.makeKeyAndOrderFront(nil)
                 } else {
                     openWindow(id: "main")
                 }
