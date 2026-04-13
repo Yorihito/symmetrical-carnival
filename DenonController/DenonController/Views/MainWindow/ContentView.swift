@@ -80,6 +80,16 @@ struct ContentView: View {
             let delegate = NSApp.delegate as? AppDelegate
             // ウィンドウ参照を更新（openWindow で新規作成された場合も追従）
             delegate?.mainWindow = window
+
+            // viewDidMoveToWindow はウィンドウ表示より前に呼ばれるため、
+            // ここで alpha=0 にするとちらつきなく非表示にできる。
+            // AppDelegate の async が orderOut + alpha 復元を行う。
+            // didSuppressInitialWindow が true の場合はユーザーが明示的に
+            // 開いた場面なので抑制しない。
+            if UserDefaults.standard.bool(forKey: "menuBarOnly"),
+               !(delegate?.didSuppressInitialWindow ?? false) {
+                window.alphaValue = 0
+            }
         })
         .sheet(isPresented: $showingConnection) {
             ConnectionView()
