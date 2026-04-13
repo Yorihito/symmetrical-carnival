@@ -1,22 +1,22 @@
 import SwiftUI
 
 struct VolumeControlView: View {
-    let volume: Double          // Denon units 0–98
+    let volumeDB: Double        // 実際の dB 値（-80 〜 +18）
     let isMuted: Bool
     let dbString: String
-    let onVolumeChange: (Double) -> Void
+    let onVolumeChange: (Double) -> Void   // dB 値を渡す
     let onMuteToggle: () -> Void
     let onVolumeUp: () -> Void
     let onVolumeDown: () -> Void
 
     @State private var isDragging = false
-    @State private var dragValue: Double = 50
+    @State private var dragValue: Double = -30
 
-    private var displayVolume: Double { isDragging ? dragValue : volume }
+    private var displayDB: Double { isDragging ? dragValue : volumeDB }
 
     var body: some View {
         VStack(spacing: 12) {
-            // dB display
+            // dB 表示
             HStack(alignment: .firstTextBaseline, spacing: 4) {
                 if isMuted {
                     Label("ミュート", systemImage: "speaker.slash.fill")
@@ -32,7 +32,7 @@ struct VolumeControlView: View {
             }
             .frame(height: 44)
 
-            // Slider row
+            // スライダー行
             HStack(spacing: 12) {
                 Button(action: onVolumeDown) {
                     Image(systemName: "minus")
@@ -45,21 +45,21 @@ struct VolumeControlView: View {
 
                 Slider(
                     value: Binding(
-                        get: { displayVolume },
+                        get: { displayDB },
                         set: { newVal in
                             dragValue = newVal
                             isDragging = true
                         }
                     ),
-                    in: 0...98,
-                    step: 1
+                    in: -80...18,
+                    step: 0.5
                 )
                 .tint(isMuted ? .orange : .accentColor)
                 .onChange(of: dragValue) { _, val in
                     onVolumeChange(val)
                 }
-                .onAppear { dragValue = volume }
-                .onChange(of: volume) { _, val in
+                .onAppear { dragValue = volumeDB }
+                .onChange(of: volumeDB) { _, val in
                     if !isDragging { dragValue = val }
                 }
 
@@ -73,7 +73,7 @@ struct VolumeControlView: View {
                 .keyboardShortcut(.upArrow, modifiers: .command)
             }
 
-            // Mute button
+            // ミュートボタン
             Button(action: onMuteToggle) {
                 Label(
                     isMuted ? "ミュート解除" : "ミュート",
@@ -82,7 +82,10 @@ struct VolumeControlView: View {
                 .font(.callout.weight(.medium))
                 .padding(.horizontal, 16)
                 .padding(.vertical, 6)
-                .background(isMuted ? Color.orange.opacity(0.15) : Color.secondary.opacity(0.12), in: Capsule())
+                .background(
+                    isMuted ? Color.orange.opacity(0.15) : Color.secondary.opacity(0.12),
+                    in: Capsule()
+                )
                 .foregroundStyle(isMuted ? .orange : .secondary)
             }
             .buttonStyle(.plain)

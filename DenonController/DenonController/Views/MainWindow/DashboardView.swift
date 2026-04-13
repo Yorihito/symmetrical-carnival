@@ -49,7 +49,7 @@ struct DashboardView: View {
                     .font(.headline)
 
                 VolumeControlView(
-                    volume: vm.avr.volume,
+                    volumeDB: vm.avr.volumeDB,
                     isMuted: vm.avr.isMuted,
                     dbString: vm.avr.volumeDBString,
                     onVolumeChange: { vm.setVolume($0) },

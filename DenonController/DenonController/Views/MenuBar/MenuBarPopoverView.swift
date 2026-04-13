@@ -80,10 +80,10 @@ struct MenuBarPopoverView: View {
 
                 Slider(
                     value: Binding(
-                        get: { vm.avr.volume },
+                        get: { vm.avr.volumeDB },
                         set: { vm.setVolume($0) }
                     ),
-                    in: 0...98, step: 1
+                    in: -80...18, step: 0.5
                 )
                 .tint(vm.avr.isMuted ? .orange : .accentColor)
 

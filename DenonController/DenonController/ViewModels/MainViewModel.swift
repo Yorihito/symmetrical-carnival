@@ -23,7 +23,7 @@ enum ConnectionStatus: Equatable, Sendable {
 
 // MARK: - MainViewModel
 
-/// UI と TelnetClient を繋ぐ ViewModel。すべての AVR 操作はここ経由で行う。
+/// UI と AVRHTTPClient を繋ぐ ViewModel。すべての AVR 操作はここ経由で行う。
 @Observable
 @MainActor
 final class MainViewModel {
@@ -38,36 +38,29 @@ final class MainViewModel {
     var lastConnectedHost: String = ""
 
     // MARK: - Private
-    private let client = TelnetClient()
+    private let client = AVRHTTPClient()
     private var updateTask: Task<Void, Never>?
 
     // MARK: - Connection
 
-    func connect(host: String, port: UInt16 = 23) async {
+    func connect(host: String) async {
         guard !connectionStatus.isConnected else { return }
         connectionStatus = .connecting
         errorMessage = nil
 
         do {
-            try await client.connect(host: host, port: port)
+            try await client.connect(host: host, port: 8080)
             connectionStatus = .connected
             avr.isConnected = true
             lastConnectedHost = host
 
-            // Consume update stream
+            // Consume HTTP polling stream
             updateTask = Task { [weak self] in
                 guard let self else { return }
-                for await line in await client.updates {
-                    self.avr.apply(line)
+                for await snapshot in await client.updates {
+                    self.avr.apply(snapshot)
                 }
-                // Stream ended → disconnected
                 self.handleDisconnect()
-            }
-
-            // Sync current AVR state
-            for cmd in AVRState.queryCommands {
-                try? await client.send(cmd)
-                try? await Task.sleep(for: .milliseconds(60))
             }
 
         } catch {
@@ -101,11 +94,9 @@ final class MainViewModel {
     func volumeUp()   { send("MVUP") }
     func volumeDown() { send("MVDOWN") }
 
-    /// value: Denon units 0–98
-    func setVolume(_ value: Double) {
-        let intVal = Int(value.rounded())
-        let clamped = max(0, min(98, intVal))
-        send("MV\(clamped)")
+    /// db: 実際の dB 値（-80 〜 +18）
+    func setVolume(_ db: Double) {
+        send(AVRState.volumeCommand(forDB: db))
     }
 
     func setMute(_ on: Bool) { send(on ? "MUON" : "MUOFF") }
@@ -113,11 +104,16 @@ final class MainViewModel {
 
     // MARK: - Input
 
-    func setInput(_ input: InputSource) { send(input.command) }
+    func setInput(_ input: InputSource) {
+        send(input.command)
+    }
 
-    // MARK: - Surround
+    // MARK: - Surround（HTTP では取得不可 → 送信してローカル追跡）
 
-    func setSurroundMode(_ mode: SurroundMode) { send(mode.command) }
+    func setSurroundMode(_ mode: SurroundMode) {
+        send(mode.command)
+        avr.surroundMode = mode   // ポーリングで取得できないのでローカル更新
+    }
 
     // MARK: - Zone 2
 
@@ -131,13 +127,12 @@ final class MainViewModel {
     func setZone3Power(_ on: Bool) { send(on ? "Z3ON" : "Z3OFF") }
     func zone3VolumeUp()           { send("Z3UP") }
     func zone3VolumeDown()         { send("Z3DOWN") }
-    func setZone3Mute(_ on: Bool)  { send(on ? "Z3MUON" : "Z3MUOFF") }
 
     // MARK: - Presets
 
     func applyPreset(_ preset: Preset) {
         setInput(preset.input)
-        setVolume(preset.volume)
+        setVolume(preset.volumeDB)
         setSurroundMode(preset.surroundMode)
     }
 
@@ -145,7 +140,7 @@ final class MainViewModel {
         let preset = Preset(
             name: name, emoji: emoji,
             input: avr.input,
-            volume: avr.volume,
+            volumeDB: avr.volumeDB,
             surroundMode: avr.surroundMode
         )
         presetStore.save(preset)
@@ -156,7 +151,7 @@ final class MainViewModel {
     private func send(_ command: String) {
         Task { [weak self] in
             guard let self else { return }
-            try? await client.send(command)
+            await client.send(command)
         }
     }
 }

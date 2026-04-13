@@ -18,6 +18,7 @@
 		4C169A94637BC5F05839DCF7 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87532AE642CC4C7933E62C61 /* DashboardView.swift */; };
 		85C6BEFABD78D72516F662D4 /* Preset.swift in Sources */ = {isa = PBXBuildFile; fileRef = F76C8EA4E66F47B8F0207066 /* Preset.swift */; };
 		87CB10DC1C014F5087070D0C /* MenuBarPopoverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20BE8F10BC0930A047050EF /* MenuBarPopoverView.swift */; };
+		9D457112D11E0B3126B14B2A /* AVRHTTPClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CB324EA5D91A2660C953E1F /* AVRHTTPClient.swift */; };
 		B3F1365972CF77F7177704C6 /* ZoneView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C62E5948C5D63D30BB07F2C /* ZoneView.swift */; };
 		C8B659374EDECC0EF38A7A9F /* MDNSDiscovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A00BF5F14989E8C48AE08AB /* MDNSDiscovery.swift */; };
 		CB761EBF6993D6F10238BE12 /* SurroundView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 593531F756C20B22B1282906 /* SurroundView.swift */; };
@@ -37,6 +38,7 @@
 		371B2F4E3F7CEE3A934FE1DC /* InputView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputView.swift; sourceTree = "<group>"; };
 		48CC524B97F708FFD31253DA /* DenonControllerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DenonControllerApp.swift; sourceTree = "<group>"; };
 		593531F756C20B22B1282906 /* SurroundView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SurroundView.swift; sourceTree = "<group>"; };
+		5CB324EA5D91A2660C953E1F /* AVRHTTPClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AVRHTTPClient.swift; sourceTree = "<group>"; };
 		6EBA445EDC221C01FA9C6049 /* ConnectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionView.swift; sourceTree = "<group>"; };
 		71B63BF0A3338974C13AD96C /* VolumeControlView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VolumeControlView.swift; sourceTree = "<group>"; };
 		7B3CE8991C907B6926608E9F /* DenonController.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DenonController.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -146,6 +148,7 @@
 		D328F5083913C9E7A655C988 /* Network */ = {
 			isa = PBXGroup;
 			children = (
+				5CB324EA5D91A2660C953E1F /* AVRHTTPClient.swift */,
 				1A00BF5F14989E8C48AE08AB /* MDNSDiscovery.swift */,
 				A2FEF8CF0CF7104302E3474B /* TelnetClient.swift */,
 			);
@@ -253,6 +256,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9D457112D11E0B3126B14B2A /* AVRHTTPClient.swift in Sources */,
 				E99FF3946B1A1C2271CC67B8 /* AVRState.swift in Sources */,
 				E8223854D0A25620B23FFA87 /* ConnectionView.swift in Sources */,
 				D3615836D1796E560FAFCB1E /* ContentView.swift in Sources */,

@@ -3,17 +3,17 @@ import Foundation
 struct Preset: Identifiable, Codable, Sendable {
     var id: UUID = UUID()
     var name: String
-    var emoji: String        // e.g. "🎬", "🎵"
+    var emoji: String
     var input: InputSource
-    var volume: Double       // Denon units
+    var volumeDB: Double       // 実際の dB 値（-80 〜 +18）
     var surroundMode: SurroundMode
 
     static let examples: [Preset] = [
         Preset(name: "映画", emoji: "🎬",
-               input: .hdmi1, volume: 55, surroundMode: .movie),
+               input: .hdmi1, volumeDB: -30, surroundMode: .movie),
         Preset(name: "音楽", emoji: "🎵",
-               input: .cd, volume: 50, surroundMode: .music),
+               input: .cd, volumeDB: -35, surroundMode: .music),
         Preset(name: "ゲーム", emoji: "🎮",
-               input: .hdmi2, volume: 48, surroundMode: .game),
+               input: .hdmi2, volumeDB: -32, surroundMode: .game),
     ]
 }

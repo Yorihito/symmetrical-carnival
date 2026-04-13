@@ -90,7 +90,7 @@ private struct PresetRow: View {
                     Text("·")
                     Label(preset.surroundMode.displayName, systemImage: preset.surroundMode.systemImage)
                     Text("·")
-                    Label(String(format: "%.0f dB", preset.volume - 80),
+                    Label(String(format: "%.0f dB", preset.volumeDB),
                           systemImage: "speaker.wave.2")
                 }
                 .font(.caption)

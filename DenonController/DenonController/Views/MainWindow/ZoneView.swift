@@ -35,10 +35,10 @@ struct ZoneView: View {
                 if vm.avr.zone2Power {
                     Divider()
                     VolumeControlView(
-                        volume: vm.avr.zone2Volume,
+                        volumeDB: vm.avr.zone2VolumeDB,
                         isMuted: vm.avr.zone2Mute,
                         dbString: vm.avr.zone2VolumeDBString,
-                        onVolumeChange: { _ in },   // Zone 2 uses step only
+                        onVolumeChange: { _ in },   // Zone 2 はステップ制御のみ
                         onMuteToggle: { vm.setZone2Mute(!vm.avr.zone2Mute) },
                         onVolumeUp: { vm.zone2VolumeUp() },
                         onVolumeDown: { vm.zone2VolumeDown() }
