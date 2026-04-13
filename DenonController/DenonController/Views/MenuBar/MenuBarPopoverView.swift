@@ -190,12 +190,14 @@ struct MenuBarPopoverView: View {
             Spacer()
 
             Button {
-                // .accessory → .regular に切り替えてからウィンドウを前面に出す。
-                // menuBarOnly 起動時は .accessory ポリシーのためウィンドウが
-                // 表示されない。.regular に戻すことで確実に表示できる。
+                // .accessory → .regular に切り替えてアクティブ化。
+                // alpha=0 で不可視化していたウィンドウを alpha=1 に戻してから
+                // makeKeyAndOrderFront する（orderOut を使っていないので確実に動く）。
                 NSApp.setActivationPolicy(.regular)
                 NSApp.activate(ignoringOtherApps: true)
                 if let existing = (NSApp.delegate as? AppDelegate)?.mainWindow {
+                    existing.alphaValue = 1
+                    existing.ignoresMouseEvents = false
                     existing.makeKeyAndOrderFront(nil)
                 } else {
                     openWindow(id: "main")
