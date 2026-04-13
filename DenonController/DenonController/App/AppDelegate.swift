@@ -2,11 +2,17 @@ import AppKit
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
 
-    /// メインウィンドウへの強参照
-    var mainWindow: NSWindow?
+    /// NSApp.delegate as? AppDelegate のキャストが SwiftUI 経由で失敗するケースがあるため
+    /// static shared でシングルトンアクセスする
+    nonisolated(unsafe) static weak var shared: AppDelegate?
 
-    /// 起動時の抑制を済ませたか（true なら以降のウィンドウは抑制しない）
+    var mainWindow: NSWindow?
     var didSuppressInitialWindow = false
+
+    override init() {
+        super.init()
+        AppDelegate.shared = self
+    }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         false

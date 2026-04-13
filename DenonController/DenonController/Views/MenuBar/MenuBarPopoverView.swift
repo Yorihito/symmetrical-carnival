@@ -190,7 +190,7 @@ struct MenuBarPopoverView: View {
             Spacer()
 
             Button {
-                let delegate = NSApp.delegate as? AppDelegate
+                let delegate = AppDelegate.shared
                 delegate?.didSuppressInitialWindow = true
                 NSApp.activate(ignoringOtherApps: true)
 
