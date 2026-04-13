@@ -1,4 +1,5 @@
 import SwiftUI
+import os
 
 struct MenuBarPopoverView: View {
     @Environment(MainViewModel.self) private var vm
@@ -190,15 +191,26 @@ struct MenuBarPopoverView: View {
             Spacer()
 
             Button {
-                (NSApp.delegate as? AppDelegate)?.didSuppressInitialWindow = true
+                let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "app", category: "OpenDetails")
+                let delegate = NSApp.delegate as? AppDelegate
+                delegate?.didSuppressInitialWindow = true
+
+                logger.info("--- Open Details pressed ---")
+                logger.info("mainWindow: \(String(describing: delegate?.mainWindow))")
+                logger.info("NSApp.windows count: \(NSApp.windows.count)")
+                for (i, w) in NSApp.windows.enumerated() {
+                    logger.info("  [\(i)] \(type(of: w)) alpha=\(w.alphaValue) visible=\(w.isVisible) key=\(w.isKeyWindow)")
+                }
+
                 NSApp.activate(ignoringOtherApps: true)
-                // NSPanel 以外の最初のウィンドウ = メイン WindowGroup ウィンドウ
                 if let win = NSApp.windows.first(where: { !($0 is NSPanel) }) {
+                    logger.info("Found non-panel window: \(type(of: win)), showing it")
                     win.collectionBehavior = [.moveToActiveSpace]
                     win.alphaValue = 1
                     win.ignoresMouseEvents = false
                     win.makeKeyAndOrderFront(nil)
                 } else {
+                    logger.info("No non-panel window found, calling openWindow")
                     openWindow(id: "main")
                 }
             } label: {
