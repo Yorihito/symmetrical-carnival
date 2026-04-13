@@ -1,21 +1,25 @@
 import SwiftUI
 import AppKit
 
-/// SwiftUI ビューから親 NSWindow への参照を取得するためのヘルパー
+/// viewDidMoveToWindow を使い、ウィンドウへの追加と同時（表示前）に callback を呼ぶ
+private final class WindowObserverView: NSView {
+    var onWindow: ((NSWindow) -> Void)?
+    override func viewDidMoveToWindow() {
+        super.viewDidMoveToWindow()
+        guard let window else { return }
+        onWindow?(window)
+        onWindow = nil  // 一度だけ呼ぶ
+    }
+}
+
 private struct WindowAccessor: NSViewRepresentable {
     let onWindow: (NSWindow) -> Void
-
-    func makeNSView(context: Context) -> NSView {
-        let view = NSView()
-        DispatchQueue.main.async {
-            if let window = view.window {
-                self.onWindow(window)
-            }
-        }
+    func makeNSView(context: Context) -> WindowObserverView {
+        let view = WindowObserverView()
+        view.onWindow = onWindow
         return view
     }
-
-    func updateNSView(_ nsView: NSView, context: Context) {}
+    func updateNSView(_ nsView: WindowObserverView, context: Context) {}
 }
 
 enum NavSection: String, Hashable, CaseIterable {
@@ -73,7 +77,19 @@ struct ContentView: View {
             }
         }
         .background(WindowAccessor { window in
-            (NSApp.delegate as? AppDelegate)?.mainWindow = window
+            let delegate = NSApp.delegate as? AppDelegate
+            guard !(delegate?.didHandleInitialWindow ?? true) else { return }
+            delegate?.didHandleInitialWindow = true
+
+            if UserDefaults.standard.bool(forKey: "menuBarOnly") {
+                // viewDidMoveToWindow はウィンドウ表示前に呼ばれるため、
+                // alpha=0 にすることでちらつきなく非表示にできる
+                window.alphaValue = 0
+                DispatchQueue.main.async {
+                    window.orderOut(nil)
+                    window.alphaValue = 1
+                }
+            }
         })
         .sheet(isPresented: $showingConnection) {
             ConnectionView()
