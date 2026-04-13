@@ -3,6 +3,7 @@ import SwiftUI
 struct ConnectionView: View {
     @Environment(MainViewModel.self) private var vm
     @Environment(\.dismiss) private var dismiss
+    @AppStorage("defaultHost") private var defaultHost = ""
 
     @State private var ipAddress = ""
     @State private var isConnecting = false
@@ -14,7 +15,7 @@ struct ConnectionView: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("AVR に接続")
                         .font(.title2.weight(.bold))
-                    Text("AVR-X3800H")
+                    Text("AVR-X3800H — HTTP API (ポート 8080)")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
@@ -28,13 +29,8 @@ struct ConnectionView: View {
 
             ScrollView {
                 VStack(alignment: .leading, spacing: 24) {
-
-                    // Auto discovery
                     discoverySection
-
                     Divider()
-
-                    // Manual IP
                     manualSection
                 }
                 .padding()
@@ -42,6 +38,12 @@ struct ConnectionView: View {
         }
         .frame(width: 440, height: 420)
         .background(.windowBackground)
+        .onAppear {
+            // 設定の IP を自動入力
+            if ipAddress.isEmpty {
+                ipAddress = defaultHost
+            }
+        }
     }
 
     // MARK: - Discovery
@@ -64,19 +66,14 @@ struct ConnectionView: View {
                 }
                 .foregroundStyle(.secondary)
                 .font(.callout)
+
+                Text("見つからない場合は下の手動接続をご利用ください")
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
             } else {
                 ForEach(vm.discovery.devices) { device in
                     deviceRow(device)
                 }
-            }
-
-            HStack {
-                Button(vm.discovery.isSearching ? "検索中..." : "再検索") {
-                    vm.discovery.stop()
-                    vm.discovery.start()
-                }
-                .disabled(vm.discovery.isSearching)
-                Spacer()
             }
         }
         .onAppear { vm.discovery.start() }
@@ -103,7 +100,6 @@ struct ConnectionView: View {
             Button("接続") {
                 Task {
                     isConnecting = true
-                    // Resolve service name → connect via host extracted from endpoint
                     if case .service(let name, _, _, _) = device.endpoint {
                         await vm.connect(host: name)
                     }
@@ -130,6 +126,9 @@ struct ConnectionView: View {
                 TextField("IPアドレス (例: 192.168.1.100)", text: $ipAddress)
                     .textFieldStyle(.roundedBorder)
                     .onSubmit { connectManual() }
+                    .onChange(of: ipAddress) { _, val in
+                        defaultHost = val   // 設定に自動保存
+                    }
 
                 Button("接続") { connectManual() }
                     .buttonStyle(.borderedProminent)
@@ -140,6 +139,15 @@ struct ConnectionView: View {
                 Label(msg, systemImage: "exclamationmark.triangle")
                     .font(.callout)
                     .foregroundStyle(.red)
+            }
+
+            if case .connecting = vm.connectionStatus {
+                HStack(spacing: 8) {
+                    ProgressView().scaleEffect(0.8)
+                    Text("接続中...")
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                }
             }
         }
     }

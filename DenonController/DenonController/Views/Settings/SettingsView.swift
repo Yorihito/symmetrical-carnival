@@ -2,16 +2,35 @@ import SwiftUI
 
 struct SettingsView: View {
     @AppStorage("defaultHost") private var defaultHost = ""
-    @AppStorage("defaultPort") private var defaultPort = 23
     @AppStorage("autoConnect")  private var autoConnect = false
     @AppStorage("showInDock")   private var showInDock = true
+    @Environment(MainViewModel.self) private var vm
 
     var body: some View {
         Form {
             Section("接続") {
-                TextField("デフォルト IP アドレス", text: $defaultHost)
-                Stepper("ポート: \(defaultPort)", value: $defaultPort, in: 1...65535)
+                TextField("AVR の IP アドレス", text: $defaultHost)
+                    .onSubmit { connectIfNeeded() }
+
+                LabeledContent("ポート") {
+                    Text("8080（固定）")
+                        .foregroundStyle(.secondary)
+                }
+
                 Toggle("起動時に自動接続", isOn: $autoConnect)
+
+                if !defaultHost.isEmpty {
+                    Button(vm.connectionStatus.isConnected ? "再接続" : "今すぐ接続") {
+                        connectIfNeeded()
+                    }
+                    .disabled(vm.connectionStatus == .connecting)
+                }
+
+                if case .error(let msg) = vm.connectionStatus {
+                    Label(msg, systemImage: "exclamationmark.triangle")
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                }
             }
 
             Section("アプリ") {
@@ -28,6 +47,11 @@ struct SettingsView: View {
             }
         }
         .formStyle(.grouped)
-        .frame(width: 400, height: 320)
+        .frame(width: 420, height: 340)
+    }
+
+    private func connectIfNeeded() {
+        guard !defaultHost.isEmpty else { return }
+        Task { await vm.connect(host: defaultHost) }
     }
 }

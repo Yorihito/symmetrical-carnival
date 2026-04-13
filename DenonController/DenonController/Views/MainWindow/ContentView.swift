@@ -19,7 +19,7 @@ enum NavSection: String, Hashable, CaseIterable {
 }
 
 struct ContentView: View {
-    @State private var vm = MainViewModel()
+    @Environment(MainViewModel.self) private var vm
     @State private var selectedSection: NavSection? = .dashboard
     @State private var showingConnection = false
 
@@ -31,16 +31,13 @@ struct ContentView: View {
             detail
         }
         .frame(minWidth: 720, minHeight: 500)
-        .environment(vm)
         .sheet(isPresented: $showingConnection) {
             ConnectionView()
-                .environment(vm)
         }
         .onAppear {
-            // Auto-connect if configured
             let host = UserDefaults.standard.string(forKey: "defaultHost") ?? ""
             let auto = UserDefaults.standard.bool(forKey: "autoConnect")
-            if auto && !host.isEmpty {
+            if auto && !host.isEmpty && !vm.connectionStatus.isConnected {
                 Task { await vm.connect(host: host) }
             }
         }
@@ -57,7 +54,6 @@ struct ContentView: View {
 
             Divider()
 
-            // Connection status footer
             HStack(spacing: 8) {
                 Circle()
                     .fill(statusColor)

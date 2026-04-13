@@ -2,11 +2,14 @@ import SwiftUI
 
 @main
 struct DenonControllerApp: App {
+    // アプリ全体で共有する ViewModel（メインウィンドウ・設定画面が同一インスタンスを使用）
+    @State private var vm = MainViewModel()
 
     var body: some Scene {
         // ── Main Window ────────────────────────────────────────────────
         WindowGroup {
             ContentView()
+                .environment(vm)
         }
         .windowStyle(.titleBar)
         .windowToolbarStyle(.unified)
@@ -19,7 +22,6 @@ struct DenonControllerApp: App {
 
         // ── Menu Bar Extra ─────────────────────────────────────────────
         MenuBarExtra("Denon Controller", systemImage: "hifispeaker.fill") {
-            // MenuBarExtra content needs its own ViewModel instance
             MenuBarContent()
         }
         .menuBarExtraStyle(.window)
@@ -27,12 +29,12 @@ struct DenonControllerApp: App {
         // ── Settings ───────────────────────────────────────────────────
         Settings {
             SettingsView()
+                .environment(vm)
         }
     }
 }
 
-/// Menu bar popover content with its own ViewModel.
-/// Shares AVR connection via @AppStorage host preference.
+/// メニューバーポップオーバー（メインウィンドウとは別の接続インスタンスを持つ）
 private struct MenuBarContent: View {
     @State private var vm = MainViewModel()
 
