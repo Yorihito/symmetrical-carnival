@@ -190,13 +190,16 @@ struct MenuBarPopoverView: View {
             Spacer()
 
             Button {
-                // 表示中のメインウィンドウがあれば前面へ、なければ openWindow で生成
-                if let existing = (NSApp.delegate as? AppDelegate)?.mainWindow, existing.isVisible {
+                // NSApp.hide() で隠した場合は activate() で確実に復元できる。
+                // menuBarOnly でない場合もウィンドウが存在するので activate で前面に出る。
+                // ウィンドウがまだ存在しない場合 (初回 menuBarOnly) は openWindow で生成。
+                if let existing = (NSApp.delegate as? AppDelegate)?.mainWindow, existing.isOnActiveSpace {
+                    NSApp.activate(ignoringOtherApps: true)
                     existing.makeKeyAndOrderFront(nil)
                 } else {
                     openWindow(id: "main")
+                    NSApp.activate(ignoringOtherApps: true)
                 }
-                NSApp.activate(ignoringOtherApps: true)
             } label: {
                 Label("詳細を開く", systemImage: "arrow.up.forward.app")
                     .font(.caption.weight(.medium))

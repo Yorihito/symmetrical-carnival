@@ -92,7 +92,10 @@ struct ContentView: View {
             // "詳細を開く" → openWindow で再生成でき確実に表示できる。
             window.alphaValue = 0
             DispatchQueue.main.async {
-                window.close()
+                // close()/orderOut() は SwiftUI シーン管理と衝突するため使わない。
+                // NSApp.hide() でアプリごと隠すと、activate() で確実に戻せる。
+                NSApp.hide(nil)
+                window.alphaValue = 1
                 delegate?.didSuppressInitialWindow = true
             }
         })
