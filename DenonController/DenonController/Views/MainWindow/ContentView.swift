@@ -81,19 +81,10 @@ struct ContentView: View {
             delegate?.mainWindow = window
             guard UserDefaults.standard.bool(forKey: "menuBarOnly"),
                   !(delegate?.didSuppressInitialWindow ?? false) else { return }
-            // orderOut/close は SwiftUI のウィンドウ管理と衝突し makeKeyAndOrderFront が
-            // 効かなくなるため使わない。alpha=0 + ignoresMouseEvents で不可視化するだけ
-            // にしてシーン管理を壊さない。"詳細を開く" で alpha=1 に戻して再表示する。
             delegate?.didSuppressInitialWindow = true
             window.alphaValue = 0
             window.ignoresMouseEvents = true
         })
-        .onDisappear {
-            // ウィンドウが閉じられたら .accessory に戻し参照を解放する
-            guard UserDefaults.standard.bool(forKey: "menuBarOnly") else { return }
-            NSApp.setActivationPolicy(.accessory)
-            (NSApp.delegate as? AppDelegate)?.mainWindow = nil
-        }
         .sheet(isPresented: $showingConnection) {
             ConnectionView()
         }

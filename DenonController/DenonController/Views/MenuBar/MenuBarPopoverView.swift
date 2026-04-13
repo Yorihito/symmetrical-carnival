@@ -191,11 +191,7 @@ struct MenuBarPopoverView: View {
 
             Button {
                 let delegate = NSApp.delegate as? AppDelegate
-                // .accessory モードでは起動時にウィンドウが作られないため mainWindow が
-                // nil の場合がある。openWindow で新規作成されるウィンドウが再度抑制
-                // されないよう、先にフラグを立てておく。
                 delegate?.didSuppressInitialWindow = true
-                NSApp.setActivationPolicy(.regular)
                 NSApp.activate(ignoringOtherApps: true)
                 if let existing = delegate?.mainWindow {
                     existing.alphaValue = 1
