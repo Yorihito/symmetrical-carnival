@@ -190,7 +190,11 @@ struct MenuBarPopoverView: View {
             Spacer()
 
             Button {
-                openWindow(id: "main")
+                if let existing = NSApp.windows.first(where: { $0.identifier?.rawValue == "main" }) {
+                    existing.makeKeyAndOrderFront(nil)
+                } else {
+                    openWindow(id: "main")
+                }
                 NSApp.activate(ignoringOtherApps: true)
             } label: {
                 Label("詳細を開く", systemImage: "arrow.up.forward.app")
