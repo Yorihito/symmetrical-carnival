@@ -7,6 +7,7 @@ struct ConnectionView: View {
 
     @State private var ipAddress = ""
     @State private var isConnecting = false
+    @State private var showDiscovery = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -15,7 +16,7 @@ struct ConnectionView: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("AVR に接続")
                         .font(.title2.weight(.bold))
-                    Text("AVR-X3800H — HTTP API (ポート 8080)")
+                    Text("AVR-X3800H  —  HTTP API (ポート 8080)")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
@@ -27,133 +28,131 @@ struct ConnectionView: View {
 
             Divider()
 
-            ScrollView {
-                VStack(alignment: .leading, spacing: 24) {
-                    discoverySection
-                    Divider()
-                    manualSection
+            VStack(alignment: .leading, spacing: 20) {
+
+                // ── 手動接続（メイン） ──────────────────────────────────
+                VStack(alignment: .leading, spacing: 12) {
+                    Label("IP アドレスで接続", systemImage: "network")
+                        .font(.headline)
+
+                    HStack {
+                        TextField("例: 192.168.1.100", text: $ipAddress)
+                            .textFieldStyle(.roundedBorder)
+                            .onSubmit { connectManual() }
+                            .onChange(of: ipAddress) { _, val in
+                                defaultHost = val
+                            }
+
+                        Button(action: connectManual) {
+                            if isConnecting {
+                                ProgressView().scaleEffect(0.75)
+                                    .frame(width: 60)
+                            } else {
+                                Text("接続")
+                                    .frame(width: 60)
+                            }
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .disabled(ipAddress.isEmpty || isConnecting)
+                        .keyboardShortcut(.return)
+                    }
+
+                    // ステータス表示
+                    switch vm.connectionStatus {
+                    case .connecting:
+                        Label("接続中...", systemImage: "arrow.triangle.2.circlepath")
+                            .font(.callout)
+                            .foregroundStyle(.secondary)
+                    case .error(let msg):
+                        Label(msg, systemImage: "exclamationmark.triangle.fill")
+                            .font(.callout)
+                            .foregroundStyle(.red)
+                    default:
+                        EmptyView()
+                    }
                 }
-                .padding()
+
+                Divider()
+
+                // ── Bonjour（折りたたみ） ───────────────────────────────
+                DisclosureGroup(
+                    isExpanded: $showDiscovery,
+                    content: {
+                        discoveryContent
+                            .padding(.top, 8)
+                    },
+                    label: {
+                        Label("自動検出 (Bonjour)", systemImage: "antenna.radiowaves.left.and.right")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                )
+                .onChange(of: showDiscovery) { _, expanded in
+                    if expanded { vm.discovery.start() } else { vm.discovery.stop() }
+                }
             }
+            .padding()
+            .frame(maxHeight: .infinity, alignment: .top)
         }
-        .frame(width: 440, height: 420)
+        .frame(width: 420, height: 340)
         .background(.windowBackground)
         .onAppear {
-            // 設定の IP を自動入力
-            if ipAddress.isEmpty {
-                ipAddress = defaultHost
-            }
+            if ipAddress.isEmpty { ipAddress = defaultHost }
+        }
+        .onDisappear {
+            vm.discovery.stop()
         }
     }
 
-    // MARK: - Discovery
+    // MARK: - Bonjour content
 
     @ViewBuilder
-    private var discoverySection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Label("自動検出 (Bonjour)", systemImage: "antenna.radiowaves.left.and.right")
-                .font(.headline)
-
-            if vm.discovery.devices.isEmpty {
-                HStack {
-                    if vm.discovery.isSearching {
-                        ProgressView().scaleEffect(0.7)
-                        Text("ネットワークを検索中...")
-                    } else {
-                        Image(systemName: "questionmark.circle")
-                        Text("デバイスが見つかりません")
-                    }
+    private var discoveryContent: some View {
+        if vm.discovery.devices.isEmpty {
+            HStack(spacing: 8) {
+                if vm.discovery.isSearching {
+                    ProgressView().scaleEffect(0.7)
+                    Text("検索中...")
+                } else {
+                    Image(systemName: "questionmark.circle")
+                    Text("デバイスが見つかりません")
                 }
-                .foregroundStyle(.secondary)
-                .font(.callout)
-
-                Text("見つからない場合は下の手動接続をご利用ください")
-                    .font(.caption)
-                    .foregroundStyle(.tertiary)
-            } else {
+            }
+            .font(.callout)
+            .foregroundStyle(.secondary)
+        } else {
+            VStack(spacing: 8) {
                 ForEach(vm.discovery.devices) { device in
-                    deviceRow(device)
-                }
-            }
-        }
-        .onAppear { vm.discovery.start() }
-        .onDisappear { vm.discovery.stop() }
-    }
-
-    private func deviceRow(_ device: DiscoveredDevice) -> some View {
-        HStack {
-            Image(systemName: "hifispeaker.fill")
-                .font(.title2)
-                .foregroundStyle(Color.accentColor)
-                .frame(width: 36)
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text(device.name)
-                    .font(.body.weight(.medium))
-                Text("Bonjour で発見")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-
-            Spacer()
-
-            Button("接続") {
-                Task {
-                    isConnecting = true
-                    if case .service(let name, _, _, _) = device.endpoint {
-                        await vm.connect(host: name)
+                    HStack {
+                        Image(systemName: "hifispeaker.fill")
+                            .foregroundStyle(Color.accentColor)
+                        Text(device.name)
+                            .font(.body.weight(.medium))
+                        Spacer()
+                        Button("接続") {
+                            Task {
+                                isConnecting = true
+                                if case .service(let name, _, _, _) = device.endpoint {
+                                    await vm.connect(host: name)
+                                }
+                                isConnecting = false
+                                if vm.connectionStatus.isConnected { dismiss() }
+                            }
+                        }
+                        .buttonStyle(.bordered)
+                        .controlSize(.small)
                     }
-                    isConnecting = false
-                    if vm.connectionStatus.isConnected { dismiss() }
-                }
-            }
-            .buttonStyle(.borderedProminent)
-            .disabled(isConnecting)
-        }
-        .padding(10)
-        .background(.quaternary, in: RoundedRectangle(cornerRadius: 10))
-    }
-
-    // MARK: - Manual
-
-    @ViewBuilder
-    private var manualSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Label("手動接続", systemImage: "network")
-                .font(.headline)
-
-            HStack {
-                TextField("IPアドレス (例: 192.168.1.100)", text: $ipAddress)
-                    .textFieldStyle(.roundedBorder)
-                    .onSubmit { connectManual() }
-                    .onChange(of: ipAddress) { _, val in
-                        defaultHost = val   // 設定に自動保存
-                    }
-
-                Button("接続") { connectManual() }
-                    .buttonStyle(.borderedProminent)
-                    .disabled(ipAddress.isEmpty || isConnecting)
-            }
-
-            if case .error(let msg) = vm.connectionStatus {
-                Label(msg, systemImage: "exclamationmark.triangle")
-                    .font(.callout)
-                    .foregroundStyle(.red)
-            }
-
-            if case .connecting = vm.connectionStatus {
-                HStack(spacing: 8) {
-                    ProgressView().scaleEffect(0.8)
-                    Text("接続中...")
-                        .font(.callout)
-                        .foregroundStyle(.secondary)
+                    .padding(8)
+                    .background(.quaternary, in: RoundedRectangle(cornerRadius: 8))
                 }
             }
         }
     }
+
+    // MARK: - Connect
 
     private func connectManual() {
-        guard !ipAddress.isEmpty else { return }
+        guard !ipAddress.isEmpty, !isConnecting else { return }
         Task {
             isConnecting = true
             await vm.connect(host: ipAddress)
