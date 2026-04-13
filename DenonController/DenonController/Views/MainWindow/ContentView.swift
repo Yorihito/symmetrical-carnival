@@ -31,6 +31,26 @@ struct ContentView: View {
             detail
         }
         .frame(minWidth: 720, minHeight: 500)
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    showingConnection = true
+                } label: {
+                    Label(
+                        vm.connectionStatus.isConnected ? "接続済み" : "接続",
+                        systemImage: vm.connectionStatus.isConnected
+                            ? "network.badge.shield.half.filled"
+                            : "network"
+                    )
+                    .foregroundStyle(
+                        vm.connectionStatus.isConnected ? Color.green
+                        : vm.connectionStatus == .connecting ? Color.orange
+                        : Color.primary
+                    )
+                }
+                .help(vm.connectionStatus.isConnected ? "接続済み — クリックで再設定" : "AVR に接続")
+            }
+        }
         .sheet(isPresented: $showingConnection) {
             ConnectionView()
         }
@@ -66,19 +86,6 @@ struct ContentView: View {
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 8)
-        }
-        .toolbar {
-            ToolbarItem {
-                Button {
-                    showingConnection = true
-                } label: {
-                    Image(systemName: vm.connectionStatus.isConnected
-                          ? "network.badge.shield.half.filled"
-                          : "network")
-                    .foregroundStyle(vm.connectionStatus.isConnected ? .green : .secondary)
-                }
-                .help(vm.connectionStatus.isConnected ? "接続済み — クリックで再設定" : "AVR に接続")
-            }
         }
     }
 
