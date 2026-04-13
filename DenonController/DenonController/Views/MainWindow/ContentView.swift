@@ -77,18 +77,11 @@ struct ContentView: View {
             }
         }
         .background(WindowAccessor { window in
-            let delegate = NSApp.delegate as? AppDelegate
-            guard !(delegate?.didHandleInitialWindow ?? true) else { return }
-            delegate?.didHandleInitialWindow = true
-
+            // viewDidMoveToWindow はウィンドウへの追加時（表示前）に呼ばれる。
+            // menuBarOnly の場合は alpha=0 で先手を打ち、ちらつきを防ぐ。
+            // 実際の orderOut は AppDelegate の通知オブザーバが担当する。
             if UserDefaults.standard.bool(forKey: "menuBarOnly") {
-                // viewDidMoveToWindow はウィンドウ表示前に呼ばれるため、
-                // alpha=0 にすることでちらつきなく非表示にできる
                 window.alphaValue = 0
-                DispatchQueue.main.async {
-                    window.orderOut(nil)
-                    window.alphaValue = 1
-                }
             }
         })
         .sheet(isPresented: $showingConnection) {
