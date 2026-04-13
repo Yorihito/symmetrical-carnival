@@ -78,17 +78,20 @@ struct ContentView: View {
         }
         .background(WindowAccessor { window in
             let delegate = NSApp.delegate as? AppDelegate
-            // ウィンドウ参照を更新（openWindow で新規作成された場合も追従）
             delegate?.mainWindow = window
 
-            // viewDidMoveToWindow はウィンドウ表示より前に呼ばれるため、
-            // ここで alpha=0 にするとちらつきなく非表示にできる。
-            // AppDelegate の async が orderOut + alpha 復元を行う。
-            // didSuppressInitialWindow が true の場合はユーザーが明示的に
-            // 開いた場面なので抑制しない。
-            if UserDefaults.standard.bool(forKey: "menuBarOnly"),
-               !(delegate?.didSuppressInitialWindow ?? false) {
-                window.alphaValue = 0
+            // menuBarOnly かつ初回のみ非表示にする。
+            // viewDidMoveToWindow はウィンドウ表示前に呼ばれるため、
+            // alpha=0 でちらつきを防いだうえで、次の run loop で
+            // orderOut → alpha 復元まで行う（AppDelegate の async に依存しない）。
+            guard UserDefaults.standard.bool(forKey: "menuBarOnly"),
+                  !(delegate?.didSuppressInitialWindow ?? false) else { return }
+
+            window.alphaValue = 0
+            DispatchQueue.main.async {
+                window.orderOut(nil)
+                window.alphaValue = 1
+                delegate?.didSuppressInitialWindow = true
             }
         })
         .sheet(isPresented: $showingConnection) {
