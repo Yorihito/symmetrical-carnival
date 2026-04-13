@@ -191,20 +191,16 @@ struct MenuBarPopoverView: View {
 
             Button {
                 let delegate = AppDelegate.shared
-
-                // NSAlert でデバッグ状態を表示（Xcode 不要）
-                let info = NSMutableString()
-                info.append("AppDelegate.shared: \(delegate != nil ? "✅ set" : "❌ nil")\n")
-                info.append("mainWindow: \(delegate?.mainWindow != nil ? "✅ set" : "❌ nil")\n")
-                info.append("didSuppress: \(delegate?.didSuppressInitialWindow ?? false)\n")
-                info.append("NSApp.windows(\(NSApp.windows.count)):\n")
-                for (i, w) in NSApp.windows.enumerated() {
-                    info.append("  [\(i)] \(type(of: w)) panel=\(w is NSPanel) alpha=\(String(format:"%.1f", w.alphaValue)) mask=\(w.styleMask.rawValue)\n")
+                delegate?.didSuppressInitialWindow = true
+                NSApp.activate(ignoringOtherApps: true)
+                if let win = delegate?.mainWindow {
+                    win.alphaValue = 1
+                    win.ignoresMouseEvents = false
+                    win.collectionBehavior = [.moveToActiveSpace]
+                    win.makeKeyAndOrderFront(nil)
+                } else {
+                    openWindow(id: "main")
                 }
-                let alert = NSAlert()
-                alert.messageText = "Open Details Debug"
-                alert.informativeText = info as String
-                alert.runModal()
             } label: {
                 Label("詳細を開く", systemImage: "arrow.up.forward.app")
                     .font(.caption.weight(.medium))

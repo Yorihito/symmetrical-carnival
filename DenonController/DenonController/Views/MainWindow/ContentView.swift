@@ -78,12 +78,10 @@ struct ContentView: View {
         }
         .background(WindowAccessor { window in
             let delegate = AppDelegate.shared
-            print("[DenonDebug] WindowAccessor fired: class=\(type(of: window)) alpha=\(window.alphaValue) menuBarOnly=\(UserDefaults.standard.bool(forKey: "menuBarOnly")) suppressed=\(delegate?.didSuppressInitialWindow ?? false)")
             delegate?.mainWindow = window
             guard UserDefaults.standard.bool(forKey: "menuBarOnly"),
                   !(delegate?.didSuppressInitialWindow ?? false) else { return }
             delegate?.didSuppressInitialWindow = true
-            print("[DenonDebug] Suppressing window with alpha=0")
             window.alphaValue = 0
             window.ignoresMouseEvents = true
         })

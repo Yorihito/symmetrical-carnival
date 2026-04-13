@@ -12,7 +12,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     override init() {
         super.init()
         AppDelegate.shared = self
-        print("[DenonDebug] AppDelegate.init() — shared set: \(AppDelegate.shared != nil)")
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
