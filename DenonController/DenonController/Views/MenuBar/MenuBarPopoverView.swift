@@ -191,34 +191,20 @@ struct MenuBarPopoverView: View {
 
             Button {
                 let delegate = AppDelegate.shared
-                delegate?.didSuppressInitialWindow = true
-                NSApp.activate(ignoringOtherApps: true)
 
-                // デバッグ: 全ウィンドウの情報を出力（Xcode コンソールで確認）
-                print("[DenonDebug] === Open Details pressed ===")
-                print("[DenonDebug] mainWindow: \(String(describing: delegate?.mainWindow))")
-                print("[DenonDebug] NSApp.windows count: \(NSApp.windows.count)")
+                // NSAlert でデバッグ状態を表示（Xcode 不要）
+                let info = NSMutableString()
+                info.append("AppDelegate.shared: \(delegate != nil ? "✅ set" : "❌ nil")\n")
+                info.append("mainWindow: \(delegate?.mainWindow != nil ? "✅ set" : "❌ nil")\n")
+                info.append("didSuppress: \(delegate?.didSuppressInitialWindow ?? false)\n")
+                info.append("NSApp.windows(\(NSApp.windows.count)):\n")
                 for (i, w) in NSApp.windows.enumerated() {
-                    print("[DenonDebug]   [\(i)] class=\(type(of: w)) isPanel=\(w is NSPanel) alpha=\(w.alphaValue) visible=\(w.isVisible) styleMask=\(w.styleMask.rawValue)")
+                    info.append("  [\(i)] \(type(of: w)) panel=\(w is NSPanel) alpha=\(String(format:"%.1f", w.alphaValue)) mask=\(w.styleMask.rawValue)\n")
                 }
-
-                // mainWindow を優先。なければ titled+closable のウィンドウを探す
-                let win = delegate?.mainWindow
-                    ?? NSApp.windows.first(where: {
-                        $0.styleMask.contains(.titled) && $0.styleMask.contains(.closable)
-                    })
-
-                print("[DenonDebug] chosen win: \(String(describing: win))")
-
-                if let win = win {
-                    win.collectionBehavior = [.moveToActiveSpace]
-                    win.alphaValue = 1
-                    win.ignoresMouseEvents = false
-                    win.makeKeyAndOrderFront(nil)
-                } else {
-                    print("[DenonDebug] fallback: calling openWindow")
-                    openWindow(id: "main")
-                }
+                let alert = NSAlert()
+                alert.messageText = "Open Details Debug"
+                alert.informativeText = info as String
+                alert.runModal()
             } label: {
                 Label("詳細を開く", systemImage: "arrow.up.forward.app")
                     .font(.caption.weight(.medium))
