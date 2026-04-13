@@ -190,15 +190,15 @@ struct MenuBarPopoverView: View {
             Spacer()
 
             Button {
-                // orderOut で隠したウィンドウは mainWindow に保持されている。
-                // isVisible/isOnActiveSpace は orderOut 後は false になるため使わない。
-                // mainWindow が存在すれば makeKeyAndOrderFront で確実に再表示できる。
+                // activate してからウィンドウを前面に出す（順序重要）。
+                // orderOut 後も mainWindow に strong 参照で保持されているため
+                // makeKeyAndOrderFront で確実に再表示できる。
+                NSApp.activate(ignoringOtherApps: true)
                 if let existing = (NSApp.delegate as? AppDelegate)?.mainWindow {
                     existing.makeKeyAndOrderFront(nil)
                 } else {
                     openWindow(id: "main")
                 }
-                NSApp.activate(ignoringOtherApps: true)
             } label: {
                 Label("詳細を開く", systemImage: "arrow.up.forward.app")
                     .font(.caption.weight(.medium))
