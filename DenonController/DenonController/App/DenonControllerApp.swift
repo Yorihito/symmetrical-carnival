@@ -15,8 +15,8 @@ struct DenonControllerApp: App {
     }
 
     var body: some Scene {
-        // ── Main Window（Window = シングルトン、openWindow は既存を前面に出すだけ）──
-        Window("Denon Controller", id: "main") {
+        // ── Main Window ────────────────────────────────────────────────
+        WindowGroup(id: "main") {
             ContentView()
                 .environment(vm)
                 .environment(\.locale, appLocale)

@@ -77,12 +77,9 @@ struct ContentView: View {
             }
         }
         .background(WindowAccessor { window in
-            // viewDidMoveToWindow はウィンドウへの追加時（表示前）に呼ばれる。
-            // menuBarOnly の場合は alpha=0 で先手を打ち、ちらつきを防ぐ。
-            // 実際の orderOut は AppDelegate の通知オブザーバが担当する。
-            if UserDefaults.standard.bool(forKey: "menuBarOnly") {
-                window.alphaValue = 0
-            }
+            let delegate = NSApp.delegate as? AppDelegate
+            // ウィンドウ参照を更新（openWindow で新規作成された場合も追従）
+            delegate?.mainWindow = window
         })
         .sheet(isPresented: $showingConnection) {
             ConnectionView()

@@ -190,7 +190,11 @@ struct MenuBarPopoverView: View {
             Spacer()
 
             Button {
-                openWindow(id: "main")
+                if let window = (NSApp.delegate as? AppDelegate)?.mainWindow {
+                    window.makeKeyAndOrderFront(nil)
+                } else {
+                    openWindow(id: "main")   // ウィンドウが閉じられた後の再生成のみ
+                }
                 NSApp.activate(ignoringOtherApps: true)
             } label: {
                 Label("詳細を開く", systemImage: "arrow.up.forward.app")
