@@ -192,6 +192,7 @@ struct MenuBarPopoverView: View {
             Button {
                 let delegate = AppDelegate.shared
                 delegate?.didSuppressInitialWindow = true
+                NSApp.setActivationPolicy(.regular)
                 NSApp.activate(ignoringOtherApps: true)
                 if let win = delegate?.mainWindow {
                     win.alphaValue = 1

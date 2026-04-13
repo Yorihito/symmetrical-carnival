@@ -85,6 +85,11 @@ struct ContentView: View {
             window.alphaValue = 0
             window.ignoresMouseEvents = true
         })
+        .onDisappear {
+            guard UserDefaults.standard.bool(forKey: "menuBarOnly") else { return }
+            NSApp.setActivationPolicy(.accessory)
+            AppDelegate.shared?.mainWindow = nil
+        }
         .sheet(isPresented: $showingConnection) {
             ConnectionView()
         }

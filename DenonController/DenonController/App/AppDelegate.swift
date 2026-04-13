@@ -14,6 +14,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         AppDelegate.shared = self
     }
 
+    func applicationWillFinishLaunching(_ notification: Notification) {
+        if UserDefaults.standard.bool(forKey: "menuBarOnly") {
+            NSApp.setActivationPolicy(.accessory)
+        }
+    }
+
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         false
     }
