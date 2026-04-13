@@ -190,13 +190,14 @@ struct MenuBarPopoverView: View {
             Spacer()
 
             Button {
-                let delegate = NSApp.delegate as? AppDelegate
-                delegate?.didSuppressInitialWindow = true
+                (NSApp.delegate as? AppDelegate)?.didSuppressInitialWindow = true
                 NSApp.activate(ignoringOtherApps: true)
-                if let existing = delegate?.mainWindow {
-                    existing.alphaValue = 1
-                    existing.ignoresMouseEvents = false
-                    existing.makeKeyAndOrderFront(nil)
+                // NSPanel 以外の最初のウィンドウ = メイン WindowGroup ウィンドウ
+                if let win = NSApp.windows.first(where: { !($0 is NSPanel) }) {
+                    win.collectionBehavior = [.moveToActiveSpace]
+                    win.alphaValue = 1
+                    win.ignoresMouseEvents = false
+                    win.makeKeyAndOrderFront(nil)
                 } else {
                     openWindow(id: "main")
                 }
