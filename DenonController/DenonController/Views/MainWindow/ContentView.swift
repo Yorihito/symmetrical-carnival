@@ -1,6 +1,5 @@
 import SwiftUI
 import AppKit
-import os
 
 /// viewDidMoveToWindow を使い、ウィンドウへの追加と同時（表示前）に callback を呼ぶ
 private final class WindowObserverView: NSView {
@@ -78,14 +77,13 @@ struct ContentView: View {
             }
         }
         .background(WindowAccessor { window in
-            let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "app", category: "WindowAccessor")
             let delegate = NSApp.delegate as? AppDelegate
-            logger.info("WindowAccessor fired: \(type(of: window)) menuBarOnly=\(UserDefaults.standard.bool(forKey: "menuBarOnly")) suppressed=\(delegate?.didSuppressInitialWindow ?? false)")
+            print("[DenonDebug] WindowAccessor fired: class=\(type(of: window)) alpha=\(window.alphaValue) menuBarOnly=\(UserDefaults.standard.bool(forKey: "menuBarOnly")) suppressed=\(delegate?.didSuppressInitialWindow ?? false)")
             delegate?.mainWindow = window
             guard UserDefaults.standard.bool(forKey: "menuBarOnly"),
                   !(delegate?.didSuppressInitialWindow ?? false) else { return }
             delegate?.didSuppressInitialWindow = true
-            logger.info("Suppressing window: alpha=0")
+            print("[DenonDebug] Suppressing window with alpha=0")
             window.alphaValue = 0
             window.ignoresMouseEvents = true
         })

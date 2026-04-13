@@ -1,5 +1,4 @@
 import SwiftUI
-import os
 
 struct MenuBarPopoverView: View {
     @Environment(MainViewModel.self) private var vm
@@ -191,26 +190,33 @@ struct MenuBarPopoverView: View {
             Spacer()
 
             Button {
-                let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "app", category: "OpenDetails")
                 let delegate = NSApp.delegate as? AppDelegate
                 delegate?.didSuppressInitialWindow = true
+                NSApp.activate(ignoringOtherApps: true)
 
-                logger.info("--- Open Details pressed ---")
-                logger.info("mainWindow: \(String(describing: delegate?.mainWindow))")
-                logger.info("NSApp.windows count: \(NSApp.windows.count)")
+                // デバッグ: 全ウィンドウの情報を出力（Xcode コンソールで確認）
+                print("[DenonDebug] === Open Details pressed ===")
+                print("[DenonDebug] mainWindow: \(String(describing: delegate?.mainWindow))")
+                print("[DenonDebug] NSApp.windows count: \(NSApp.windows.count)")
                 for (i, w) in NSApp.windows.enumerated() {
-                    logger.info("  [\(i)] \(type(of: w)) alpha=\(w.alphaValue) visible=\(w.isVisible) key=\(w.isKeyWindow)")
+                    print("[DenonDebug]   [\(i)] class=\(type(of: w)) isPanel=\(w is NSPanel) alpha=\(w.alphaValue) visible=\(w.isVisible) styleMask=\(w.styleMask.rawValue)")
                 }
 
-                NSApp.activate(ignoringOtherApps: true)
-                if let win = NSApp.windows.first(where: { !($0 is NSPanel) }) {
-                    logger.info("Found non-panel window: \(type(of: win)), showing it")
+                // mainWindow を優先。なければ titled+closable のウィンドウを探す
+                let win = delegate?.mainWindow
+                    ?? NSApp.windows.first(where: {
+                        $0.styleMask.contains(.titled) && $0.styleMask.contains(.closable)
+                    })
+
+                print("[DenonDebug] chosen win: \(String(describing: win))")
+
+                if let win = win {
                     win.collectionBehavior = [.moveToActiveSpace]
                     win.alphaValue = 1
                     win.ignoresMouseEvents = false
                     win.makeKeyAndOrderFront(nil)
                 } else {
-                    logger.info("No non-panel window found, calling openWindow")
+                    print("[DenonDebug] fallback: calling openWindow")
                     openWindow(id: "main")
                 }
             } label: {
