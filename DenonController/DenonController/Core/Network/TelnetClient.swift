@@ -1,20 +1,6 @@
 import Network
 import Foundation
 
-// MARK: - Errors
-
-enum AVRError: LocalizedError, Sendable {
-    case notConnected
-    case connectionFailed(String)
-
-    var errorDescription: String? {
-        switch self {
-        case .notConnected:          "AVR に接続されていません"
-        case .connectionFailed(let msg): "接続失敗: \(msg)"
-        }
-    }
-}
-
 // MARK: - TelnetClient
 
 /// AVR との TCP 接続を管理する Actor。

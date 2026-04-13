@@ -2,6 +2,7 @@ import SwiftUI
 
 struct MenuBarPopoverView: View {
     @Environment(MainViewModel.self) private var vm
+    @Environment(\.openWindow) private var openWindow
     @State private var showingConnectionSheet = false
 
     var body: some View {
@@ -19,6 +20,15 @@ struct MenuBarPopoverView: View {
             ConnectionView()
                 .environment(vm)
         }
+        .onAppear {
+            // menuBarOnly モードでは ContentView が自動接続をスキップするため、ここで行う
+            guard UserDefaults.standard.bool(forKey: "menuBarOnly") else { return }
+            let host = UserDefaults.standard.string(forKey: "defaultHost") ?? ""
+            let auto = UserDefaults.standard.bool(forKey: "autoConnect")
+            if auto && !host.isEmpty && !vm.connectionStatus.isConnected {
+                Task { await vm.connect(host: host) }
+            }
+        }
     }
 
     // MARK: - Header
@@ -30,7 +40,9 @@ struct MenuBarPopoverView: View {
                 .foregroundStyle(vm.connectionStatus.isConnected ? Color.accentColor : Color.secondary)
 
             VStack(alignment: .leading, spacing: 1) {
-                Text("AVR-X3800H")
+                Text(vm.avr.deviceInfo.displayTitle.isEmpty
+                     ? "AV RECEIVER"
+                     : vm.avr.deviceInfo.displayTitle)
                     .font(.callout.weight(.semibold))
                 HStack(spacing: 4) {
                     Circle()
@@ -67,9 +79,15 @@ struct MenuBarPopoverView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 Spacer()
-                Text(vm.avr.isMuted ? "ミュート" : vm.avr.volumeDBString)
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(vm.avr.isMuted ? .orange : .primary)
+                Group {
+                    if vm.avr.isMuted {
+                        Text("ミュート中")
+                    } else {
+                        Text(vm.avr.volumeDBString)
+                    }
+                }
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(vm.avr.isMuted ? Color.orange : Color.primary)
             }
 
             HStack(spacing: 10) {
@@ -96,7 +114,7 @@ struct MenuBarPopoverView: View {
             Button {
                 vm.toggleMute()
             } label: {
-                Label(vm.avr.isMuted ? "ミュート解除" : "ミュート",
+                Label(vm.avr.isMuted ? LocalizedStringKey("ミュート解除") : LocalizedStringKey("ミュート"),
                       systemImage: vm.avr.isMuted ? "speaker.slash.fill" : "speaker.wave.2.fill")
                     .font(.caption.weight(.medium))
                     .frame(maxWidth: .infinity)
@@ -119,7 +137,8 @@ struct MenuBarPopoverView: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
 
-            let quickInputs: [InputSource] = [.hdmi1, .hdmi2, .hdmi3, .hdmi4, .tv, .bluetooth]
+            // 表示設定済みの入力のうち最大 6 件をメニューバーに表示
+            let quickInputs = Array(vm.inputNames.visibleSources.prefix(6))
             let columns = [GridItem(.adaptive(minimum: 80), spacing: 6)]
             LazyVGrid(columns: columns, spacing: 6) {
                 ForEach(quickInputs) { source in
@@ -129,7 +148,7 @@ struct MenuBarPopoverView: View {
                         VStack(spacing: 4) {
                             Image(systemName: source.systemImage)
                                 .font(.callout)
-                            Text(source.displayName)
+                            Text(source.name(using: vm.inputNames))
                                 .font(.caption2)
                                 .lineLimit(1)
                         }
@@ -160,7 +179,7 @@ struct MenuBarPopoverView: View {
                 showingConnectionSheet = true
             } label: {
                 Label(
-                    vm.connectionStatus.isConnected ? "接続済み" : "接続",
+                    vm.connectionStatus.isConnected ? LocalizedStringKey("接続済み") : LocalizedStringKey("接続"),
                     systemImage: "network"
                 )
                 .font(.caption.weight(.medium))
@@ -171,8 +190,8 @@ struct MenuBarPopoverView: View {
             Spacer()
 
             Button {
+                openWindow(id: "main")
                 NSApp.activate(ignoringOtherApps: true)
-                NSApp.windows.first(where: { $0.canBecomeMain })?.makeKeyAndOrderFront(nil)
             } label: {
                 Label("詳細を開く", systemImage: "arrow.up.forward.app")
                     .font(.caption.weight(.medium))

@@ -2,14 +2,24 @@ import SwiftUI
 
 @main
 struct DenonControllerApp: App {
-    // アプリ全体で共有する ViewModel（メインウィンドウ・設定画面が同一インスタンスを使用）
+    @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @State private var vm = MainViewModel()
+    @AppStorage("appLanguage") private var appLanguage = "system"
+
+    private var appLocale: Locale {
+        switch appLanguage {
+        case "ja": Locale(identifier: "ja")
+        case "en": Locale(identifier: "en")
+        default:   .autoupdatingCurrent
+        }
+    }
 
     var body: some Scene {
         // ── Main Window ────────────────────────────────────────────────
-        WindowGroup {
+        WindowGroup(id: "main") {
             ContentView()
                 .environment(vm)
+                .environment(\.locale, appLocale)
         }
         .windowStyle(.titleBar)
         .windowToolbarStyle(.unified)
@@ -22,7 +32,9 @@ struct DenonControllerApp: App {
 
         // ── Menu Bar Extra ─────────────────────────────────────────────
         MenuBarExtra("Denon Controller", systemImage: "hifispeaker.fill") {
-            MenuBarContent()
+            MenuBarPopoverView()
+                .environment(vm)
+                .environment(\.locale, appLocale)
         }
         .menuBarExtraStyle(.window)
 
@@ -30,23 +42,7 @@ struct DenonControllerApp: App {
         Settings {
             SettingsView()
                 .environment(vm)
+                .environment(\.locale, appLocale)
         }
-    }
-}
-
-/// メニューバーポップオーバー（メインウィンドウとは別の接続インスタンスを持つ）
-private struct MenuBarContent: View {
-    @State private var vm = MainViewModel()
-
-    var body: some View {
-        MenuBarPopoverView()
-            .environment(vm)
-            .onAppear {
-                let host = UserDefaults.standard.string(forKey: "defaultHost") ?? ""
-                let auto = UserDefaults.standard.bool(forKey: "autoConnect")
-                if auto && !host.isEmpty && !vm.connectionStatus.isConnected {
-                    Task { await vm.connect(host: host) }
-                }
-            }
     }
 }

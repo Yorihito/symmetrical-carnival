@@ -6,6 +6,9 @@ struct DashboardView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 20) {
+                if vm.avr.isConnected {
+                    deviceInfoBanner
+                }
                 powerCard
                 volumeCard
                 inputCard
@@ -14,6 +17,32 @@ struct DashboardView: View {
             .padding()
         }
         .navigationTitle("ダッシュボード")
+    }
+
+    // MARK: - Device Info Banner
+
+    private var deviceInfoBanner: some View {
+        HStack(spacing: 12) {
+            Image(systemName: "hifispeaker.fill")
+                .font(.title2)
+                .foregroundStyle(Color.accentColor)
+
+            VStack(alignment: .leading, spacing: 2) {
+                if !vm.avr.deviceInfo.modelName.isEmpty {
+                    Text(vm.avr.deviceInfo.modelName)
+                        .font(.callout.weight(.semibold))
+                    Text(vm.avr.deviceInfo.brandName + " " + vm.avr.deviceInfo.categoryName)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                } else {
+                    Text("AV RECEIVER")
+                        .font(.callout.weight(.semibold))
+                }
+            }
+            Spacer()
+        }
+        .padding(12)
+        .background(Color.accentColor.opacity(0.06), in: RoundedRectangle(cornerRadius: 12))
     }
 
     // MARK: - Power Card
@@ -52,6 +81,7 @@ struct DashboardView: View {
                     volumeDB: vm.avr.volumeDB,
                     isMuted: vm.avr.isMuted,
                     dbString: vm.avr.volumeDBString,
+                    dbLabel: vm.avr.volumedBLabel,
                     onVolumeChange: { vm.setVolume($0) },
                     onMuteToggle: { vm.toggleMute() },
                     onVolumeUp: { vm.volumeUp() },
@@ -71,16 +101,17 @@ struct DashboardView: View {
                     Text("入力ソース")
                         .font(.headline)
                     Spacer()
-                    Label(vm.avr.input.displayName, systemImage: vm.avr.input.systemImage)
+                    Label(vm.avr.input.name(using: vm.inputNames), systemImage: vm.avr.input.systemImage)
                         .font(.callout)
                         .foregroundStyle(Color.accentColor)
                 }
 
                 let columns = [GridItem(.adaptive(minimum: 90), spacing: 8)]
                 LazyVGrid(columns: columns, spacing: 8) {
-                    ForEach(InputSource.allCases) { source in
+                    ForEach(vm.inputNames.visibleSources) { source in
                         InputButton(
                             source: source,
+                            name: source.name(using: vm.inputNames),
                             isSelected: vm.avr.input == source,
                             isEnabled: vm.avr.isConnected && vm.avr.isPoweredOn
                         ) {
@@ -127,6 +158,7 @@ struct DashboardView: View {
 
 private struct InputButton: View {
     let source: InputSource
+    let name: String
     let isSelected: Bool
     let isEnabled: Bool
     let action: () -> Void
@@ -136,7 +168,7 @@ private struct InputButton: View {
             VStack(spacing: 6) {
                 Image(systemName: source.systemImage)
                     .font(.title3)
-                Text(source.displayName)
+                Text(name)
                     .font(.caption2.weight(.medium))
                     .lineLimit(1)
                     .minimumScaleFactor(0.7)

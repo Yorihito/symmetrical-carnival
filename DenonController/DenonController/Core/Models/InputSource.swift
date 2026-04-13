@@ -58,7 +58,7 @@ enum InputSource: String, CaseIterable, Identifiable, Codable, Sendable {
         switch self {
         case .hdmi1, .hdmi2, .hdmi3, .hdmi4,
              .hdmi5, .hdmi6, .hdmi7, .hdmi8: "cable.connector"
-        case .bluetooth:   "bluetooth"
+        case .bluetooth:   "dot.radiowaves.left.and.right"
         case .network:     "network"
         case .tv:          "tv"
         case .bluray:      "opticaldisc"
@@ -71,6 +71,12 @@ enum InputSource: String, CaseIterable, Identifiable, Codable, Sendable {
         case .cblSat:      "satellite"
         case .aux1, .aux2: "headphones.circle"
         }
+    }
+
+    /// カスタム名ストアを参照した表示名。未設定なら displayName を使用。
+    @MainActor
+    func name(using store: InputNameStore) -> String {
+        store.customName(for: self) ?? displayName
     }
 
     init?(rawCode: String) {

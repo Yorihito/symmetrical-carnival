@@ -7,7 +7,9 @@ struct ZoneView: View {
         ScrollView {
             VStack(spacing: 16) {
                 zone2Card
-                zone3Card
+                if vm.avr.deviceInfo.hasZone3 {
+                    zone3Card
+                }
             }
             .padding()
         }
@@ -38,6 +40,9 @@ struct ZoneView: View {
                         volumeDB: vm.avr.zone2VolumeDB,
                         isMuted: vm.avr.zone2Mute,
                         dbString: vm.avr.zone2VolumeDBString,
+                        dbLabel: vm.avr.zone2VolumeDB.truncatingRemainder(dividingBy: 1) == 0
+                            ? String(format: "%.0f dB", vm.avr.zone2VolumeDB)
+                            : String(format: "%.1f dB", vm.avr.zone2VolumeDB),
                         onVolumeChange: { _ in },   // Zone 2 はステップ制御のみ
                         onMuteToggle: { vm.setZone2Mute(!vm.avr.zone2Mute) },
                         onVolumeUp: { vm.zone2VolumeUp() },

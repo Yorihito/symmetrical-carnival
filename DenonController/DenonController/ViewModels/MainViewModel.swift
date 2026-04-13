@@ -1,5 +1,4 @@
-import Foundation
-import Observation
+import SwiftUI
 
 // MARK: - ConnectionStatus
 
@@ -9,12 +8,12 @@ enum ConnectionStatus: Equatable, Sendable {
     case connected
     case error(String)
 
-    var label: String {
+    var label: LocalizedStringKey {
         switch self {
-        case .disconnected:    "未接続"
-        case .connecting:      "接続中..."
-        case .connected:       "接続済み"
-        case .error(let msg):  "エラー: \(msg)"
+        case .disconnected: "未接続"
+        case .connecting:   "接続中..."
+        case .connected:    "接続済み"
+        case .error:        "エラー"
         }
     }
 
@@ -31,9 +30,11 @@ final class MainViewModel {
     // MARK: - Public state
     let avr = AVRState()
     let presetStore = PresetStore()
+    let inputNames = InputNameStore()
     let discovery = MDNSDiscovery()
 
     var connectionStatus: ConnectionStatus = .disconnected
+    var connectingDetail: String = ""   // 接続中の進捗メッセージ
     var errorMessage: String?
     var lastConnectedHost: String = ""
 
@@ -46,12 +47,22 @@ final class MainViewModel {
     func connect(host: String) async {
         guard !connectionStatus.isConnected else { return }
         connectionStatus = .connecting
+        connectingDetail = ""
         errorMessage = nil
 
         do {
-            try await client.connect(host: host, port: 8080)
+            var info = try await client.connect(host: host, port: 8080) { [weak self] step in
+                Task { @MainActor [weak self] in
+                    self?.connectingDetail = step
+                }
+            }
+            // Zone 3 サポートを非同期で確認
+            info.hasZone3 = await client.probeZone3()
+
+            connectingDetail = ""
             connectionStatus = .connected
             avr.isConnected = true
+            avr.deviceInfo  = info
             lastConnectedHost = host
 
             // Consume HTTP polling stream
@@ -64,6 +75,7 @@ final class MainViewModel {
             }
 
         } catch {
+            connectingDetail = ""
             connectionStatus = .error(error.localizedDescription)
             avr.isConnected = false
         }

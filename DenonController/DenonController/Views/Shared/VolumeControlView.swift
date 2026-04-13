@@ -3,7 +3,8 @@ import SwiftUI
 struct VolumeControlView: View {
     let volumeDB: Double        // 実際の dB 値（-80 〜 +18）
     let isMuted: Bool
-    let dbString: String
+    let dbString: String        // 表示用（Denon 単位: "30" など）
+    let dbLabel: String         // 補足 dB ラベル（"-50 dB" など）
     let onVolumeChange: (Double) -> Void   // dB 値を渡す
     let onMuteToggle: () -> Void
     let onVolumeUp: () -> Void
@@ -16,10 +17,10 @@ struct VolumeControlView: View {
 
     var body: some View {
         VStack(spacing: 12) {
-            // dB 表示
+            // 音量表示（Denon 単位 ＋ dB）
             HStack(alignment: .firstTextBaseline, spacing: 4) {
                 if isMuted {
-                    Label("ミュート", systemImage: "speaker.slash.fill")
+                    Label("ミュート中", systemImage: "speaker.slash.fill")
                         .font(.title2.weight(.semibold))
                         .foregroundStyle(.orange)
                 } else {
@@ -28,6 +29,11 @@ struct VolumeControlView: View {
                         .foregroundStyle(.primary)
                         .contentTransition(.numericText())
                         .animation(.spring(duration: 0.2), value: dbString)
+                    Text(dbLabel)
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                        .contentTransition(.numericText())
+                        .animation(.spring(duration: 0.2), value: dbLabel)
                 }
             }
             .frame(height: 44)
@@ -76,7 +82,7 @@ struct VolumeControlView: View {
             // ミュートボタン
             Button(action: onMuteToggle) {
                 Label(
-                    isMuted ? "ミュート解除" : "ミュート",
+                    isMuted ? LocalizedStringKey("ミュート解除") : LocalizedStringKey("ミュート"),
                     systemImage: isMuted ? "speaker.slash.fill" : "speaker.wave.2.fill"
                 )
                 .font(.callout.weight(.medium))

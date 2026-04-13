@@ -7,6 +7,9 @@ import Observation
 @MainActor
 final class AVRState {
 
+    // MARK: - Device Info
+    var deviceInfo: DeviceInfo = .unknown
+
     // MARK: - Connection
     var isConnected = false
 
@@ -30,21 +33,22 @@ final class AVRState {
 
     // MARK: - Computed
 
-    /// 表示用 dB 文字列（例: "−30.0 dB"）
-    var volumeDBString: String {
-        if volumeDB.truncatingRemainder(dividingBy: 1) == 0 {
-            return String(format: "%.0f dB", volumeDB)
-        } else {
-            return String(format: "%.1f dB", volumeDB)
-        }
-    }
+    /// Denon 表示単位（AVR 本体の表示と同じ 0–98 の整数）
+    /// dB = unit − 80  なので:  -50 dB → 30, 0 dB → 80
+    var volumeUnit: Int { Int((volumeDB + 80.0).rounded()) }
+    var zone2VolumeUnit: Int { Int((zone2VolumeDB + 80.0).rounded()) }
+    var zone3VolumeUnit: Int { Int((zone3VolumeDB + 80.0).rounded()) }
 
-    var zone2VolumeDBString: String {
-        String(format: "%.0f dB", zone2VolumeDB)
-    }
+    /// AVR 本体と同じ表示（例: "30"）
+    var volumeDBString: String { "\(volumeUnit)" }
+    var zone2VolumeDBString: String { "\(zone2VolumeUnit)" }
+    var zone3VolumeDBString: String { "\(zone3VolumeUnit)" }
 
-    var zone3VolumeDBString: String {
-        String(format: "%.0f dB", zone3VolumeDB)
+    /// 参照用 dB 文字列（スライダーラベルなどに使用）
+    var volumedBLabel: String {
+        volumeDB.truncatingRemainder(dividingBy: 1) == 0
+            ? String(format: "%.0f dB", volumeDB)
+            : String(format: "%.1f dB", volumeDB)
     }
 
     // MARK: - Apply HTTP snapshot

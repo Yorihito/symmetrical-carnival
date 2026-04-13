@@ -16,17 +16,21 @@
 		2B35EC982FDB62B5E9D6DB96 /* TelnetClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2FEF8CF0CF7104302E3474B /* TelnetClient.swift */; };
 		3E9CD6EF7FA601D09188C4D0 /* PresetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F74152998E3524849FCB09AD /* PresetView.swift */; };
 		4C169A94637BC5F05839DCF7 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87532AE642CC4C7933E62C61 /* DashboardView.swift */; };
+		7306032949F820C71B3DA11E /* InputNameStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 495D17163A2E55D86ADB4C94 /* InputNameStore.swift */; };
 		85C6BEFABD78D72516F662D4 /* Preset.swift in Sources */ = {isa = PBXBuildFile; fileRef = F76C8EA4E66F47B8F0207066 /* Preset.swift */; };
 		87CB10DC1C014F5087070D0C /* MenuBarPopoverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20BE8F10BC0930A047050EF /* MenuBarPopoverView.swift */; };
 		9D457112D11E0B3126B14B2A /* AVRHTTPClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CB324EA5D91A2660C953E1F /* AVRHTTPClient.swift */; };
+		A552B2384A64070F14595C87 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2C97D129A06A4A87956F7FD /* AppDelegate.swift */; };
 		B3F1365972CF77F7177704C6 /* ZoneView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C62E5948C5D63D30BB07F2C /* ZoneView.swift */; };
 		C8B659374EDECC0EF38A7A9F /* MDNSDiscovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A00BF5F14989E8C48AE08AB /* MDNSDiscovery.swift */; };
 		CB761EBF6993D6F10238BE12 /* SurroundView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 593531F756C20B22B1282906 /* SurroundView.swift */; };
 		D06FB4A0EF2802537377E32F /* VolumeControlView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 71B63BF0A3338974C13AD96C /* VolumeControlView.swift */; };
 		D3615836D1796E560FAFCB1E /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C88FB0556735B17869D5A94 /* ContentView.swift */; };
+		DA56A1BF00A89DE4B12BECB2 /* DeviceInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 271AF613F454DB67A569A133 /* DeviceInfo.swift */; };
 		E8223854D0A25620B23FFA87 /* ConnectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EBA445EDC221C01FA9C6049 /* ConnectionView.swift */; };
 		E99FF3946B1A1C2271CC67B8 /* AVRState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DBDB1F2094291B09A369428 /* AVRState.swift */; };
 		F85DA1958EAB9A9D07F93D5C /* SurroundMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F00BCCBB5642689C5E0B915 /* SurroundMode.swift */; };
+		FFCDD1012D9A352D39630A9E /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = BC262F7082F36441393E9F29 /* Localizable.strings */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -34,11 +38,14 @@
 		0DBDB1F2094291B09A369428 /* AVRState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AVRState.swift; sourceTree = "<group>"; };
 		0EAFCB048A23BD89077533F3 /* PresetStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresetStore.swift; sourceTree = "<group>"; };
 		1A00BF5F14989E8C48AE08AB /* MDNSDiscovery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MDNSDiscovery.swift; sourceTree = "<group>"; };
+		271AF613F454DB67A569A133 /* DeviceInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceInfo.swift; sourceTree = "<group>"; };
 		2C62E5948C5D63D30BB07F2C /* ZoneView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZoneView.swift; sourceTree = "<group>"; };
 		371B2F4E3F7CEE3A934FE1DC /* InputView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputView.swift; sourceTree = "<group>"; };
 		48CC524B97F708FFD31253DA /* DenonControllerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DenonControllerApp.swift; sourceTree = "<group>"; };
+		495D17163A2E55D86ADB4C94 /* InputNameStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputNameStore.swift; sourceTree = "<group>"; };
 		593531F756C20B22B1282906 /* SurroundView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SurroundView.swift; sourceTree = "<group>"; };
 		5CB324EA5D91A2660C953E1F /* AVRHTTPClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AVRHTTPClient.swift; sourceTree = "<group>"; };
+		5D200BD5FD3E5621DA9993B3 /* ja */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ja; path = ja.lproj/Localizable.strings; sourceTree = "<group>"; };
 		6EBA445EDC221C01FA9C6049 /* ConnectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionView.swift; sourceTree = "<group>"; };
 		71B63BF0A3338974C13AD96C /* VolumeControlView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VolumeControlView.swift; sourceTree = "<group>"; };
 		7B3CE8991C907B6926608E9F /* DenonController.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DenonController.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -47,7 +54,9 @@
 		8C88FB0556735B17869D5A94 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		92DE52C6C47E8EE18C49EC97 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		A20BE8F10BC0930A047050EF /* MenuBarPopoverView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarPopoverView.swift; sourceTree = "<group>"; };
+		A2C97D129A06A4A87956F7FD /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		A2FEF8CF0CF7104302E3474B /* TelnetClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelnetClient.swift; sourceTree = "<group>"; };
+		D193336EF244689A731586EA /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		D4BA24D1B24069C44CB42386 /* MainViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainViewModel.swift; sourceTree = "<group>"; };
 		E9ECA17A4A0B3A093DB6F604 /* InputSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputSource.swift; sourceTree = "<group>"; };
 		E9EF1535DE119FCB004366B1 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
@@ -70,6 +79,7 @@
 			isa = PBXGroup;
 			children = (
 				0DBDB1F2094291B09A369428 /* AVRState.swift */,
+				271AF613F454DB67A569A133 /* DeviceInfo.swift */,
 				E9ECA17A4A0B3A093DB6F604 /* InputSource.swift */,
 				F76C8EA4E66F47B8F0207066 /* Preset.swift */,
 				7F00BCCBB5642689C5E0B915 /* SurroundMode.swift */,
@@ -96,6 +106,7 @@
 		530F24BF2749831DD2934F02 /* Persistence */ = {
 			isa = PBXGroup;
 			children = (
+				495D17163A2E55D86ADB4C94 /* InputNameStore.swift */,
 				0EAFCB048A23BD89077533F3 /* PresetStore.swift */,
 			);
 			path = Persistence;
@@ -104,6 +115,7 @@
 		721057D8A67D21BBA9A1A219 /* App */ = {
 			isa = PBXGroup;
 			children = (
+				A2C97D129A06A4A87956F7FD /* AppDelegate.swift */,
 				48CC524B97F708FFD31253DA /* DenonControllerApp.swift */,
 			);
 			path = App;
@@ -191,6 +203,7 @@
 				E9EF1535DE119FCB004366B1 /* Info.plist */,
 				721057D8A67D21BBA9A1A219 /* App */,
 				0351A643329882D2CDD6AE06 /* Core */,
+				BC262F7082F36441393E9F29 /* Localizable.strings */,
 				D8A7AE980BED9865BEF8E7FC /* ViewModels */,
 				B7622C43CAC5A06C2186127F /* Views */,
 			);
@@ -205,6 +218,7 @@
 			buildConfigurationList = A5CE33DE1F71AD210F133F11 /* Build configuration list for PBXNativeTarget "DenonController" */;
 			buildPhases = (
 				CC14F9CA6C3AD269E70618F0 /* Sources */,
+				29FC58BA9550FC101053601A /* Resources */,
 			);
 			buildRules = (
 			);
@@ -233,11 +247,12 @@
 				};
 			};
 			buildConfigurationList = BFCE35C6CAE0893441FA1A9B /* Build configuration list for PBXProject "DenonController" */;
-			developmentRegion = en;
+			developmentRegion = ja;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				Base,
 				en,
+				ja,
 			);
 			mainGroup = AFF5D9F1F66D7C76F88006AE;
 			minimizedProjectReferenceProxies = 1;
@@ -251,6 +266,17 @@
 		};
 /* End PBXProject section */
 
+/* Begin PBXResourcesBuildPhase section */
+		29FC58BA9550FC101053601A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FFCDD1012D9A352D39630A9E /* Localizable.strings in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		CC14F9CA6C3AD269E70618F0 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -258,10 +284,13 @@
 			files = (
 				9D457112D11E0B3126B14B2A /* AVRHTTPClient.swift in Sources */,
 				E99FF3946B1A1C2271CC67B8 /* AVRState.swift in Sources */,
+				A552B2384A64070F14595C87 /* AppDelegate.swift in Sources */,
 				E8223854D0A25620B23FFA87 /* ConnectionView.swift in Sources */,
 				D3615836D1796E560FAFCB1E /* ContentView.swift in Sources */,
 				4C169A94637BC5F05839DCF7 /* DashboardView.swift in Sources */,
 				1E31B61684414568011C77E0 /* DenonControllerApp.swift in Sources */,
+				DA56A1BF00A89DE4B12BECB2 /* DeviceInfo.swift in Sources */,
+				7306032949F820C71B3DA11E /* InputNameStore.swift in Sources */,
 				1E876FDB15C53E820184D209 /* InputSource.swift in Sources */,
 				18BC2655A7A945363CD3EF1A /* InputView.swift in Sources */,
 				C8B659374EDECC0EF38A7A9F /* MDNSDiscovery.swift in Sources */,
@@ -280,6 +309,18 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		BC262F7082F36441393E9F29 /* Localizable.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				D193336EF244689A731586EA /* en */,
+				5D200BD5FD3E5621DA9993B3 /* ja */,
+			);
+			name = Localizable.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
 		33DDAFE737AAB6B9EA718A8E /* Debug */ = {

@@ -16,6 +16,8 @@
     <string>14.0</string>
     <key>NSPrincipalClass</key>
     <string>NSApplication</string>
+    <key>NSLocalNetworkUsageDescription</key>
+    <string>Denon / Marantz AV レシーバーをローカルネットワーク経由で制御します。</string>
     <key>NSBonjourServices</key>
     <array>
         <string>_denon-heos._tcp</string>

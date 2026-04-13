@@ -7,6 +7,8 @@ enum NavSection: String, Hashable, CaseIterable {
     case zone      = "ゾーン"
     case presets   = "プリセット"
 
+    var localizedTitle: LocalizedStringKey { LocalizedStringKey(rawValue) }
+
     var systemImage: String {
         switch self {
         case .dashboard: "house.fill"
@@ -22,9 +24,10 @@ struct ContentView: View {
     @Environment(MainViewModel.self) private var vm
     @State private var selectedSection: NavSection? = .dashboard
     @State private var showingConnection = false
+    @State private var columnVisibility: NavigationSplitViewVisibility = .all
 
     var body: some View {
-        NavigationSplitView(columnVisibility: .constant(.all)) {
+        NavigationSplitView(columnVisibility: $columnVisibility) {
             sidebar
                 .navigationSplitViewColumnWidth(min: 160, ideal: 180)
         } detail: {
@@ -37,7 +40,7 @@ struct ContentView: View {
                     showingConnection = true
                 } label: {
                     Label(
-                        vm.connectionStatus.isConnected ? "接続済み" : "接続",
+                        vm.connectionStatus.isConnected ? LocalizedStringKey("接続済み") : LocalizedStringKey("接続"),
                         systemImage: vm.connectionStatus.isConnected
                             ? "network.badge.shield.half.filled"
                             : "network"
@@ -48,7 +51,7 @@ struct ContentView: View {
                         : Color.primary
                     )
                 }
-                .help(vm.connectionStatus.isConnected ? "接続済み — クリックで再設定" : "AVR に接続")
+                .help(vm.connectionStatus.isConnected ? LocalizedStringKey("接続済み — クリックで再設定") : LocalizedStringKey("AVR に接続"))
             }
         }
         .sheet(isPresented: $showingConnection) {
@@ -68,7 +71,7 @@ struct ContentView: View {
     private var sidebar: some View {
         VStack(spacing: 0) {
             List(NavSection.allCases, id: \.self, selection: $selectedSection) { section in
-                Label(section.rawValue, systemImage: section.systemImage)
+                Label(section.localizedTitle, systemImage: section.systemImage)
             }
             .listStyle(.sidebar)
 
@@ -83,6 +86,11 @@ struct ContentView: View {
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
                 Spacer()
+                SettingsLink {
+                    Image(systemName: "gearshape")
+                        .foregroundStyle(.secondary)
+                }
+                .buttonStyle(.plain)
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 8)

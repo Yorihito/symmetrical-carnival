@@ -10,9 +10,10 @@ struct InputView: View {
 
                 let columns = [GridItem(.adaptive(minimum: 130), spacing: 12)]
                 LazyVGrid(columns: columns, spacing: 12) {
-                    ForEach(InputSource.allCases) { source in
+                    ForEach(vm.inputNames.visibleSources) { source in
                         LargeInputButton(
                             source: source,
+                            name: source.name(using: vm.inputNames),
                             isSelected: vm.avr.input == source,
                             isEnabled: vm.avr.isConnected && vm.avr.isPoweredOn
                         ) {
@@ -38,7 +39,7 @@ struct InputView: View {
                 Text("現在の入力")
                     .font(.caption)
                     .foregroundStyle(.secondary)
-                Text(vm.avr.input.displayName)
+                Text(vm.avr.input.name(using: vm.inputNames))
                     .font(.title3.weight(.semibold))
             }
             Spacer()
@@ -50,6 +51,7 @@ struct InputView: View {
 
 private struct LargeInputButton: View {
     let source: InputSource
+    let name: String
     let isSelected: Bool
     let isEnabled: Bool
     let action: () -> Void
@@ -60,7 +62,7 @@ private struct LargeInputButton: View {
                 Image(systemName: source.systemImage)
                     .font(.system(size: 26))
                     .frame(height: 32)
-                Text(source.displayName)
+                Text(name)
                     .font(.callout.weight(.medium))
                     .lineLimit(2)
                     .multilineTextAlignment(.center)

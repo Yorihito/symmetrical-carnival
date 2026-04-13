@@ -1,6 +1,7 @@
 name: DenonController
 options:
   bundleIdPrefix: com.ytada
+  developmentLanguage: ja
   deploymentTarget:
     macOS: "14.0"
   createIntermediateGroups: true

@@ -16,7 +16,7 @@ struct ConnectionView: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("AVR に接続")
                         .font(.title2.weight(.bold))
-                    Text("AVR-X3800H  —  HTTP API (ポート 8080)")
+                    Text("Denon / Marantz AVR  —  HTTP API (ポート 8080)")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
