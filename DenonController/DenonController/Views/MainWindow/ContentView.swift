@@ -79,19 +79,10 @@ struct ContentView: View {
         .background(WindowAccessor { window in
             let delegate = NSApp.delegate as? AppDelegate
             delegate?.mainWindow = window
-
-            // menuBarOnly かつ初回のみ非表示にする。
-            // viewDidMoveToWindow はウィンドウ表示前に呼ばれるため、
-            // alpha=0 でちらつきを防いだうえで、次の run loop で
-            // orderOut → alpha 復元まで行う（AppDelegate の async に依存しない）。
             guard UserDefaults.standard.bool(forKey: "menuBarOnly"),
                   !(delegate?.didSuppressInitialWindow ?? false) else { return }
-
-            // alpha=0 でちらつきを防ぎつつ、次の run loop で orderOut する。
-            // NSApp.hide() はメニューバーアイコンのクリックでアプリが活性化した際に
-            // ウィンドウが復元されてしまうため使わない。
-            // WindowGroup は orderOut 後もウィンドウを保持するため、
-            // makeKeyAndOrderFront で確実に再表示できる。
+            // .accessory ポリシーで起動した場合でも SwiftUI がウィンドウを
+            // 表示しようとすることがあるため orderOut で念のため隠す。
             window.alphaValue = 0
             DispatchQueue.main.async {
                 window.orderOut(nil)
@@ -99,6 +90,12 @@ struct ContentView: View {
                 delegate?.didSuppressInitialWindow = true
             }
         })
+        .onDisappear {
+            // ウィンドウが閉じられたら .accessory に戻し、次回 openWindow に備える
+            guard UserDefaults.standard.bool(forKey: "menuBarOnly") else { return }
+            NSApp.setActivationPolicy(.accessory)
+            (NSApp.delegate as? AppDelegate)?.mainWindow = nil
+        }
         .sheet(isPresented: $showingConnection) {
             ConnectionView()
         }
