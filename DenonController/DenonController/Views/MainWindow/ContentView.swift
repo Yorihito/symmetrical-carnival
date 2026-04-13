@@ -87,10 +87,12 @@ struct ContentView: View {
             guard UserDefaults.standard.bool(forKey: "menuBarOnly"),
                   !(delegate?.didSuppressInitialWindow ?? false) else { return }
 
+            // alpha=0 でちらつきを防ぎつつ、次の run loop で close() する。
+            // orderOut と異なり close() は SwiftUI が正常にウィンドウを解放するため、
+            // "詳細を開く" → openWindow で再生成でき確実に表示できる。
             window.alphaValue = 0
             DispatchQueue.main.async {
-                window.orderOut(nil)
-                window.alphaValue = 1
+                window.close()
                 delegate?.didSuppressInitialWindow = true
             }
         })
