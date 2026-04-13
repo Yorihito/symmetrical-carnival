@@ -4,6 +4,9 @@ struct MenuBarPopoverView: View {
     @Environment(MainViewModel.self) private var vm
     @Environment(\.openWindow) private var openWindow
     @State private var showingConnectionSheet = false
+    @State private var isDraggingVolume = false
+    @State private var isPendingVolume = false   // ドラッグ終了〜AVR確認応答まで
+    @State private var dragVolumeValue: Double = -60.0
 
     var body: some View {
         VStack(spacing: 0) {
@@ -23,11 +26,10 @@ struct MenuBarPopoverView: View {
         .onAppear {
             // menuBarOnly モードでは ContentView が自動接続をスキップするため、ここで行う
             guard UserDefaults.standard.bool(forKey: "menuBarOnly") else { return }
-            let host = UserDefaults.standard.string(forKey: "defaultHost") ?? ""
-            let auto = UserDefaults.standard.bool(forKey: "autoConnect")
-            if auto && !host.isEmpty && !vm.connectionStatus.isConnected {
-                Task { await vm.connect(host: host) }
-            }
+            guard UserDefaults.standard.bool(forKey: "autoConnect") else { return }
+            guard !vm.connectionStatus.isConnected else { return }
+            // 保存ホストで接続を試み、失敗時は MDNS フォールバック
+            Task { await vm.connectAutomatic() }
         }
     }
 
@@ -83,11 +85,13 @@ struct MenuBarPopoverView: View {
                     if vm.avr.isMuted {
                         Text("ミュート中")
                     } else {
-                        Text(vm.avr.volumeDBString)
+                        Text((isDraggingVolume || isPendingVolume) ? menuBarVolumeString(dragVolumeValue) : vm.avr.volumeDBString)
                     }
                 }
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(vm.avr.isMuted ? Color.orange : Color.primary)
+                .contentTransition(.numericText())
+                .animation(.spring(duration: 0.15), value: isDraggingVolume ? dragVolumeValue : vm.avr.volumeDB)
             }
 
             HStack(spacing: 10) {
@@ -98,12 +102,29 @@ struct MenuBarPopoverView: View {
 
                 Slider(
                     value: Binding(
-                        get: { vm.avr.volumeDB },
-                        set: { vm.setVolume($0) }
+                        get: { (isDraggingVolume || isPendingVolume) ? dragVolumeValue : vm.avr.volumeDB },
+                        set: { newVal in
+                            dragVolumeValue = newVal
+                            isDraggingVolume = true
+                        }
                     ),
-                    in: -80...18, step: 0.5
+                    in: -80...18, step: 0.5,
+                    onEditingChanged: { editing in
+                        if !editing {
+                            isDraggingVolume = false
+                            isPendingVolume = true   // AVR確認応答まで現在値を保持
+                            vm.setVolume(dragVolumeValue)
+                        }
+                    }
                 )
                 .tint(vm.avr.isMuted ? .orange : .accentColor)
+                .onAppear { dragVolumeValue = vm.avr.volumeDB }
+                .onChange(of: vm.avr.volumeDB) { _, val in
+                    if !isDraggingVolume {
+                        dragVolumeValue = val
+                        isPendingVolume = false   // AVR確認応答で確定
+                    }
+                }
 
                 Button { vm.volumeUp() } label: {
                     Image(systemName: "speaker.plus.fill")
@@ -213,6 +234,10 @@ struct MenuBarPopoverView: View {
     }
 
     // MARK: - Helpers
+
+    private func menuBarVolumeString(_ db: Double) -> String {
+        "\(Int((db + 80.0).rounded()))"
+    }
 
     private var statusColor: Color {
         switch vm.connectionStatus {

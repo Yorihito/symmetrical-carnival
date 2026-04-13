@@ -44,6 +44,35 @@ final class MainViewModel {
 
     // MARK: - Connection
 
+    /// 保存済みホストで接続を試み、失敗時は MDNS で検索してフォールバック接続する。
+    /// menuBarOnly の自動接続で使用。
+    func connectAutomatic() async {
+        guard !connectionStatus.isConnected else { return }
+
+        let savedHost = UserDefaults.standard.string(forKey: "defaultHost") ?? ""
+        if !savedHost.isEmpty {
+            await connect(host: savedHost)
+            if connectionStatus.isConnected { return }
+        }
+
+        // 保存ホストで失敗 → BSD mDNS で全インターフェースをスキャン（最大 10 秒）
+        connectionStatus = .connecting
+        connectingDetail = "デバイスを検索中..."
+
+        let (found, _) = await MDNSScanner.scan()
+        guard let device = found.first else {
+            connectionStatus = .disconnected
+            connectingDetail = ""
+            return
+        }
+
+        connectingDetail = ""
+        await connect(host: device.host)
+        if connectionStatus.isConnected {
+            UserDefaults.standard.set(device.host, forKey: "defaultHost")
+        }
+    }
+
     func connect(host: String) async {
         guard !connectionStatus.isConnected else { return }
         connectionStatus = .connecting
@@ -68,7 +97,7 @@ final class MainViewModel {
             // Consume HTTP polling stream
             updateTask = Task { [weak self] in
                 guard let self else { return }
-                for await snapshot in await client.updates {
+                for await snapshot in client.updates {
                     self.avr.apply(snapshot)
                 }
                 self.handleDisconnect()

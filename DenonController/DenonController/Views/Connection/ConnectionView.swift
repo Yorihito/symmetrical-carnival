@@ -109,38 +109,60 @@ struct ConnectionView: View {
     @ViewBuilder
     private var discoveryContent: some View {
         if vm.discovery.devices.isEmpty {
-            HStack(spacing: 8) {
-                if vm.discovery.isSearching {
-                    ProgressView().scaleEffect(0.7)
-                    Text("検索中...")
-                } else {
-                    Image(systemName: "questionmark.circle")
-                    Text("デバイスが見つかりません")
+            VStack(alignment: .leading, spacing: 6) {
+                HStack(spacing: 8) {
+                    if vm.discovery.isSearching {
+                        ProgressView().scaleEffect(0.7)
+                        Text("検索中...")
+                    } else {
+                        Image(systemName: "questionmark.circle")
+                        Text("デバイスが見つかりません")
+                    }
+                }
+                .font(.callout)
+                .foregroundStyle(.secondary)
+
+                // 診断ログ（選択・コピー可能）
+                if !vm.discovery.isSearching && !vm.discovery.scanLog.isEmpty {
+                    TextEditor(text: .constant(vm.discovery.scanLog.joined(separator: "\n")))
+                        .font(.system(size: 10, design: .monospaced))
+                        .scrollContentBackground(.hidden)
+                        .background(Color.secondary.opacity(0.08))
+                        .clipShape(RoundedRectangle(cornerRadius: 6))
+                        .frame(height: 130)
                 }
             }
-            .font(.callout)
-            .foregroundStyle(.secondary)
         } else {
             VStack(spacing: 8) {
                 ForEach(vm.discovery.devices) { device in
                     HStack {
                         Image(systemName: "hifispeaker.fill")
                             .foregroundStyle(Color.accentColor)
-                        Text(device.name)
-                            .font(.body.weight(.medium))
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(device.name)
+                                .font(.body.weight(.medium))
+                            if device.host.isEmpty {
+                                Text("解決中...")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            } else {
+                                Text(device.host)
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
                         Spacer()
                         Button("接続") {
                             Task {
                                 isConnecting = true
-                                if case .service(let name, _, _, _) = device.endpoint {
-                                    await vm.connect(host: name)
-                                }
+                                await vm.connect(host: device.host)
                                 isConnecting = false
                                 if vm.connectionStatus.isConnected { dismiss() }
                             }
                         }
                         .buttonStyle(.bordered)
                         .controlSize(.small)
+                        .disabled(device.host.isEmpty)
                     }
                     .padding(8)
                     .background(.quaternary, in: RoundedRectangle(cornerRadius: 8))

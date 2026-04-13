@@ -11,9 +11,20 @@ struct VolumeControlView: View {
     let onVolumeDown: () -> Void
 
     @State private var isDragging = false
+    @State private var isPending = false   // ドラッグ終了〜AVR確認応答まで
     @State private var dragValue: Double = -30
 
-    private var displayDB: Double { isDragging ? dragValue : volumeDB }
+    private var displayDB: Double { (isDragging || isPending) ? dragValue : volumeDB }
+
+    private var displayDBString: String {
+        "\(Int((displayDB + 80.0).rounded()))"
+    }
+
+    private var displayDBLabel: String {
+        displayDB.truncatingRemainder(dividingBy: 1) == 0
+            ? String(format: "%.0f dB", displayDB)
+            : String(format: "%.1f dB", displayDB)
+    }
 
     var body: some View {
         VStack(spacing: 12) {
@@ -24,16 +35,16 @@ struct VolumeControlView: View {
                         .font(.title2.weight(.semibold))
                         .foregroundStyle(.orange)
                 } else {
-                    Text(dbString)
+                    Text(displayDBString)
                         .font(.system(size: 36, weight: .bold, design: .rounded))
                         .foregroundStyle(.primary)
                         .contentTransition(.numericText())
-                        .animation(.spring(duration: 0.2), value: dbString)
-                    Text(dbLabel)
+                        .animation(.spring(duration: 0.2), value: displayDBString)
+                    Text(displayDBLabel)
                         .font(.callout)
                         .foregroundStyle(.secondary)
                         .contentTransition(.numericText())
-                        .animation(.spring(duration: 0.2), value: dbLabel)
+                        .animation(.spring(duration: 0.2), value: displayDBLabel)
                 }
             }
             .frame(height: 44)
@@ -58,15 +69,22 @@ struct VolumeControlView: View {
                         }
                     ),
                     in: -80...18,
-                    step: 0.5
+                    step: 0.5,
+                    onEditingChanged: { editing in
+                        if !editing {
+                            isDragging = false
+                            isPending = true   // AVR確認応答まで現在値を保持
+                            onVolumeChange(dragValue)
+                        }
+                    }
                 )
                 .tint(isMuted ? .orange : .accentColor)
-                .onChange(of: dragValue) { _, val in
-                    onVolumeChange(val)
-                }
                 .onAppear { dragValue = volumeDB }
                 .onChange(of: volumeDB) { _, val in
-                    if !isDragging { dragValue = val }
+                    if !isDragging {
+                        dragValue = val
+                        isPending = false   // AVR確認応答で確定
+                    }
                 }
 
                 Button(action: onVolumeUp) {
