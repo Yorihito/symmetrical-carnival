@@ -8,36 +8,68 @@
 
 /* Begin PBXBuildFile section */
 		06F28E54E74061919B044C2B /* MainViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4BA24D1B24069C44CB42386 /* MainViewModel.swift */; };
+		0E82EDB2D74A532F3A20A260 /* DenonControllerMobileApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EC4A3F474DCD7D46A766271 /* DenonControllerMobileApp.swift */; };
+		0E8FADDEB53D2148312703A5 /* TunerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6C6A70CDC90F4B7352DEBB5 /* TunerView.swift */; };
+		1045CFDE17400F0C299B117A /* AVRHTTPClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CB324EA5D91A2660C953E1F /* AVRHTTPClient.swift */; };
 		1154BACFEC09434FDA7A9A21 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92DE52C6C47E8EE18C49EC97 /* SettingsView.swift */; };
+		1345E6D35DEE36AAAF7DD2D2 /* LocalizationHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67CDCF1D31DD391F01631CE2 /* LocalizationHelper.swift */; };
 		18BC2655A7A945363CD3EF1A /* InputView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 371B2F4E3F7CEE3A934FE1DC /* InputView.swift */; };
 		1E31B61684414568011C77E0 /* DenonControllerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48CC524B97F708FFD31253DA /* DenonControllerApp.swift */; };
 		1E876FDB15C53E820184D209 /* InputSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9ECA17A4A0B3A093DB6F604 /* InputSource.swift */; };
+		26B71BAD242ABD7D8DE3DAA0 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0C15B761820435FAA607C12D /* Assets.xcassets */; };
+		27144C0796515B5833274C3C /* TunerPreset.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C3EE3F5E05059A0B9CC8309 /* TunerPreset.swift */; };
 		2968E1C0723210303AC19292 /* PresetStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0EAFCB048A23BD89077533F3 /* PresetStore.swift */; };
+		2AAA0C216218E52C0AC77822 /* InputNameStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 495D17163A2E55D86ADB4C94 /* InputNameStore.swift */; };
 		2B35EC982FDB62B5E9D6DB96 /* TelnetClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2FEF8CF0CF7104302E3474B /* TelnetClient.swift */; };
+		2F263825EEA8AFE4C9A46AE6 /* CardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F813D9A057553CD9E8878B5F /* CardView.swift */; };
 		3E9CD6EF7FA601D09188C4D0 /* PresetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F74152998E3524849FCB09AD /* PresetView.swift */; };
+		44DBFAB90E3BE083C08D6F0B /* MainViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4BA24D1B24069C44CB42386 /* MainViewModel.swift */; };
 		4C169A94637BC5F05839DCF7 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87532AE642CC4C7933E62C61 /* DashboardView.swift */; };
+		53D6A9EA92F403A78ADAEE76 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DD48B21048CEB692DAB7C46 /* SettingsView.swift */; };
+		54CE9FA2CDE5781F438F6B9B /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBCC033BDB61A8099289FAA5 /* ContentView.swift */; };
+		586CC8A8C58A9B78BC42F4B5 /* MDNSDiscovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A00BF5F14989E8C48AE08AB /* MDNSDiscovery.swift */; };
+		68E65267FE353572BC4B7CBC /* VolumeControlView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 71B63BF0A3338974C13AD96C /* VolumeControlView.swift */; };
+		6F526542ED1AAC5FBA5A125F /* TunerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B68F7EA22CF66FAEDFC81885 /* TunerView.swift */; };
 		7306032949F820C71B3DA11E /* InputNameStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 495D17163A2E55D86ADB4C94 /* InputNameStore.swift */; };
 		85C6BEFABD78D72516F662D4 /* Preset.swift in Sources */ = {isa = PBXBuildFile; fileRef = F76C8EA4E66F47B8F0207066 /* Preset.swift */; };
 		87CB10DC1C014F5087070D0C /* MenuBarPopoverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20BE8F10BC0930A047050EF /* MenuBarPopoverView.swift */; };
+		95EFC25C1D4B6A1A0D3F6586 /* PresetStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0EAFCB048A23BD89077533F3 /* PresetStore.swift */; };
 		9D457112D11E0B3126B14B2A /* AVRHTTPClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CB324EA5D91A2660C953E1F /* AVRHTTPClient.swift */; };
+		9E35C74CEFDB4EE401BE7A53 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E3F661D100D83AE3D90486C /* DashboardView.swift */; };
+		9EE83FAB03B55BBE25058DAC /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 84B2E217523B349EC130FB92 /* Assets.xcassets */; };
 		A552B2384A64070F14595C87 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2C97D129A06A4A87956F7FD /* AppDelegate.swift */; };
 		B3F1365972CF77F7177704C6 /* ZoneView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C62E5948C5D63D30BB07F2C /* ZoneView.swift */; };
+		B695A3D5A451FCF5E9F4A039 /* SurroundMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F00BCCBB5642689C5E0B915 /* SurroundMode.swift */; };
+		BFFA6C52F1C109A464B735D9 /* InputSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9ECA17A4A0B3A093DB6F604 /* InputSource.swift */; };
+		C047CC739A755CDD5AE482E3 /* DeviceInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 271AF613F454DB67A569A133 /* DeviceInfo.swift */; };
+		C2E702869124D81FEF45FBD9 /* LocalizationHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67CDCF1D31DD391F01631CE2 /* LocalizationHelper.swift */; };
+		C73D769DF1CFD293E916453C /* PresetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8AAAE8AB7AA4238C35C99A6 /* PresetView.swift */; };
 		C8B659374EDECC0EF38A7A9F /* MDNSDiscovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A00BF5F14989E8C48AE08AB /* MDNSDiscovery.swift */; };
 		CB761EBF6993D6F10238BE12 /* SurroundView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 593531F756C20B22B1282906 /* SurroundView.swift */; };
 		D06FB4A0EF2802537377E32F /* VolumeControlView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 71B63BF0A3338974C13AD96C /* VolumeControlView.swift */; };
+		D079330241F0CF45F84A6C49 /* Preset.swift in Sources */ = {isa = PBXBuildFile; fileRef = F76C8EA4E66F47B8F0207066 /* Preset.swift */; };
 		D3615836D1796E560FAFCB1E /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C88FB0556735B17869D5A94 /* ContentView.swift */; };
+		D5B636D1118D2749307334E6 /* AVRState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DBDB1F2094291B09A369428 /* AVRState.swift */; };
 		DA56A1BF00A89DE4B12BECB2 /* DeviceInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 271AF613F454DB67A569A133 /* DeviceInfo.swift */; };
+		E073BAB275455B3D6569E0CA /* TunerPreset.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C3EE3F5E05059A0B9CC8309 /* TunerPreset.swift */; };
 		E8223854D0A25620B23FFA87 /* ConnectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EBA445EDC221C01FA9C6049 /* ConnectionView.swift */; };
 		E99FF3946B1A1C2271CC67B8 /* AVRState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DBDB1F2094291B09A369428 /* AVRState.swift */; };
+		EE614F6A701643C3ACE29B46 /* TelnetClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2FEF8CF0CF7104302E3474B /* TelnetClient.swift */; };
+		F0632EC557B94DBD5F4B1671 /* ConnectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C3874D625282B482D38AE6A /* ConnectionView.swift */; };
 		F85DA1958EAB9A9D07F93D5C /* SurroundMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F00BCCBB5642689C5E0B915 /* SurroundMode.swift */; };
+		FA5F210C12AC9F361029D2F8 /* ZoneView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7F395F8FE0341BC628627D5 /* ZoneView.swift */; };
 		FFCDD1012D9A352D39630A9E /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = BC262F7082F36441393E9F29 /* Localizable.strings */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		01525DCDCE780E88CC6F5771 /* DenonController.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = DenonController.entitlements; sourceTree = "<group>"; };
+		0C15B761820435FAA607C12D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		0DBDB1F2094291B09A369428 /* AVRState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AVRState.swift; sourceTree = "<group>"; };
+		0DD48B21048CEB692DAB7C46 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		0EAFCB048A23BD89077533F3 /* PresetStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresetStore.swift; sourceTree = "<group>"; };
+		163DBEFD314A8E331588C7DE /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		1A00BF5F14989E8C48AE08AB /* MDNSDiscovery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MDNSDiscovery.swift; sourceTree = "<group>"; };
+		1EC4A3F474DCD7D46A766271 /* DenonControllerMobileApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DenonControllerMobileApp.swift; sourceTree = "<group>"; };
 		271AF613F454DB67A569A133 /* DeviceInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceInfo.swift; sourceTree = "<group>"; };
 		2C62E5948C5D63D30BB07F2C /* ZoneView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZoneView.swift; sourceTree = "<group>"; };
 		371B2F4E3F7CEE3A934FE1DC /* InputView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputView.swift; sourceTree = "<group>"; };
@@ -46,22 +78,35 @@
 		593531F756C20B22B1282906 /* SurroundView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SurroundView.swift; sourceTree = "<group>"; };
 		5CB324EA5D91A2660C953E1F /* AVRHTTPClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AVRHTTPClient.swift; sourceTree = "<group>"; };
 		5D200BD5FD3E5621DA9993B3 /* ja */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ja; path = ja.lproj/Localizable.strings; sourceTree = "<group>"; };
+		607BCA4BB78DE0173CDB1D9E /* DenonControllerMobile.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = DenonControllerMobile.entitlements; sourceTree = "<group>"; };
+		67CDCF1D31DD391F01631CE2 /* LocalizationHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalizationHelper.swift; sourceTree = "<group>"; };
+		6C3874D625282B482D38AE6A /* ConnectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionView.swift; sourceTree = "<group>"; };
 		6EBA445EDC221C01FA9C6049 /* ConnectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionView.swift; sourceTree = "<group>"; };
 		71B63BF0A3338974C13AD96C /* VolumeControlView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VolumeControlView.swift; sourceTree = "<group>"; };
 		7B3CE8991C907B6926608E9F /* DenonController.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DenonController.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		7C3EE3F5E05059A0B9CC8309 /* TunerPreset.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TunerPreset.swift; sourceTree = "<group>"; };
 		7F00BCCBB5642689C5E0B915 /* SurroundMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SurroundMode.swift; sourceTree = "<group>"; };
+		84B2E217523B349EC130FB92 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		87532AE642CC4C7933E62C61 /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
 		8C88FB0556735B17869D5A94 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		92DE52C6C47E8EE18C49EC97 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		9E3F661D100D83AE3D90486C /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
 		A20BE8F10BC0930A047050EF /* MenuBarPopoverView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarPopoverView.swift; sourceTree = "<group>"; };
 		A2C97D129A06A4A87956F7FD /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		A2FEF8CF0CF7104302E3474B /* TelnetClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelnetClient.swift; sourceTree = "<group>"; };
+		B68F7EA22CF66FAEDFC81885 /* TunerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TunerView.swift; sourceTree = "<group>"; };
 		D193336EF244689A731586EA /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		D4BA24D1B24069C44CB42386 /* MainViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainViewModel.swift; sourceTree = "<group>"; };
+		D7F395F8FE0341BC628627D5 /* ZoneView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZoneView.swift; sourceTree = "<group>"; };
+		D9E63666C2D93B7D0561E5A9 /* DenonControllerMobile.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = DenonControllerMobile.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		E6C6A70CDC90F4B7352DEBB5 /* TunerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TunerView.swift; sourceTree = "<group>"; };
+		E8AAAE8AB7AA4238C35C99A6 /* PresetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresetView.swift; sourceTree = "<group>"; };
 		E9ECA17A4A0B3A093DB6F604 /* InputSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputSource.swift; sourceTree = "<group>"; };
 		E9EF1535DE119FCB004366B1 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		EBCC033BDB61A8099289FAA5 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		F74152998E3524849FCB09AD /* PresetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresetView.swift; sourceTree = "<group>"; };
 		F76C8EA4E66F47B8F0207066 /* Preset.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Preset.swift; sourceTree = "<group>"; };
+		F813D9A057553CD9E8878B5F /* CardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -75,6 +120,16 @@
 			path = Core;
 			sourceTree = "<group>";
 		};
+		03FFE93ABE35878EF76634C9 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				607BCA4BB78DE0173CDB1D9E /* DenonControllerMobile.entitlements */,
+				1EC4A3F474DCD7D46A766271 /* DenonControllerMobileApp.swift */,
+				163DBEFD314A8E331588C7DE /* Info.plist */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
 		11AB2D68EEAD131B7A0CD10D /* Models */ = {
 			isa = PBXGroup;
 			children = (
@@ -83,6 +138,7 @@
 				E9ECA17A4A0B3A093DB6F604 /* InputSource.swift */,
 				F76C8EA4E66F47B8F0207066 /* Preset.swift */,
 				7F00BCCBB5642689C5E0B915 /* SurroundMode.swift */,
+				7C3EE3F5E05059A0B9CC8309 /* TunerPreset.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -112,6 +168,15 @@
 			path = Persistence;
 			sourceTree = "<group>";
 		};
+		6E69F3B763B2B29C221C881C /* symmetrical-carnival */ = {
+			isa = PBXGroup;
+			children = (
+				C5D133A54B9E633AF91DDB2D /* DenonControllerMobile */,
+			);
+			name = "symmetrical-carnival";
+			path = ..;
+			sourceTree = "<group>";
+		};
 		721057D8A67D21BBA9A1A219 /* App */ = {
 			isa = PBXGroup;
 			children = (
@@ -133,6 +198,7 @@
 			isa = PBXGroup;
 			children = (
 				EDA9E43551A20C395161795E /* DenonController */,
+				6E69F3B763B2B29C221C881C /* symmetrical-carnival */,
 				DB58FE95C5508BF08A540D57 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -152,7 +218,26 @@
 		BB69860568D3A6B54D630B9C /* Shared */ = {
 			isa = PBXGroup;
 			children = (
+				67CDCF1D31DD391F01631CE2 /* LocalizationHelper.swift */,
 				71B63BF0A3338974C13AD96C /* VolumeControlView.swift */,
+			);
+			path = Shared;
+			sourceTree = "<group>";
+		};
+		C5D133A54B9E633AF91DDB2D /* DenonControllerMobile */ = {
+			isa = PBXGroup;
+			children = (
+				84B2E217523B349EC130FB92 /* Assets.xcassets */,
+				03FFE93ABE35878EF76634C9 /* App */,
+				D80C86CEA3FCE982D7B10ABA /* Views */,
+			);
+			path = DenonControllerMobile;
+			sourceTree = "<group>";
+		};
+		C7A561F9CCFA22ADE0F7559E /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				F813D9A057553CD9E8878B5F /* CardView.swift */,
 			);
 			path = Shared;
 			sourceTree = "<group>";
@@ -167,6 +252,21 @@
 			path = Network;
 			sourceTree = "<group>";
 		};
+		D80C86CEA3FCE982D7B10ABA /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				6C3874D625282B482D38AE6A /* ConnectionView.swift */,
+				EBCC033BDB61A8099289FAA5 /* ContentView.swift */,
+				9E3F661D100D83AE3D90486C /* DashboardView.swift */,
+				E8AAAE8AB7AA4238C35C99A6 /* PresetView.swift */,
+				0DD48B21048CEB692DAB7C46 /* SettingsView.swift */,
+				E6C6A70CDC90F4B7352DEBB5 /* TunerView.swift */,
+				D7F395F8FE0341BC628627D5 /* ZoneView.swift */,
+				C7A561F9CCFA22ADE0F7559E /* Shared */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
 		D8A7AE980BED9865BEF8E7FC /* ViewModels */ = {
 			isa = PBXGroup;
 			children = (
@@ -179,6 +279,7 @@
 			isa = PBXGroup;
 			children = (
 				7B3CE8991C907B6926608E9F /* DenonController.app */,
+				D9E63666C2D93B7D0561E5A9 /* DenonControllerMobile.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -191,6 +292,7 @@
 				371B2F4E3F7CEE3A934FE1DC /* InputView.swift */,
 				F74152998E3524849FCB09AD /* PresetView.swift */,
 				593531F756C20B22B1282906 /* SurroundView.swift */,
+				B68F7EA22CF66FAEDFC81885 /* TunerView.swift */,
 				2C62E5948C5D63D30BB07F2C /* ZoneView.swift */,
 			);
 			path = MainWindow;
@@ -199,6 +301,7 @@
 		EDA9E43551A20C395161795E /* DenonController */ = {
 			isa = PBXGroup;
 			children = (
+				0C15B761820435FAA607C12D /* Assets.xcassets */,
 				01525DCDCE780E88CC6F5771 /* DenonController.entitlements */,
 				E9EF1535DE119FCB004366B1 /* Info.plist */,
 				721057D8A67D21BBA9A1A219 /* App */,
@@ -231,6 +334,24 @@
 			productReference = 7B3CE8991C907B6926608E9F /* DenonController.app */;
 			productType = "com.apple.product-type.application";
 		};
+		7179CCBC77F3708CBF4C7675 /* DenonControllerMobile */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B68E8D806A5049325AFED87D /* Build configuration list for PBXNativeTarget "DenonControllerMobile" */;
+			buildPhases = (
+				A0257334D13D1F2042C9277D /* Sources */,
+				580A6A3C00CA8DFFDA49758A /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = DenonControllerMobile;
+			packageProductDependencies = (
+			);
+			productName = DenonControllerMobile;
+			productReference = D9E63666C2D93B7D0561E5A9 /* DenonControllerMobile.app */;
+			productType = "com.apple.product-type.application";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -241,6 +362,10 @@
 				LastUpgradeCheck = 1600;
 				TargetAttributes = {
 					3DE6F6C2534F8B7E76223265 = {
+						DevelopmentTeam = "";
+						ProvisioningStyle = Automatic;
+					};
+					7179CCBC77F3708CBF4C7675 = {
 						DevelopmentTeam = "";
 						ProvisioningStyle = Automatic;
 					};
@@ -262,6 +387,7 @@
 			projectRoot = "";
 			targets = (
 				3DE6F6C2534F8B7E76223265 /* DenonController */,
+				7179CCBC77F3708CBF4C7675 /* DenonControllerMobile */,
 			);
 		};
 /* End PBXProject section */
@@ -271,13 +397,52 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				26B71BAD242ABD7D8DE3DAA0 /* Assets.xcassets in Resources */,
 				FFCDD1012D9A352D39630A9E /* Localizable.strings in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		580A6A3C00CA8DFFDA49758A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9EE83FAB03B55BBE25058DAC /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		A0257334D13D1F2042C9277D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1045CFDE17400F0C299B117A /* AVRHTTPClient.swift in Sources */,
+				D5B636D1118D2749307334E6 /* AVRState.swift in Sources */,
+				2F263825EEA8AFE4C9A46AE6 /* CardView.swift in Sources */,
+				F0632EC557B94DBD5F4B1671 /* ConnectionView.swift in Sources */,
+				54CE9FA2CDE5781F438F6B9B /* ContentView.swift in Sources */,
+				9E35C74CEFDB4EE401BE7A53 /* DashboardView.swift in Sources */,
+				0E82EDB2D74A532F3A20A260 /* DenonControllerMobileApp.swift in Sources */,
+				C047CC739A755CDD5AE482E3 /* DeviceInfo.swift in Sources */,
+				2AAA0C216218E52C0AC77822 /* InputNameStore.swift in Sources */,
+				BFFA6C52F1C109A464B735D9 /* InputSource.swift in Sources */,
+				C2E702869124D81FEF45FBD9 /* LocalizationHelper.swift in Sources */,
+				586CC8A8C58A9B78BC42F4B5 /* MDNSDiscovery.swift in Sources */,
+				44DBFAB90E3BE083C08D6F0B /* MainViewModel.swift in Sources */,
+				D079330241F0CF45F84A6C49 /* Preset.swift in Sources */,
+				95EFC25C1D4B6A1A0D3F6586 /* PresetStore.swift in Sources */,
+				C73D769DF1CFD293E916453C /* PresetView.swift in Sources */,
+				53D6A9EA92F403A78ADAEE76 /* SettingsView.swift in Sources */,
+				B695A3D5A451FCF5E9F4A039 /* SurroundMode.swift in Sources */,
+				EE614F6A701643C3ACE29B46 /* TelnetClient.swift in Sources */,
+				E073BAB275455B3D6569E0CA /* TunerPreset.swift in Sources */,
+				0E8FADDEB53D2148312703A5 /* TunerView.swift in Sources */,
+				68E65267FE353572BC4B7CBC /* VolumeControlView.swift in Sources */,
+				FA5F210C12AC9F361029D2F8 /* ZoneView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		CC14F9CA6C3AD269E70618F0 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -293,6 +458,7 @@
 				7306032949F820C71B3DA11E /* InputNameStore.swift in Sources */,
 				1E876FDB15C53E820184D209 /* InputSource.swift in Sources */,
 				18BC2655A7A945363CD3EF1A /* InputView.swift in Sources */,
+				1345E6D35DEE36AAAF7DD2D2 /* LocalizationHelper.swift in Sources */,
 				C8B659374EDECC0EF38A7A9F /* MDNSDiscovery.swift in Sources */,
 				06F28E54E74061919B044C2B /* MainViewModel.swift in Sources */,
 				87CB10DC1C014F5087070D0C /* MenuBarPopoverView.swift in Sources */,
@@ -303,6 +469,8 @@
 				F85DA1958EAB9A9D07F93D5C /* SurroundMode.swift in Sources */,
 				CB761EBF6993D6F10238BE12 /* SurroundView.swift in Sources */,
 				2B35EC982FDB62B5E9D6DB96 /* TelnetClient.swift in Sources */,
+				27144C0796515B5833274C3C /* TunerPreset.swift in Sources */,
+				6F526542ED1AAC5FBA5A125F /* TunerView.swift in Sources */,
 				D06FB4A0EF2802537377E32F /* VolumeControlView.swift in Sources */,
 				B3F1365972CF77F7177704C6 /* ZoneView.swift in Sources */,
 			);
@@ -334,11 +502,31 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.ytada.DenonController;
 				PRODUCT_NAME = "Denon Controller";
 				SDKROOT = macosx;
 			};
 			name = Debug;
+		};
+		5F509B02E7C1ECB18F572C1E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = ../DenonControllerMobile/App/DenonControllerMobile.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				INFOPLIST_FILE = ../DenonControllerMobile/App/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.ytada.DenonControllerMobile;
+				PRODUCT_NAME = "Denon Controller";
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
 		};
 		7797BD3BE2A3B1A5A215618B /* Release */ = {
 			isa = XCBuildConfiguration;
@@ -351,6 +539,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.ytada.DenonController;
 				PRODUCT_NAME = "Denon Controller";
 				SDKROOT = macosx;
@@ -405,17 +594,36 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = macosx;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_STRICT_CONCURRENCY = targeted;
 				SWIFT_VERSION = 6.0;
 			};
 			name = Release;
+		};
+		ACC6458854B0A99C9C87621A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = ../DenonControllerMobile/App/DenonControllerMobile.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				INFOPLIST_FILE = ../DenonControllerMobile/App/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.ytada.DenonControllerMobile;
+				PRODUCT_NAME = "Denon Controller";
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
 		};
 		F28C0916E8D63CA8BF405A85 /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -471,12 +679,12 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = macosx;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_STRICT_CONCURRENCY = targeted;
@@ -492,6 +700,15 @@
 			buildConfigurations = (
 				33DDAFE737AAB6B9EA718A8E /* Debug */,
 				7797BD3BE2A3B1A5A215618B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		B68E8D806A5049325AFED87D /* Build configuration list for PBXNativeTarget "DenonControllerMobile" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				ACC6458854B0A99C9C87621A /* Debug */,
+				5F509B02E7C1ECB18F572C1E /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;

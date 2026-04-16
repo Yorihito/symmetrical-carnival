@@ -3,6 +3,7 @@
 "入力ソース" = "Input Source";
 "サラウンド" = "Surround";
 "ゾーン" = "Zone";
+"チューナー" = "Tuner";
 "プリセット" = "Presets";
 
 /* ConnectionStatus */
@@ -29,6 +30,12 @@
 /* SurroundView */
 "現在のモード" = "Current Mode";
 
+/* Surround group labels (DashboardView / SurroundView) */
+"スマート" = "Smart";
+"ダイレクト" = "Direct";
+"コンテンツ" = "Content";
+"イマーシブ" = "Immersive";
+
 /* ZoneView */
 "ゾーン制御" = "Zone Control";
 "Zone 2 はオフです" = "Zone 2 is off";
@@ -47,8 +54,10 @@
 "自動検出 (Bonjour)" = "Auto-discover (Bonjour)";
 "検索中..." = "Searching...";
 "デバイスが見つかりません" = "No devices found";
+"解決中..." = "Resolving...";
 
 /* SettingsView */
+"接続設定" = "Connection";
 "AVR の IP アドレス" = "AVR IP Address";
 "ポート" = "Port";
 "8080（固定）" = "8080 (fixed)";
@@ -71,6 +80,26 @@
 "入力切替" = "Input";
 "詳細を開く" = "Open Details";
 
+/* TunerView */
+"操作" = "Controls";
+"バンド" = "Band";
+"前" = "Prev";
+"次" = "Next";
+"周波数" = "Frequency";
+"プリセット取得" = "Fetch Presets";
+"AVR に登録されたチューナープリセットを一括取得します。" = "Bulk-fetch tuner presets stored in the AVR.";
+"取得" = "Fetch";
+"除外する周波数" = "Exclude Frequencies";
+"例: 90.0, 85.0" = "e.g. 90.0, 85.0";
+"スロット %lld / 56 を確認中..." = "Checking slot %lld / 56...";
+"%lld 件のプリセットを取得しました。" = "%lld preset(s) found.";
+"%lld 件を表示中（%lld 件除外）" = "%lld shown (%lld excluded)";
+"プリセット一覧" = "Preset List";
+"生データ確認" = "Raw Data";
+"チューナー XML の実際のレスポンスを表示します" = "Show actual XML responses from the tuner endpoints";
+"取得中..." = "Fetching...";
+"入力: TUNER を選択してください" = "Please select TUNER as input";
+
 /* PresetView */
 "追加" = "Add";
 "プリセットがありません" = "No Presets";
@@ -91,7 +120,15 @@
 "AVR に接続されていません" = "Not connected to AVR";
 "接続失敗" = "Connection failed";
 
+/* SettingsView — Developer section */
+"開発者" = "Developer";
+"デバッグモード" = "Debug Mode";
+"チューナー画面に Raw Data 確認パネルが表示されます。" = "Shows the Raw Data panel in the Tuner view.";
+
 /* Language settings */
 "表示言語" = "Language";
 "システム設定に従う" = "Follow System Setting";
 "エラー" = "Error";
+
+/* Settings window title */
+"設定" = "Settings";

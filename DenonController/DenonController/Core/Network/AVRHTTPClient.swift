@@ -27,6 +27,13 @@ struct AVRStatusSnapshot: Sendable {
     var zone2VolumeDB: Double = -40.0
     var zone2Muted:    Bool   = false
     var zone2InputCode: String = ""
+
+    // Tuner（TUNER 入力選択中のみ有効）
+    var tunerDataFetched: Bool   = false   // チューナー XML を実際に取得できたときのみ true
+    var tunerBand:        String = "FM"
+    var tunerFrequency:   String = ""
+    var tunerPreset:      Int    = 0
+    var tunerStationName: String = ""
 }
 
 // MARK: - AVRHTTPClient
@@ -128,6 +135,13 @@ actor AVRHTTPClient {
         return String(xml[s.upperBound..<e.lowerBound])
     }
 
+    /// チューナー XML 用パーサー。
+    /// フラット形式 `<Band>FM</Band>` を優先し、
+    /// 見つからなければネスト形式 `<Band><value>FM</value></Band>` も試みる。
+    private func tunerXML(_ xml: String, _ tag: String) -> String? {
+        simpleXML(in: xml, tag: tag) ?? xmlValue(in: xml, key: tag)
+    }
+
     // MARK: - Send command
 
     func send(_ command: String) async {
@@ -177,7 +191,133 @@ actor AVRHTTPClient {
             snap.zone2Muted     = xmlValue(in: xml, key: "Mute") == "on"
             snap.zone2InputCode = xmlValue(in: xml, key: "InputFuncSelect") ?? ""
         }
+
+        // チューナー XML は TUNER 入力選択中のみ取得
+        // チューナー XML は <Band>FM</Band> のフラット形式のため simpleXML を使用する
+        if snap.inputCode.trimmingCharacters(in: .whitespaces) == "TUNER" && snap.isPoweredOn {
+            if let (data, status) = try? await bsdGET(
+                path: "/goform/formTuner_TunerXml.xml", host: h, port: p
+            ), status == 200, let xml = String(data: data, encoding: .utf8) {
+                snap.tunerDataFetched = true
+                snap.tunerBand      = (tunerXML(xml, "Band") ?? "FM")
+                    .trimmingCharacters(in: .whitespaces).uppercased()
+                snap.tunerFrequency = tunerXML(xml, "Frequency") ?? ""
+                let presetStr       = tunerXML(xml, "preset") ?? tunerXML(xml, "Preset") ?? "0"
+                snap.tunerPreset    = Int(presetStr.trimmingCharacters(in: .whitespaces)) ?? 0
+                snap.tunerStationName = (tunerXML(xml, "StationName") ?? "")
+                    .trimmingCharacters(in: .whitespaces)
+            }
+        }
+
         continuation.yield(snap)
+    }
+
+    // MARK: - Tuner Diagnostics
+
+    /// チューナー関連エンドポイントの生レスポンスをすべて返す（デバッグ用）
+    func fetchTunerDiagnostics() async -> String {
+        guard !host.isEmpty else { return "未接続" }
+        var out = ""
+
+        // GET エンドポイント一覧
+        let getPaths = [
+            "/goform/formTuner_TunerXml.xml",
+            "/goform/formTuner_TunerPresetXml.xml",
+            "/goform/formMainZone_MainZoneXml.xml",
+            "/goform/formMainZone_MainZoneXmlStatusLite.xml",
+        ]
+        for path in getPaths {
+            out += "=== GET \(path) ===\n"
+            if let (data, status) = try? await bsdGET(path: path, host: host, port: port) {
+                out += "HTTP \(status)\n"
+                let body = String(data: data, encoding: .utf8)
+                    ?? String(data: data, encoding: .isoLatin1)
+                    ?? "(decode失敗)"
+                // 長すぎる場合は先頭2000文字だけ
+                out += body.count > 2000 ? String(body.prefix(2000)) + "\n...(省略)" : body
+            } else {
+                out += "(接続失敗)"
+            }
+            out += "\n\n"
+        }
+
+        // POST AppCommand.xml でチューナーステータスを取得
+        out += "=== POST /goform/AppCommand.xml (GetTunerStatus) ===\n"
+        let body = "<?xml version=\"1.0\" encoding=\"utf-8\"?><tx><cmd id=\"1\">GetTunerStatus</cmd></tx>"
+        if let (data, status) = try? await bsdPOST(
+            path: "/goform/AppCommand.xml", host: host, port: port, body: body
+        ) {
+            out += "HTTP \(status)\n"
+            out += String(data: data, encoding: .utf8)
+                ?? String(data: data, encoding: .isoLatin1)
+                ?? "(decode失敗)"
+        } else {
+            out += "(接続失敗)"
+        }
+        out += "\n"
+        return out
+    }
+
+    // MARK: - Tuner Preset Fetch (XML one-shot)
+
+    /// formTuner_TunerPresetXml.xml からプリセット一覧を一括取得する。
+    /// 未使用スロット（周波数 "0.00" / 空）は除外して返す。
+    /// 成功した場合は [TunerPreset]（空配列を含む）、XML が使えない場合は nil を返す。
+    func fetchTunerPresetsFromXml() async -> [TunerPreset]? {
+        guard !host.isEmpty else { return nil }
+        guard let (data, status) = try? await bsdGET(
+            path: "/goform/formTuner_TunerPresetXml.xml",
+            host: host, port: port
+        ), status == 200, let xml = String(data: data, encoding: .utf8) else {
+            return nil
+        }
+
+        var presets: [TunerPreset] = []
+
+        // フォーマット1: <PresetItem index="N">...</PresetItem>
+        var searchRange = xml.startIndex..<xml.endIndex
+        while let itemStart = xml.range(of: "<PresetItem", range: searchRange) {
+            guard let itemEnd = xml.range(of: "</PresetItem>", range: itemStart.upperBound..<xml.endIndex) else { break }
+            let itemXml = String(xml[itemStart.lowerBound..<itemEnd.upperBound])
+            searchRange = itemEnd.upperBound..<xml.endIndex
+
+            guard let idxStart = itemXml.range(of: "index=\""),
+                  let idxEnd   = itemXml.range(of: "\"", range: idxStart.upperBound..<itemXml.endIndex),
+                  let idx       = Int(itemXml[idxStart.upperBound..<idxEnd.lowerBound])
+            else { continue }
+
+            let freq = (simpleXML(in: itemXml, tag: "Frequency") ?? xmlValue(in: itemXml, key: "Frequency") ?? "")
+                .trimmingCharacters(in: .whitespaces)
+            guard !freq.isEmpty && freq != "0.00" && freq != "0" else { continue }
+
+            let bandStr = (simpleXML(in: itemXml, tag: "Band") ?? xmlValue(in: itemXml, key: "Band") ?? "FM")
+                .trimmingCharacters(in: .whitespaces)
+            let name = (simpleXML(in: itemXml, tag: "StationName") ?? xmlValue(in: itemXml, key: "StationName") ?? "")
+                .trimmingCharacters(in: .whitespaces)
+
+            let band = TunerBand(rawValue: bandStr.uppercased()) ?? .fm
+            presets.append(TunerPreset(id: idx, band: band, frequency: freq, stationName: name))
+        }
+
+        // フォーマット2: <Band1>FM</Band1> <Frequency1>87.50</Frequency1> ...
+        if presets.isEmpty {
+            for i in 1...56 {
+                let freq = (simpleXML(in: xml, tag: "Frequency\(i)") ?? "")
+                    .trimmingCharacters(in: .whitespaces)
+                guard !freq.isEmpty && freq != "0.00" && freq != "0" else { continue }
+                let bandStr = (simpleXML(in: xml, tag: "Band\(i)") ?? "FM")
+                    .trimmingCharacters(in: .whitespaces)
+                let name = (simpleXML(in: xml, tag: "StationName\(i)") ?? "")
+                    .trimmingCharacters(in: .whitespaces)
+                let band = TunerBand(rawValue: bandStr.uppercased()) ?? .fm
+                presets.append(TunerPreset(id: i, band: band, frequency: freq, stationName: name))
+            }
+        }
+
+        // XML は取得できたが解析できた場合のみ成功とみなす
+        // （空配列 = 全スロット未使用として扱う）
+        guard xml.contains("Frequency") || xml.contains("frequency") else { return nil }
+        return presets
     }
 
     // MARK: - BSD Socket HTTP GET
@@ -200,11 +340,16 @@ actor AVRHTTPClient {
     }
 
     /// ターゲット IP と同じサブネットを持つインターフェースのインデックスを返す。
-    /// 有線 + WiFi 混在環境で正しいインターフェース（WiFi 側）を選択するために使う。
+    /// 複数マッチした場合はサブネットマスクが最も狭い（具体的な）ものを優先する。
+    /// 例: en0(192.168.1.x/16) と en1(192.168.68.x/24) がともにマッチした場合、
+    /// /24 のほうが具体的なため en1 を選択する。
     private static func interfaceIndex(forTargetIP targetIP: in_addr_t) -> UInt32? {
         var ifList: UnsafeMutablePointer<ifaddrs>? = nil
         guard getifaddrs(&ifList) == 0 else { return nil }
         defer { freeifaddrs(ifList) }
+
+        var bestIdx: UInt32?
+        var bestMask: UInt32 = 0   // host byte order で比較（大きいほど狭いサブネット）
 
         var ptr = ifList
         while let p = ptr {
@@ -219,10 +364,14 @@ actor AVRHTTPClient {
             let mask   = nm.withMemoryRebound(to: sockaddr_in.self, capacity: 1) { $0.pointee.sin_addr.s_addr }
 
             if (ifAddr & mask) == (targetIP & mask) {
-                return if_nametoindex(p.pointee.ifa_name)
+                let maskHBO = UInt32(bigEndian: mask)   // /24 → 0xFFFFFF00, /16 → 0xFFFF0000
+                if maskHBO > bestMask {
+                    bestMask = maskHBO
+                    bestIdx = if_nametoindex(p.pointee.ifa_name)
+                }
             }
         }
-        return nil
+        return bestIdx
     }
 
     /// ブロッキング BSD ソケットで HTTP/1.0 GET を実行する。
@@ -306,6 +455,82 @@ actor AVRHTTPClient {
             body = responseData
         }
         return (body, status)
+    }
+
+    // MARK: - BSD Socket HTTP POST
+
+    private func bsdPOST(path: String, host: String, port: Int, body: String) async throws -> (Data, Int) {
+        try await withCheckedThrowingContinuation { cont in
+            DispatchQueue.global(qos: .userInitiated).async {
+                do {
+                    let result = try Self.bsdPOSTBlocking(host: host, port: port, path: path, body: body)
+                    cont.resume(returning: result)
+                } catch {
+                    cont.resume(throwing: error)
+                }
+            }
+        }
+    }
+
+    private static func bsdPOSTBlocking(host: String, port: Int, path: String, body: String) throws -> (Data, Int) {
+        var addr = sockaddr_in()
+        addr.sin_len    = UInt8(MemoryLayout<sockaddr_in>.size)
+        addr.sin_family = sa_family_t(AF_INET)
+        addr.sin_port   = in_port_t(port).bigEndian
+        guard inet_aton(host, &addr.sin_addr) != 0 else {
+            throw AVRError.connectionFailed("無効な IP アドレス: \(host)")
+        }
+        let targetIP = addr.sin_addr.s_addr
+
+        let fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)
+        guard fd >= 0 else { throw AVRError.connectionFailed("socket() 失敗") }
+        defer { Darwin.close(fd) }
+
+        if var ifIdx = interfaceIndex(forTargetIP: targetIP), ifIdx > 0 {
+            setsockopt(fd, IPPROTO_IP, IP_BOUND_IF, &ifIdx, socklen_t(MemoryLayout<UInt32>.size))
+        }
+        var tv = timeval(tv_sec: 5, tv_usec: 0)
+        setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &tv, socklen_t(MemoryLayout<timeval>.size))
+        setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, &tv, socklen_t(MemoryLayout<timeval>.size))
+
+        let connectRet = withUnsafePointer(to: addr) {
+            $0.withMemoryRebound(to: sockaddr.self, capacity: 1) {
+                Darwin.connect(fd, $0, socklen_t(MemoryLayout<sockaddr_in>.size))
+            }
+        }
+        guard connectRet == 0 else {
+            throw AVRError.connectionFailed("\(host):\(port) — \(String(cString: strerror(errno)))")
+        }
+
+        let bodyBytes = Array(body.utf8)
+        let req = "POST \(path) HTTP/1.0\r\nHost: \(host)\r\nContent-Type: text/xml\r\nContent-Length: \(bodyBytes.count)\r\nConnection: close\r\n\r\n"
+        let reqBytes = Array(req.utf8) + bodyBytes
+        guard Darwin.send(fd, reqBytes, reqBytes.count, 0) == reqBytes.count else {
+            throw AVRError.connectionFailed("POST 送信失敗")
+        }
+
+        var responseData = Data()
+        var buf = [UInt8](repeating: 0, count: 4096)
+        while true {
+            let n = Darwin.recv(fd, &buf, buf.count, 0)
+            if n <= 0 { break }
+            responseData.append(contentsOf: buf[0..<n])
+        }
+
+        guard let text      = String(data: responseData, encoding: .utf8)
+                              ?? String(data: responseData, encoding: .isoLatin1),
+              let firstLine = text.components(separatedBy: "\r\n").first,
+              let statusStr = firstLine.components(separatedBy: " ").dropFirst().first,
+              let status    = Int(statusStr)
+        else { throw AVRError.connectionFailed("POST レスポンス解析失敗") }
+
+        let respBody: Data
+        if let r = text.range(of: "\r\n\r\n") {
+            respBody = Data(text[r.upperBound...].utf8)
+        } else {
+            respBody = responseData
+        }
+        return (respBody, status)
     }
 
     // MARK: - XML Parser

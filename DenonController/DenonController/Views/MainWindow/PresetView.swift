@@ -2,6 +2,7 @@ import SwiftUI
 
 struct PresetView: View {
     @Environment(MainViewModel.self) private var vm
+    @Environment(\.locale) private var locale
     @State private var showingAddSheet = false
     @State private var editingPreset: Preset?
 
@@ -13,7 +14,7 @@ struct PresetView: View {
                 presetList
             }
         }
-        .navigationTitle("プリセット")
+        .navigationTitle(localizedNavTitle("プリセット", locale: locale))
         .toolbar {
             ToolbarItem(placement: .automatic) {
                 Button {

@@ -17,37 +17,37 @@ struct VolumeControlView: View {
     private var displayDB: Double { (isDragging || isPending) ? dragValue : volumeDB }
 
     private var displayDBString: String {
-        "\(Int((displayDB + 80.0).rounded()))"
+        String(format: "%.1f", displayDB + 80.0)
     }
 
     private var displayDBLabel: String {
-        displayDB.truncatingRemainder(dividingBy: 1) == 0
-            ? String(format: "%.0f dB", displayDB)
-            : String(format: "%.1f dB", displayDB)
+        String(format: "%.1f dB", displayDB)
     }
 
     var body: some View {
         VStack(spacing: 12) {
-            // 音量表示（Denon 単位 ＋ dB）
-            HStack(alignment: .firstTextBaseline, spacing: 4) {
+            // 音量表示（dB 主表示 ＋ Denon 単位 副表示）
+            Group {
                 if isMuted {
                     Label("ミュート中", systemImage: "speaker.slash.fill")
                         .font(.title2.weight(.semibold))
                         .foregroundStyle(.orange)
                 } else {
-                    Text(displayDBString)
-                        .font(.system(size: 36, weight: .bold, design: .rounded))
-                        .foregroundStyle(.primary)
-                        .contentTransition(.numericText())
-                        .animation(.spring(duration: 0.2), value: displayDBString)
-                    Text(displayDBLabel)
-                        .font(.callout)
-                        .foregroundStyle(.secondary)
-                        .contentTransition(.numericText())
-                        .animation(.spring(duration: 0.2), value: displayDBLabel)
+                    VStack(alignment: .center, spacing: 1) {
+                        Text(displayDBLabel)
+                            .font(.system(size: 34, weight: .bold, design: .rounded))
+                            .foregroundStyle(.primary)
+                            .contentTransition(.numericText())
+                            .animation(.spring(duration: 0.2), value: displayDBLabel)
+                        Text("Vol \(displayDBString)")
+                            .font(.caption.weight(.medium))
+                            .foregroundStyle(.tertiary)
+                            .contentTransition(.numericText())
+                            .animation(.spring(duration: 0.2), value: displayDBString)
+                    }
                 }
             }
-            .frame(height: 44)
+            .frame(height: 52)
 
             // スライダー行
             HStack(spacing: 12) {

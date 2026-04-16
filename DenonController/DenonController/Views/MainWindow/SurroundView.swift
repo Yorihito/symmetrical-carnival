@@ -2,28 +2,45 @@ import SwiftUI
 
 struct SurroundView: View {
     @Environment(MainViewModel.self) private var vm
+    @Environment(\.locale) private var locale
+
+    private let groups: [(label: String, modes: [SurroundMode])] = [
+        ("スマート",   [.auto, .stereo]),
+        ("ダイレクト", [.direct]),
+        ("コンテンツ", [.movie, .music, .game]),
+        ("イマーシブ", [.auro3D]),
+    ]
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 currentModeBanner
 
-                let columns = [GridItem(.adaptive(minimum: 140), spacing: 12)]
-                LazyVGrid(columns: columns, spacing: 12) {
-                    ForEach(SurroundMode.allCases) { mode in
-                        SurroundModeCard(
-                            mode: mode,
-                            isSelected: vm.avr.surroundMode == mode,
-                            isEnabled: vm.avr.isConnected && vm.avr.isPoweredOn
-                        ) {
-                            vm.setSurroundMode(mode)
+                ForEach(groups, id: \.label) { group in
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(LocalizedStringKey(group.label))
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(.secondary)
+                            .padding(.leading, 2)
+
+                        let columns = [GridItem(.adaptive(minimum: 140), spacing: 10)]
+                        LazyVGrid(columns: columns, spacing: 10) {
+                            ForEach(group.modes) { mode in
+                                SurroundModeCard(
+                                    mode: mode,
+                                    isSelected: vm.avr.surroundMode == mode,
+                                    isEnabled: vm.avr.isConnected && vm.avr.isPoweredOn
+                                ) {
+                                    vm.setSurroundMode(mode)
+                                }
+                            }
                         }
                     }
                 }
             }
             .padding()
         }
-        .navigationTitle("サラウンドモード")
+        .navigationTitle(localizedNavTitle("サラウンドモード", locale: locale))
     }
 
     private var currentModeBanner: some View {

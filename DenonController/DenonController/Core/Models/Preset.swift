@@ -9,11 +9,11 @@ struct Preset: Identifiable, Codable, Sendable {
     var surroundMode: SurroundMode
 
     static let examples: [Preset] = [
-        Preset(name: "映画", emoji: "🎬",
+        Preset(name: "Movie", emoji: "🎬",
                input: .hdmi1, volumeDB: -30, surroundMode: .movie),
-        Preset(name: "音楽", emoji: "🎵",
+        Preset(name: "Music", emoji: "🎵",
                input: .cd, volumeDB: -35, surroundMode: .music),
-        Preset(name: "ゲーム", emoji: "🎮",
+        Preset(name: "Game", emoji: "🎮",
                input: .hdmi2, volumeDB: -32, surroundMode: .game),
     ]
 }

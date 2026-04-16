@@ -3,6 +3,7 @@ import SwiftUI
 struct MenuBarPopoverView: View {
     @Environment(MainViewModel.self) private var vm
     @Environment(\.openWindow) private var openWindow
+    @Environment(\.locale) private var locale
     @State private var showingConnectionSheet = false
     @State private var isDraggingVolume = false
     @State private var isPendingVolume = false   // ドラッグ終了〜AVR確認応答まで
@@ -15,6 +16,10 @@ struct MenuBarPopoverView: View {
             volumeSection
             Divider()
             quickInputSection
+            if vm.avr.input == .tuner && vm.avr.isConnected && vm.avr.isPoweredOn {
+                Divider()
+                tunerQuickSection
+            }
             Divider()
             footerSection
         }
@@ -22,6 +27,7 @@ struct MenuBarPopoverView: View {
         .sheet(isPresented: $showingConnectionSheet) {
             ConnectionView()
                 .environment(vm)
+                .environment(\.locale, locale)
         }
         .onAppear {
             // menuBarOnly モードでは ContentView が自動接続をスキップするため、ここで行う
@@ -233,10 +239,76 @@ struct MenuBarPopoverView: View {
         .padding(10)
     }
 
+    // MARK: - Tuner Quick Section
+
+    private var tunerQuickSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            // ヘッダー: ラベル + 現在の周波数/局名
+            HStack(spacing: 6) {
+                Image(systemName: "antenna.radiowaves.left.and.right")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Text("チューナー")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Spacer()
+                VStack(alignment: .trailing, spacing: 1) {
+                    if !vm.avr.tunerStationName.isEmpty {
+                        Text(vm.avr.tunerStationName)
+                            .font(.caption.weight(.medium))
+                            .lineLimit(1)
+                    } else if !vm.avr.tunerFrequency.isEmpty {
+                        Text("\(vm.avr.tunerFrequency) \(vm.avr.tunerBand.freqUnit)")
+                            .font(.caption.weight(.medium))
+                    }
+                }
+            }
+
+            // プリセット切替ボタン
+            HStack(spacing: 6) {
+                Button { vm.tunerPresetDown() } label: {
+                    Image(systemName: "chevron.left")
+                        .font(.callout.weight(.semibold))
+                        .frame(maxWidth: .infinity, minHeight: 28)
+                        .background(Color.secondary.opacity(0.1), in: RoundedRectangle(cornerRadius: 6))
+                }
+                .buttonStyle(.plain)
+
+                // 中央: プリセット番号 + 周波数（局名がない場合）
+                VStack(spacing: 1) {
+                    Text(vm.avr.tunerPreset > 0
+                         ? String(format: "P%02d", vm.avr.tunerPreset)
+                         : "--")
+                        .font(.callout.weight(.semibold).monospacedDigit())
+                    if vm.avr.tunerStationName.isEmpty && !vm.avr.tunerFrequency.isEmpty {
+                        Text("\(vm.avr.tunerFrequency) \(vm.avr.tunerBand.freqUnit)")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                    } else if !vm.avr.tunerStationName.isEmpty {
+                        Text(vm.avr.tunerStationName)
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                    }
+                }
+                .frame(maxWidth: .infinity)
+
+                Button { vm.tunerPresetUp() } label: {
+                    Image(systemName: "chevron.right")
+                        .font(.callout.weight(.semibold))
+                        .frame(maxWidth: .infinity, minHeight: 28)
+                        .background(Color.secondary.opacity(0.1), in: RoundedRectangle(cornerRadius: 6))
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(12)
+    }
+
     // MARK: - Helpers
 
     private func menuBarVolumeString(_ db: Double) -> String {
-        "\(Int((db + 80.0).rounded()))"
+        String(format: "%.1f", db + 80.0)
     }
 
     private var statusColor: Color {

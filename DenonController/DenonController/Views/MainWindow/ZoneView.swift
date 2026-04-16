@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ZoneView: View {
     @Environment(MainViewModel.self) private var vm
+    @Environment(\.locale) private var locale
 
     var body: some View {
         ScrollView {
@@ -13,7 +14,7 @@ struct ZoneView: View {
             }
             .padding()
         }
-        .navigationTitle("ゾーン制御")
+        .navigationTitle(localizedNavTitle("ゾーン制御", locale: locale))
     }
 
     // MARK: - Zone 2

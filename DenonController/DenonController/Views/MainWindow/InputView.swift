@@ -2,6 +2,7 @@ import SwiftUI
 
 struct InputView: View {
     @Environment(MainViewModel.self) private var vm
+    @Environment(\.locale) private var locale
 
     var body: some View {
         ScrollView {
@@ -24,7 +25,7 @@ struct InputView: View {
             }
             .padding()
         }
-        .navigationTitle("入力ソース")
+        .navigationTitle(localizedNavTitle("入力ソース", locale: locale))
     }
 
     private var currentInputBanner: some View {

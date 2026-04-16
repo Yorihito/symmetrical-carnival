@@ -34,18 +34,26 @@ final class MainViewModel {
     let discovery = MDNSDiscovery()
 
     var connectionStatus: ConnectionStatus = .disconnected
-    var connectingDetail: String = ""   // 接続中の進捗メッセージ
+    var connectingDetail: String = ""
     var errorMessage: String?
     var lastConnectedHost: String = ""
 
     // MARK: - Private
     private let client = AVRHTTPClient()
+    private let telnet = TelnetClient()
     private var updateTask: Task<Void, Never>?
+    private var telnetListenTask: Task<Void, Never>?
+
+    init() {
+        // 前回フェッチしたプリセットを復元する
+        if let data = UserDefaults.standard.data(forKey: "savedTunerPresets"),
+           let saved = try? JSONDecoder().decode([TunerPreset].self, from: data) {
+            tunerAllPresets = saved
+        }
+    }
 
     // MARK: - Connection
 
-    /// 保存済みホストで接続を試み、失敗時は MDNS で検索してフォールバック接続する。
-    /// menuBarOnly の自動接続で使用。
     func connectAutomatic() async {
         guard !connectionStatus.isConnected else { return }
 
@@ -55,7 +63,6 @@ final class MainViewModel {
             if connectionStatus.isConnected { return }
         }
 
-        // 保存ホストで失敗 → BSD mDNS で全インターフェースをスキャン（最大 10 秒）
         connectionStatus = .connecting
         connectingDetail = "デバイスを検索中..."
 
@@ -85,7 +92,6 @@ final class MainViewModel {
                     self?.connectingDetail = step
                 }
             }
-            // Zone 3 サポートを非同期で確認
             info.hasZone3 = await client.probeZone3()
 
             connectingDetail = ""
@@ -94,13 +100,24 @@ final class MainViewModel {
             avr.deviceInfo  = info
             lastConnectedHost = host
 
-            // Consume HTTP polling stream
+            // HTTP ポーリング
             updateTask = Task { [weak self] in
                 guard let self else { return }
                 for await snapshot in client.updates {
                     self.avr.apply(snapshot)
                 }
                 self.handleDisconnect()
+            }
+
+            // Telnet 接続（ベストエフォート — 失敗しても HTTP は動き続ける）
+            Task { [weak self] in
+                guard let self else { return }
+                do {
+                    try await telnet.connect(host: host, port: 23)
+                    startTelnetListening()
+                } catch {
+                    // Telnet 未対応 or NWConnection 失敗 → 無視
+                }
             }
 
         } catch {
@@ -113,7 +130,10 @@ final class MainViewModel {
     func disconnect() {
         updateTask?.cancel()
         updateTask = nil
+        telnetListenTask?.cancel()
+        telnetListenTask = nil
         Task { await client.disconnect() }
+        Task { await telnet.disconnect() }
         handleDisconnect()
     }
 
@@ -122,38 +142,86 @@ final class MainViewModel {
         avr.isConnected = false
     }
 
-    // MARK: - Power
+    // MARK: - Telnet Listener
 
-    func setPower(_ on: Bool) {
-        send(on ? "PWON" : "PWSTANDBY")
+    private func startTelnetListening() {
+        telnetListenTask?.cancel()
+        telnetListenTask = Task { [weak self] in
+            guard let self else { return }
+            for await line in telnet.updates {
+                parseTelnetLine(line)
+            }
+        }
     }
 
-    func togglePower() { setPower(!avr.isPoweredOn) }
+    /// Denon Telnet プロトコルのレスポンス行を解析して状態を更新する。
+    private func parseTelnetLine(_ line: String) {
+        // MS... — サラウンドモード変更通知（AVR 側での変更も追跡できる）
+        if line.hasPrefix("MS") {
+            let code = String(line.dropFirst(2))
+            if let mode = SurroundMode(rawCode: code) {
+                avr.surroundMode = mode
+            }
+            return
+        }
+
+        // TPAN01 — プリセット番号
+        if line.hasPrefix("TPAN"), line.count >= 6 {
+            let digits = String(line.dropFirst(4))
+            if let n = Int(digits), n > 0 { avr.tunerPreset = n }
+            return
+        }
+        // TFAN08750 — FM 87.50 MHz (5桁: 周波数 × 100 kHz)
+        // バンドは TMANFM / TMANAM レスポンスで確定するため、ここでは周波数のみ更新する。
+        // AM切替直後の遅延 TFAN でバンドが FM に戻るのを防ぐ。
+        if line.hasPrefix("TFAN"), line.count >= 9 {
+            let digits = String(line.dropFirst(4))
+            if let val = Double(digits), val > 0 {
+                avr.tunerFrequency = formatMHz(val / 100.0)
+            }
+            return
+        }
+        // TMANFM / TMANAM — バンド切替レスポンス
+        if line == "TMANFM" { avr.tunerBand = .fm; return }
+        if line == "TMANAM" { avr.tunerBand = .am; return }
+        // TMAN00558 — AM 558 kHz
+        if line.hasPrefix("TMAN"), line.count >= 9 {
+            let digits = String(line.dropFirst(4))
+            if let val = Int(digits), val > 0 {
+                avr.tunerBand = .am
+                avr.tunerFrequency = String(val)
+            }
+            return
+        }
+    }
+
+    private func formatMHz(_ mhz: Double) -> String {
+        // 87.5 → "87.5" / 76.1 → "76.1" (小数第1位まで表示)
+        String(format: "%.1f", mhz)
+    }
+
+    // MARK: - Power
+
+    func setPower(_ on: Bool) { send(on ? "PWON" : "PWSTANDBY") }
+    func togglePower()        { setPower(!avr.isPoweredOn) }
 
     // MARK: - Volume
 
     func volumeUp()   { send("MVUP") }
     func volumeDown() { send("MVDOWN") }
-
-    /// db: 実際の dB 値（-80 〜 +18）
-    func setVolume(_ db: Double) {
-        send(AVRState.volumeCommand(forDB: db))
-    }
-
-    func setMute(_ on: Bool) { send(on ? "MUON" : "MUOFF") }
-    func toggleMute()        { setMute(!avr.isMuted) }
+    func setVolume(_ db: Double) { send(AVRState.volumeCommand(forDB: db)) }
+    func setMute(_ on: Bool)    { send(on ? "MUON" : "MUOFF") }
+    func toggleMute()           { setMute(!avr.isMuted) }
 
     // MARK: - Input
 
-    func setInput(_ input: InputSource) {
-        send(input.command)
-    }
+    func setInput(_ input: InputSource) { send(input.command) }
 
-    // MARK: - Surround（HTTP では取得不可 → 送信してローカル追跡）
+    // MARK: - Surround（HTTP では取得不可 → ローカル追跡 + Telnet 通知で補正）
 
     func setSurroundMode(_ mode: SurroundMode) {
         send(mode.command)
-        avr.surroundMode = mode   // ポーリングで取得できないのでローカル更新
+        avr.surroundMode = mode
     }
 
     // MARK: - Zone 2
@@ -168,6 +236,183 @@ final class MainViewModel {
     func setZone3Power(_ on: Bool) { send(on ? "Z3ON" : "Z3OFF") }
     func zone3VolumeUp()           { send("Z3UP") }
     func zone3VolumeDown()         { send("Z3DOWN") }
+
+    // MARK: - Tuner
+
+    func setTunerBand(_ band: TunerBand) {
+        avr.tunerBand = band   // 楽観的更新（HTTP ポーリング応答を待たずに即時反映）
+        send(band.selectCommand)
+    }
+
+    /// プリセット ↑。
+    /// スキャン済みリストがあればそのリスト内を循環（空スロット・スキップを自動回避）。
+    /// 未スキャンなら単純に +1。
+    func tunerPresetUp() {
+        if tunerPresets.isEmpty {
+            let next = avr.tunerPreset > 0 ? min(56, avr.tunerPreset + 1) : 1
+            selectTunerPreset(next)
+        } else {
+            let cur = avr.tunerPreset
+            if let idx = tunerPresets.firstIndex(where: { $0.id == cur }) {
+                selectTunerPreset(tunerPresets[(idx + 1) % tunerPresets.count].id)
+            } else {
+                selectTunerPreset(tunerPresets[0].id)
+            }
+        }
+    }
+
+    /// プリセット ↓（同上）。
+    func tunerPresetDown() {
+        if tunerPresets.isEmpty {
+            let prev = avr.tunerPreset > 1 ? avr.tunerPreset - 1 : 1
+            selectTunerPreset(prev)
+        } else {
+            let cur = avr.tunerPreset
+            if let idx = tunerPresets.firstIndex(where: { $0.id == cur }) {
+                selectTunerPreset(tunerPresets[(idx - 1 + tunerPresets.count) % tunerPresets.count].id)
+            } else {
+                selectTunerPreset(tunerPresets[tunerPresets.count - 1].id)
+            }
+        }
+    }
+
+    func tunerFreqUp()   { send(avr.tunerBand.freqUpCommand) }
+    func tunerFreqDown() { send(avr.tunerBand.freqDownCommand) }
+
+    /// プリセット選択。
+    /// HTTP では読み返せないのでローカル追跡。Telnet が接続されていれば
+    /// 周波数と局名は自動的に更新される。
+    func selectTunerPreset(_ n: Int) {
+        send(String(format: "TPAN%02d", n))
+        avr.tunerPreset = n
+        avr.tunerStationName = ""   // Telnet からの更新を待つ
+    }
+
+    // MARK: - Tuner Preset Scan
+
+    /// スキャン生データ（フィルタ前）
+    var tunerAllPresets: [TunerPreset] = []
+
+    /// 除外する周波数（カンマ区切り MHz、例: "90.0" or "90.0, 85.0"）
+    var tunerSkipFrequencies: String = UserDefaults.standard.string(forKey: "tunerSkipFrequencies") ?? "90.0"
+
+    /// 除外周波数を適用したプリセット一覧（表示・ナビゲーション用）
+    var tunerPresets: [TunerPreset] {
+        let skipSet = skipFreqSet(from: tunerSkipFrequencies)
+        guard !skipSet.isEmpty else { return tunerAllPresets }
+        return tunerAllPresets.filter { p in
+            guard let f = Double(p.frequency) else { return true }
+            return !skipSet.contains(f)
+        }
+    }
+
+    /// 除外周波数を保存する
+    func setTunerSkipFrequencies(_ value: String) {
+        tunerSkipFrequencies = value
+        UserDefaults.standard.set(value, forKey: "tunerSkipFrequencies")
+    }
+
+    private func skipFreqSet(from raw: String) -> Set<Double> {
+        Set(raw.components(separatedBy: ",").compactMap {
+            Double($0.trimmingCharacters(in: .whitespaces))
+        })
+    }
+
+    var isScanningTuner = false
+    var tunerScanProgress: Int = 0
+    private var tunerScanTask: Task<Void, Never>?
+
+    /// チューナープリセット一覧を取得する。
+    /// まず formTuner_TunerPresetXml.xml を一括取得して試み（高速・移動なし）、
+    /// 取得できない場合は Telnet ベーススキャンにフォールバックする。
+    func startTunerScan() {
+        guard !isScanningTuner else { return }
+        isScanningTuner = true
+        tunerScanProgress = 0
+        tunerAllPresets = []
+
+        tunerScanTask = Task { [weak self] in
+            guard let self else { return }
+
+            // ── Phase 1: XML 一括取得 ─────────────────────────────────────
+            if let xmlPresets = await client.fetchTunerPresetsFromXml(), !Task.isCancelled {
+                tunerScanProgress = 56
+                tunerAllPresets = xmlPresets
+                saveTunerPresets()
+                isScanningTuner = false
+                return
+            }
+
+            // ── Phase 2: Telnet ベーススキャン（フォールバック）───────────
+            // 周波数変化で登録済みスロットを判定する。
+            // 空スロットは同じプレースホルダー周波数（例: 90.0 MHz）になるため
+            // freqChanged が false になり追加されない。
+            // プレースホルダーが初回だけ変化して入る場合は tunerSkipFrequencies で除外する。
+            var found: [TunerPreset] = []
+            var prevFreq = avr.tunerFrequency
+            var prevBand = avr.tunerBand
+
+            for i in 1...56 {
+                if Task.isCancelled { break }
+                tunerScanProgress = i
+
+                selectTunerPreset(i)
+                try? await Task.sleep(for: .milliseconds(600))
+                if Task.isCancelled { break }
+
+                let newFreq = avr.tunerFrequency
+                let newBand = avr.tunerBand
+                let name    = avr.tunerStationName
+
+                guard !newFreq.isEmpty else { prevFreq = newFreq; prevBand = newBand; continue }
+
+                let freqChanged = newFreq != prevFreq || newBand != prevBand
+                // P01 は比較対象の前スロットがないため freqChanged に関わらず追加する
+                if freqChanged || i == 1 {
+                    found.append(TunerPreset(
+                        id: i, band: newBand, frequency: newFreq, stationName: name
+                    ))
+                }
+                prevFreq = newFreq
+                prevBand = newBand
+            }
+
+            tunerAllPresets = found
+            saveTunerPresets()
+            isScanningTuner = false
+        }
+    }
+
+    func cancelTunerScan() {
+        tunerScanTask?.cancel()
+        tunerScanTask = nil
+        isScanningTuner = false
+    }
+
+    private func saveTunerPresets() {
+        if let data = try? JSONEncoder().encode(tunerAllPresets) {
+            UserDefaults.standard.set(data, forKey: "savedTunerPresets")
+        }
+    }
+
+    // MARK: - Tuner Diagnostics
+
+    var tunerDiagLog: String = ""
+    var isFetchingTunerDiag = false
+
+    func fetchTunerDiagnostics() {
+        guard !isFetchingTunerDiag else { return }
+        isFetchingTunerDiag = true
+        tunerDiagLog = ""
+        Task { [weak self] in
+            guard let self else { return }
+            let log = await client.fetchTunerDiagnostics()
+            await MainActor.run { [weak self] in
+                self?.tunerDiagLog = log
+                self?.isFetchingTunerDiag = false
+            }
+        }
+    }
 
     // MARK: - Presets
 
@@ -192,7 +437,13 @@ final class MainViewModel {
     private func send(_ command: String) {
         Task { [weak self] in
             guard let self else { return }
-            await client.send(command)
+            // Telnet 接続中なら Telnet を優先（スペース含むコマンドも正しく送信できる）
+            do {
+                try await telnet.send(command)
+            } catch {
+                // Telnet 未接続 or 失敗 → HTTP フォールバック
+                await client.send(command)
+            }
         }
     }
 }

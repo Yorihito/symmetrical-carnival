@@ -68,7 +68,7 @@ enum MDNSScanner {
         let interfaces = ipv4Interfaces()
         var log: [String] = []
 
-        log.append("インターフェース数: \(interfaces.count)")
+        log.append("Interfaces: \(interfaces.count)")
         for iface in interfaces {
             var ipStr = [CChar](repeating: 0, count: Int(INET_ADDRSTRLEN))
             var addr = iface.ip
@@ -85,7 +85,7 @@ enum MDNSScanner {
             }
         }
         log.append(contentsOf: scanLog)
-        log.append("mDNS応答: \(pairs.count)件")
+        log.append("mDNS responses: \(pairs.count)")
         for (ip, name) in pairs { log.append("  IP:\(ip) name:\(name)") }
 
         // HTTP で Denon デバイスか確認してデバイス情報を取得
@@ -100,63 +100,19 @@ enum MDNSScanner {
                 if let d { devices.append(d) }
             }
         }
-        log.append("確認済みデバイス: \(devices.count)件")
+        log.append("Verified devices: \(devices.count)")
         return (devices.sorted { $0.name < $1.name }, log)
     }
 
     // MARK: - mDNS スキャン（ブロッキング）
 
-    /// 1 つのソケットで全インターフェースにクエリを送り、応答を収集する。
-    /// SO_REUSEPORT でポート 5353 を共有（mDNSResponder と共存）し、
-    /// マルチキャスト応答も受信できるようにする。
+    /// インターフェースごとに個別ソケットを作成し、IP_BOUND_IF で固定して送受信する。
+    /// IP_MULTICAST_IF はマルチキャストルートが必要で EHOSTUNREACH になることがあるため、
+    /// TCP クライアントと同じ IP_BOUND_IF 方式を使う。
     private static func mdnsScanBlocking(
         interfaces: [InterfaceInfo], timeout: Double, log: inout [String]
     ) -> [(ip: String, name: String)] {
 
-        let fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)
-        guard fd >= 0 else { log.append("socket() 失敗 errno=\(errno)"); return [] }
-        defer { Darwin.close(fd) }
-
-        // mDNSResponder とポート 5353 を共有
-        var reuse: Int32 = 1
-        setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &reuse, socklen_t(MemoryLayout<Int32>.size))
-        setsockopt(fd, SOL_SOCKET, SO_REUSEPORT, &reuse, socklen_t(MemoryLayout<Int32>.size))
-
-        // INADDR_ANY:5353 にバインド → マルチキャスト応答を受信可能にする
-        var bindAddr = sockaddr_in()
-        bindAddr.sin_len    = UInt8(MemoryLayout<sockaddr_in>.size)
-        bindAddr.sin_family = sa_family_t(AF_INET)
-        bindAddr.sin_port   = in_port_t(5353).bigEndian
-        bindAddr.sin_addr.s_addr = INADDR_ANY
-        let bindRet = withUnsafePointer(to: bindAddr) { ptr in
-            ptr.withMemoryRebound(to: sockaddr.self, capacity: 1) {
-                Darwin.bind(fd, $0, socklen_t(MemoryLayout<sockaddr_in>.size))
-            }
-        }
-        log.append("bind(:5353) → \(bindRet == 0 ? "OK" : "失敗 errno=\(errno)")")
-
-        // 各インターフェースのマルチキャストグループに参加
-        for iface in interfaces {
-            var mreq = ip_mreq()
-            mreq.imr_multiaddr.s_addr = inet_addr("224.0.0.251")
-            mreq.imr_interface.s_addr = iface.ip
-            let r = setsockopt(fd, IPPROTO_IP, IP_ADD_MEMBERSHIP,
-                               &mreq, socklen_t(MemoryLayout<ip_mreq>.size))
-            log.append("  multicast join \(iface.name) → \(r == 0 ? "OK" : "失敗 errno=\(errno)")")
-        }
-
-        // 受信タイムアウト
-        var tv = timeval(tv_sec: 0, tv_usec: 300_000)
-        setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &tv, socklen_t(MemoryLayout<timeval>.size))
-
-        // 送信先: mDNS マルチキャスト 224.0.0.251:5353
-        var dest = sockaddr_in()
-        dest.sin_len    = UInt8(MemoryLayout<sockaddr_in>.size)
-        dest.sin_family = sa_family_t(AF_INET)
-        dest.sin_port   = in_port_t(5353).bigEndian
-        inet_aton("224.0.0.251", &dest.sin_addr)
-
-        // 複数サービスタイプのクエリを同時送信
         let serviceTypes = [
             "_denon-heos._tcp.local",
             "_heos-audio._tcp.local",
@@ -164,13 +120,53 @@ enum MDNSScanner {
         ]
         let queries = serviceTypes.map { buildPTRQuery(service: $0) }
 
-        // 各インターフェースから全クエリを送信
+        var dest = sockaddr_in()
+        dest.sin_len    = UInt8(MemoryLayout<sockaddr_in>.size)
+        dest.sin_family = sa_family_t(AF_INET)
+        dest.sin_port   = in_port_t(5353).bigEndian
+        inet_aton("224.0.0.251", &dest.sin_addr)
+
+        // インターフェースごとにソケットを作成
+        var activeSockets: [(fd: Int32, name: String)] = []
         var sentCount = 0
+
         for iface in interfaces {
-            var outIface = in_addr()
-            outIface.s_addr = iface.ip
-            setsockopt(fd, IPPROTO_IP, IP_MULTICAST_IF,
-                       &outIface, socklen_t(MemoryLayout<in_addr>.size))
+            let fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)
+            guard fd >= 0 else {
+                log.append("  socket(\(iface.name)) failed errno=\(errno)")
+                continue
+            }
+
+            var reuse: Int32 = 1
+            setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &reuse, socklen_t(MemoryLayout<Int32>.size))
+            setsockopt(fd, SOL_SOCKET, SO_REUSEPORT, &reuse, socklen_t(MemoryLayout<Int32>.size))
+
+            // TCP と同じく IP_BOUND_IF でインターフェース固定（マルチキャストルート不要）
+            var ifIdx = iface.ifIndex
+            setsockopt(fd, IPPROTO_IP, IP_BOUND_IF, &ifIdx, socklen_t(MemoryLayout<UInt32>.size))
+
+            // INADDR_ANY:5353 にバインド
+            var bindAddr = sockaddr_in()
+            bindAddr.sin_len    = UInt8(MemoryLayout<sockaddr_in>.size)
+            bindAddr.sin_family = sa_family_t(AF_INET)
+            bindAddr.sin_port   = in_port_t(5353).bigEndian
+            bindAddr.sin_addr.s_addr = INADDR_ANY
+            let bindRet = withUnsafePointer(to: bindAddr) { ptr in
+                ptr.withMemoryRebound(to: sockaddr.self, capacity: 1) {
+                    Darwin.bind(fd, $0, socklen_t(MemoryLayout<sockaddr_in>.size))
+                }
+            }
+            log.append("bind(\(iface.name):5353) → \(bindRet == 0 ? "OK" : "failed errno=\(errno)")")
+
+            // マルチキャストグループに参加（受信用）
+            var mreq = ip_mreq()
+            mreq.imr_multiaddr.s_addr = inet_addr("224.0.0.251")
+            mreq.imr_interface.s_addr = iface.ip
+            let joinRet = setsockopt(fd, IPPROTO_IP, IP_ADD_MEMBERSHIP,
+                                     &mreq, socklen_t(MemoryLayout<ip_mreq>.size))
+            log.append("  multicast join \(iface.name) → \(joinRet == 0 ? "OK" : "failed errno=\(errno)")")
+
+            // クエリ送信
             var ok = false
             for q in queries {
                 let sent = withUnsafePointer(to: dest) { ptr in
@@ -180,12 +176,29 @@ enum MDNSScanner {
                 }
                 if sent > 0 { ok = true }
             }
-            if ok { sentCount += 1 }
-            log.append("  sendto \(iface.name) → \(ok ? "OK" : "失敗 errno=\(errno)")")
-        }
-        log.append("送信成功: \(sentCount)/\(interfaces.count) インターフェース")
+            log.append("  sendto \(iface.name) → \(ok ? "OK" : "failed errno=\(errno)")")
 
-        // 応答を収集（全PTRレコードをログ、Denonの可能性があるIPをresultsに）
+            if ok {
+                sentCount += 1
+                // 短い受信タイムアウト（全ソケットをラウンドロビンでポーリング）
+                var tv = timeval(tv_sec: 0, tv_usec: 100_000)
+                setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &tv, socklen_t(MemoryLayout<timeval>.size))
+                activeSockets.append((fd: fd, name: iface.name))
+            } else {
+                Darwin.close(fd)
+            }
+        }
+        log.append("Sent OK: \(sentCount)/\(interfaces.count) interfaces")
+        defer { for s in activeSockets { Darwin.close(s.fd) } }
+
+        guard !activeSockets.isEmpty else {
+            log.append("Total packets received: 0")
+            log.append("PTR records: none (send failed)")
+            log.append("Denon candidates: 0")
+            return []
+        }
+
+        // 全ソケットをラウンドロビンで受信（deadline まで）
         var results: [(String, String)] = []
         var rawPackets = 0
         var allPTRs: [String] = []
@@ -193,23 +206,25 @@ enum MDNSScanner {
         let deadline = Date().addingTimeInterval(timeout)
 
         while Date() < deadline {
-            let n = Darwin.recv(fd, &buf, buf.count, 0)
-            if n > 0 {
-                rawPackets += 1
-                let pkt = Array(buf[0..<n])
-                let (denonPairs, ptrs) = parseDNSPacketVerbose(pkt)
-                results.append(contentsOf: denonPairs)
-                allPTRs.append(contentsOf: ptrs)
+            for (fd, _) in activeSockets {
+                let n = Darwin.recv(fd, &buf, buf.count, 0)
+                if n > 0 {
+                    rawPackets += 1
+                    let pkt = Array(buf[0..<n])
+                    let (denonPairs, ptrs) = parseDNSPacketVerbose(pkt)
+                    results.append(contentsOf: denonPairs)
+                    allPTRs.append(contentsOf: ptrs)
+                }
             }
         }
-        log.append("受信パケット総数: \(rawPackets)")
+        log.append("Total packets received: \(rawPackets)")
         if allPTRs.isEmpty {
-            log.append("PTRレコード: なし（Denonがmに応答していない可能性）")
+            log.append("PTR records: none (Denon may not be responding to mDNS)")
         } else {
-            log.append("検出したPTRレコード:")
+            log.append("Found PTR records:")
             for ptr in allPTRs { log.append("  \(ptr)") }
         }
-        log.append("Denon候補: \(results.count)件")
+        log.append("Denon candidates: \(results.count)")
         return results
     }
 
@@ -441,6 +456,8 @@ enum MDNSScanner {
         guard getifaddrs(&ifList) == 0 else { return nil }
         defer { freeifaddrs(ifList) }
 
+        var bestIdx: UInt32?
+        var bestMask: UInt32 = 0
         var ptr = ifList
         while let p = ptr {
             defer { ptr = p.pointee.ifa_next }
@@ -450,9 +467,15 @@ enum MDNSScanner {
                   let nm = p.pointee.ifa_netmask else { continue }
             let ifAddr = sa.withMemoryRebound(to: sockaddr_in.self, capacity: 1) { $0.pointee.sin_addr.s_addr }
             let mask   = nm.withMemoryRebound(to: sockaddr_in.self, capacity: 1) { $0.pointee.sin_addr.s_addr }
-            if (ifAddr & mask) == (targetIP & mask) { return if_nametoindex(p.pointee.ifa_name) }
+            if (ifAddr & mask) == (targetIP & mask) {
+                let maskHBO = UInt32(bigEndian: mask)
+                if maskHBO > bestMask {
+                    bestMask = maskHBO
+                    bestIdx = if_nametoindex(p.pointee.ifa_name)
+                }
+            }
         }
-        return nil
+        return bestIdx
     }
 
     private static func xmlValue(_ text: String, _ tag: String) -> String? {

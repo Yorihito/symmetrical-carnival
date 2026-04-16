@@ -24,8 +24,8 @@ private struct WindowAccessor: NSViewRepresentable {
 
 enum NavSection: String, Hashable, CaseIterable {
     case dashboard = "ダッシュボード"
+    case tuner     = "チューナー"
     case input     = "入力ソース"
-    case surround  = "サラウンド"
     case zone      = "ゾーン"
     case presets   = "プリセット"
 
@@ -35,8 +35,8 @@ enum NavSection: String, Hashable, CaseIterable {
         switch self {
         case .dashboard: "house.fill"
         case .input:     "rectangle.on.rectangle.angled"
-        case .surround:  "speaker.wave.3.fill"
         case .zone:      "square.split.2x1.fill"
+        case .tuner:     "antenna.radiowaves.left.and.right"
         case .presets:   "star.fill"
         }
     }
@@ -44,6 +44,7 @@ enum NavSection: String, Hashable, CaseIterable {
 
 struct ContentView: View {
     @Environment(MainViewModel.self) private var vm
+    @Environment(\.locale) private var locale
     @State private var selectedSection: NavSection? = .dashboard
     @State private var showingConnection = false
     @State private var columnVisibility: NavigationSplitViewVisibility = .all
@@ -92,6 +93,7 @@ struct ContentView: View {
         }
         .sheet(isPresented: $showingConnection) {
             ConnectionView()
+                .environment(\.locale, locale)
         }
         .onAppear {
             let host = UserDefaults.standard.string(forKey: "defaultHost") ?? ""
@@ -106,7 +108,7 @@ struct ContentView: View {
 
     private var sidebar: some View {
         VStack(spacing: 0) {
-            List(NavSection.allCases, id: \.self, selection: $selectedSection) { section in
+            List(NavSection.allCases.filter { $0 != .presets }, id: \.self, selection: $selectedSection) { section in
                 Label(section.localizedTitle, systemImage: section.systemImage)
             }
             .listStyle(.sidebar)
@@ -140,8 +142,8 @@ struct ContentView: View {
         switch selectedSection ?? .dashboard {
         case .dashboard: DashboardView()
         case .input:     InputView()
-        case .surround:  SurroundView()
         case .zone:      ZoneView()
+        case .tuner:     TunerView()
         case .presets:   PresetView()
         }
     }

@@ -31,10 +31,13 @@ struct DenonControllerApp: App {
         }
 
         // ── Menu Bar Extra ─────────────────────────────────────────────
-        MenuBarExtra("Denon Controller", systemImage: "hifispeaker.fill") {
+        MenuBarExtra {
             MenuBarPopoverView()
                 .environment(vm)
                 .environment(\.locale, appLocale)
+        } label: {
+            Image("MenuBarIcon")
+                .renderingMode(.template)
         }
         .menuBarExtraStyle(.window)
 

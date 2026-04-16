@@ -31,25 +31,24 @@ final class AVRState {
     var zone3VolumeDB: Double = -40.0
     var zone3Mute:     Bool   = false
 
+    // MARK: - Tuner
+    var tunerBand:        TunerBand = .fm
+    var tunerFrequency:   String    = ""   // "87.50" or "558"
+    var tunerPreset:      Int       = 0    // 0 = プリセット外
+    var tunerStationName: String    = ""   // AVR に登録された局名
+
     // MARK: - Computed
 
-    /// Denon 表示単位（AVR 本体の表示と同じ 0–98 の整数）
-    /// dB = unit − 80  なので:  -50 dB → 30, 0 dB → 80
-    var volumeUnit: Int { Int((volumeDB + 80.0).rounded()) }
-    var zone2VolumeUnit: Int { Int((zone2VolumeDB + 80.0).rounded()) }
-    var zone3VolumeUnit: Int { Int((zone3VolumeDB + 80.0).rounded()) }
-
-    /// AVR 本体と同じ表示（例: "30"）
-    var volumeDBString: String { "\(volumeUnit)" }
-    var zone2VolumeDBString: String { "\(zone2VolumeUnit)" }
-    var zone3VolumeDBString: String { "\(zone3VolumeUnit)" }
+    /// AVR 本体と同じ表示（例: "30", "30.5"）
+    private static func unitString(_ db: Double) -> String {
+        String(format: "%.1f", db + 80.0)
+    }
+    var volumeDBString: String { Self.unitString(volumeDB) }
+    var zone2VolumeDBString: String { Self.unitString(zone2VolumeDB) }
+    var zone3VolumeDBString: String { Self.unitString(zone3VolumeDB) }
 
     /// 参照用 dB 文字列（スライダーラベルなどに使用）
-    var volumedBLabel: String {
-        volumeDB.truncatingRemainder(dividingBy: 1) == 0
-            ? String(format: "%.0f dB", volumeDB)
-            : String(format: "%.1f dB", volumeDB)
-    }
+    var volumedBLabel: String { String(format: "%.1f dB", volumeDB) }
 
     // MARK: - Apply HTTP snapshot
 
@@ -68,6 +67,15 @@ final class AVRState {
 
         if let src = InputSource(rawCode: snap.zone2InputCode) {
             zone2Input = src
+        }
+
+        // Tuner（チューナー XML を取得でき、かつ周波数が確定しているときだけ更新）
+        // tunerBand は HTTP から更新しない — XML は切替直後に古いバンドを返すことがある。
+        // バンド状態は setTunerBand の楽観的更新と Telnet の parseTelnetLine で管理する。
+        if snap.tunerDataFetched && !snap.tunerFrequency.isEmpty {
+            tunerFrequency   = snap.tunerFrequency
+            tunerPreset      = snap.tunerPreset
+            tunerStationName = snap.tunerStationName
         }
     }
 

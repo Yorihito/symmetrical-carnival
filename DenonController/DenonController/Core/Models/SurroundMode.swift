@@ -15,7 +15,9 @@ enum SurroundMode: String, CaseIterable, Identifiable, Codable, Sendable {
 
     var id: String { rawValue }
 
-    var command: String { "MS\(rawValue)" }
+    // AVR-X3800H はスペース入りの MS コマンドを受け付けないためスペースを除去する。
+    // rawValue はプリセットの Codable 互換性のため変えない。
+    var command: String { "MS\(rawValue.replacingOccurrences(of: " ", with: ""))" }
 
     var displayName: String {
         switch self {

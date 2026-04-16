@@ -1,10 +1,11 @@
-import Network
 import Foundation
+import Darwin
 
 // MARK: - TelnetClient
+//
+// NWConnection はローカル WiFi 専用ネットワークで「インターネット到達性チェック」に
+// 失敗するため、AVRHTTPClient と同じく BSD ソケットで直接接続する。
 
-/// AVR との TCP 接続を管理する Actor。
-/// コマンドを送信し、AVR からのレスポンスを AsyncStream で配信する。
 actor TelnetClient {
 
     // MARK: Public stream
@@ -14,8 +15,8 @@ actor TelnetClient {
 
     // MARK: Private state
 
-    private var connection: NWConnection?
-    private var receiveBuffer = ""
+    private var fd: Int32 = -1
+    private var receiveTask: Task<Void, Never>?
 
     // MARK: Init / Deinit
 
@@ -26,6 +27,7 @@ actor TelnetClient {
     }
 
     deinit {
+        if fd >= 0 { Darwin.close(fd) }
         continuation.finish()
     }
 
@@ -34,72 +36,71 @@ actor TelnetClient {
     func connect(host: String, port: UInt16 = 23) async throws {
         await internalDisconnect()
 
-        let endpoint = NWEndpoint.hostPort(
-            host: NWEndpoint.Host(host),
-            port: NWEndpoint.Port(rawValue: port)!
-        )
-        let conn = NWConnection(to: endpoint, using: .tcp)
-        connection = conn
-
-        // ResumeOnce prevents double-resume when NWConnection fires multiple state events
-        final class ResumeOnce: @unchecked Sendable {
-            private var done = false
-            private let lock = NSLock()
-            func resume(with cont: CheckedContinuation<Void, Error>, result: Result<Void, Error>) {
-                lock.lock(); defer { lock.unlock() }
-                guard !done else { return }
-                done = true
-                switch result {
-                case .success:  cont.resume()
-                case .failure(let e): cont.resume(throwing: e)
-                }
-            }
+        // sockaddr_in を構築
+        var addr = sockaddr_in()
+        addr.sin_len    = UInt8(MemoryLayout<sockaddr_in>.size)
+        addr.sin_family = sa_family_t(AF_INET)
+        addr.sin_port   = in_port_t(port).bigEndian
+        guard inet_aton(host, &addr.sin_addr) != 0 else {
+            throw AVRError.connectionFailed("無効な IP アドレス: \(host)")
         }
 
-        // 10秒タイムアウト付きで接続を待つ
-        try await withThrowingTaskGroup(of: Void.self) { group in
-            group.addTask {
-                try await withCheckedThrowingContinuation { (cont: CheckedContinuation<Void, Error>) in
-                    let once = ResumeOnce()
-                    conn.stateUpdateHandler = { [weak self] state in
-                        switch state {
-                        case .ready:
-                            once.resume(with: cont, result: .success(()))
-                            Task { await self?.scheduleReceive() }
-                        case .failed(let err):
-                            once.resume(with: cont, result: .failure(err))
-                        // .waiting = NWConnection が経路を探している過渡状態。
-                        // 有線+WiFi 混在環境で一時的に発生するが、そのまま .ready に進む。
-                        // ここでエラーにすると NIC が複数ある Mac で必ず失敗する。
-                        case .waiting:
-                            break
-                        default:
-                            break
-                        }
+        let newFd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)
+        guard newFd >= 0 else {
+            throw AVRError.connectionFailed("socket() 失敗 errno=\(errno)")
+        }
+
+        // マルチ NIC 対策: ターゲットと同じサブネットの IF に固定
+        if var ifIdx = Self.interfaceIndex(forTargetIP: addr.sin_addr.s_addr), ifIdx > 0 {
+            setsockopt(newFd, IPPROTO_IP, IP_BOUND_IF, &ifIdx, socklen_t(MemoryLayout<UInt32>.size))
+        }
+
+        // 接続タイムアウト 5 秒
+        var tvSend = timeval(tv_sec: 5, tv_usec: 0)
+        setsockopt(newFd, SOL_SOCKET, SO_SNDTIMEO, &tvSend, socklen_t(MemoryLayout<timeval>.size))
+
+        let ret = try await withCheckedThrowingContinuation { (cont: CheckedContinuation<Int32, Error>) in
+            DispatchQueue.global(qos: .userInitiated).async {
+                let r = withUnsafePointer(to: addr) {
+                    $0.withMemoryRebound(to: sockaddr.self, capacity: 1) {
+                        Darwin.connect(newFd, $0, socklen_t(MemoryLayout<sockaddr_in>.size))
                     }
-                    conn.start(queue: .global(qos: .userInitiated))
+                }
+                if r == 0 {
+                    cont.resume(returning: r)
+                } else {
+                    Darwin.close(newFd)
+                    cont.resume(throwing: AVRError.connectionFailed(
+                        "Telnet 接続失敗 \(host):23 — \(String(cString: strerror(errno)))"
+                    ))
                 }
             }
-            group.addTask {
-                try await Task.sleep(for: .seconds(10))
-                throw AVRError.connectionFailed("タイムアウト（10秒）")
-            }
-            // どちらか先に完了したらもう一方をキャンセル
-            try await group.next()!
-            group.cancelAll()
         }
+        _ = ret
+
+        // 受信タイムアウト: 100 ms（recv がブロックしすぎない）
+        var tvRecv = timeval(tv_sec: 0, tv_usec: 100_000)
+        setsockopt(newFd, SOL_SOCKET, SO_RCVTIMEO, &tvRecv, socklen_t(MemoryLayout<timeval>.size))
+
+        fd = newFd
+        startReceiving()
     }
 
     // MARK: - Send
 
     func send(_ command: String) async throws {
-        guard let conn = connection else { throw AVRError.notConnected }
-        let data = Data((command + "\r").utf8)
+        guard fd >= 0 else { throw AVRError.notConnected }
+        let bytes = Array((command + "\r").utf8)
+        let currentFd = fd
         try await withCheckedThrowingContinuation { (cont: CheckedContinuation<Void, Error>) in
-            conn.send(content: data, completion: .contentProcessed { error in
-                if let error { cont.resume(throwing: error) }
-                else { cont.resume() }
-            })
+            DispatchQueue.global(qos: .userInitiated).async {
+                let sent = Darwin.send(currentFd, bytes, bytes.count, 0)
+                if sent == bytes.count {
+                    cont.resume()
+                } else {
+                    cont.resume(throwing: AVRError.connectionFailed("Telnet 送信失敗"))
+                }
+            }
         }
     }
 
@@ -110,38 +111,64 @@ actor TelnetClient {
     }
 
     private func internalDisconnect() async {
-        connection?.cancel()
-        connection = nil
-        receiveBuffer = ""
+        receiveTask?.cancel()
+        receiveTask = nil
+        if fd >= 0 {
+            Darwin.close(fd)
+            fd = -1
+        }
     }
 
-    // MARK: - Receive loop
+    // MARK: - Receive Loop
 
-    private func scheduleReceive() {
-        guard let conn = connection else { return }
-        conn.receive(minimumIncompleteLength: 1, maximumLength: 4096) { [weak self] data, _, isComplete, error in
-            Task { [weak self] in
-                guard let self else { return }
-                if let data, let str = String(data: data, encoding: .ascii) {
-                    await self.processReceived(str)
+    private func startReceiving() {
+        receiveTask?.cancel()
+        let currentFd = fd
+        let cont = continuation
+
+        receiveTask = Task.detached(priority: .background) {
+            var buf = [UInt8](repeating: 0, count: 4096)
+            var buffer = ""
+
+            while !Task.isCancelled {
+                let n = Darwin.recv(currentFd, &buf, buf.count, 0)
+                if n > 0 {
+                    let str = String(bytes: buf[0..<n], encoding: .ascii) ?? ""
+                    buffer += str
+                    // Denon は \r を行末として使用
+                    let parts = buffer.components(separatedBy: "\r")
+                    buffer = parts.last ?? ""
+                    for line in parts.dropLast() {
+                        let trimmed = line.trimmingCharacters(in: .whitespaces)
+                        if !trimmed.isEmpty { cont.yield(trimmed) }
+                    }
+                } else if n == 0 {
+                    break   // 接続終了
                 }
-                if error == nil && !isComplete {
-                    await self.scheduleReceive()
-                }
+                // n < 0: SO_RCVTIMEO による EAGAIN → ループ継続してキャンセルを確認
             }
         }
     }
 
-    private func processReceived(_ str: String) {
-        receiveBuffer += str
-        // Denon uses \r as line terminator
-        let parts = receiveBuffer.components(separatedBy: "\r")
-        receiveBuffer = parts.last ?? ""
-        for line in parts.dropLast() {
-            let trimmed = line.trimmingCharacters(in: .whitespaces)
-            if !trimmed.isEmpty {
-                continuation.yield(trimmed)
-            }
+    // MARK: - Interface Index Helper
+
+    private static func interfaceIndex(forTargetIP targetIP: in_addr_t) -> UInt32? {
+        var ifList: UnsafeMutablePointer<ifaddrs>? = nil
+        guard getifaddrs(&ifList) == 0 else { return nil }
+        defer { freeifaddrs(ifList) }
+
+        var ptr = ifList
+        while let p = ptr {
+            defer { ptr = p.pointee.ifa_next }
+            let flags = Int32(p.pointee.ifa_flags)
+            guard flags & IFF_UP != 0, flags & IFF_LOOPBACK == 0 else { continue }
+            guard let sa = p.pointee.ifa_addr,
+                  sa.pointee.sa_family == sa_family_t(AF_INET),
+                  let nm = p.pointee.ifa_netmask else { continue }
+            let ifAddr = sa.withMemoryRebound(to: sockaddr_in.self, capacity: 1) { $0.pointee.sin_addr.s_addr }
+            let mask   = nm.withMemoryRebound(to: sockaddr_in.self, capacity: 1) { $0.pointee.sin_addr.s_addr }
+            if (ifAddr & mask) == (targetIP & mask) { return if_nametoindex(p.pointee.ifa_name) }
         }
+        return nil
     }
 }

@@ -6,18 +6,15 @@ struct SettingsView: View {
     @AppStorage("showInDock")   private var showInDock = true
     @AppStorage("menuBarOnly")  private var menuBarOnly = false
     @AppStorage("appLanguage")  private var appLanguage = "system"
+    @AppStorage("debugMode")    private var debugMode = false
     @Environment(MainViewModel.self) private var vm
+    @Environment(\.locale) private var locale
 
     var body: some View {
         Form {
-            Section("接続") {
+            Section("接続設定") {
                 TextField("AVR の IP アドレス", text: $defaultHost)
                     .onSubmit { connectIfNeeded() }
-
-                LabeledContent("ポート") {
-                    Text("8080（固定）")
-                        .foregroundStyle(.secondary)
-                }
 
                 Toggle("起動時に自動接続", isOn: $autoConnect)
 
@@ -86,6 +83,15 @@ struct SettingsView: View {
                 }
             }
 
+            Section("開発者") {
+                Toggle("デバッグモード", isOn: $debugMode)
+                if debugMode {
+                    Text("チューナー画面に Raw Data 確認パネルが表示されます。")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+
             Section("バージョン情報") {
                 LabeledContent("アプリ", value: "Denon / Marantz Controller")
                 LabeledContent("バージョン", value: "1.0.0")
@@ -98,7 +104,22 @@ struct SettingsView: View {
             }
         }
         .formStyle(.grouped)
-        .frame(width: 480, height: 600)
+        .frame(width: 480, height: 640)
+        .onAppear { fixWindowTitle() }
+        .onChange(of: locale) { fixWindowTitle() }
+    }
+
+    private func fixWindowTitle() {
+        DispatchQueue.main.async {
+            let word = localizedNavTitle("設定", locale: locale)
+            let newTitle = "Denon Controller \(word)"
+            for window in NSApplication.shared.windows {
+                guard window.title.hasPrefix("Denon Controller"),
+                      window.title.hasSuffix("設定") || window.title.hasSuffix("Settings") || window.title.hasSuffix("Preferences")
+                else { continue }
+                window.title = newTitle
+            }
+        }
     }
 
     private func connectIfNeeded() {

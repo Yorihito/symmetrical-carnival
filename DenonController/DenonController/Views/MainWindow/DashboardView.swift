@@ -2,78 +2,82 @@ import SwiftUI
 
 struct DashboardView: View {
     @Environment(MainViewModel.self) private var vm
+    @Environment(\.locale) private var locale
 
     var body: some View {
         ScrollView {
-            VStack(spacing: 20) {
-                if vm.avr.isConnected {
-                    deviceInfoBanner
-                }
-                powerCard
+            VStack(spacing: 14) {
+                statusBar
                 volumeCard
                 inputCard
                 surroundCard
             }
             .padding()
         }
-        .navigationTitle("ダッシュボード")
+        .navigationTitle(localizedNavTitle("ダッシュボード", locale: locale))
     }
 
-    // MARK: - Device Info Banner
+    // MARK: - Status Bar（電源トグル込みの1行ヘッダー）
 
-    private var deviceInfoBanner: some View {
-        HStack(spacing: 12) {
+    private var statusBar: some View {
+        HStack(spacing: 6) {
             Image(systemName: "hifispeaker.fill")
-                .font(.title2)
+                .font(.callout)
                 .foregroundStyle(Color.accentColor)
 
-            VStack(alignment: .leading, spacing: 2) {
-                if !vm.avr.deviceInfo.modelName.isEmpty {
-                    Text(vm.avr.deviceInfo.modelName)
-                        .font(.callout.weight(.semibold))
-                    Text(vm.avr.deviceInfo.brandName + " " + vm.avr.deviceInfo.categoryName)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                } else {
-                    Text("AV RECEIVER")
-                        .font(.callout.weight(.semibold))
-                }
+            Text(vm.avr.deviceInfo.modelName.isEmpty ? "AV RECEIVER" : vm.avr.deviceInfo.modelName)
+                .font(.callout.weight(.semibold))
+                .lineLimit(1)
+
+            if vm.avr.isConnected && vm.avr.isPoweredOn {
+                separatorDot
+                Label(vm.avr.input.name(using: vm.inputNames), systemImage: vm.avr.input.systemImage)
+                    .font(.caption.weight(.medium))
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                separatorDot
+                Text(vm.avr.isMuted ? "ミュート" : vm.avr.volumedBLabel)
+                    .font(.caption.weight(.medium))
+                    .foregroundStyle(vm.avr.isMuted ? .orange : .secondary)
+                    .lineLimit(1)
+            } else if vm.avr.isConnected {
+                separatorDot
+                Text("スタンバイ")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
+
             Spacer()
+
+            Toggle("", isOn: Binding(
+                get: { vm.avr.isPoweredOn },
+                set: { vm.setPower($0) }
+            ))
+            .toggleStyle(.switch)
+            .labelsHidden()
+            .controlSize(.small)
+            .disabled(!vm.avr.isConnected)
         }
-        .padding(12)
-        .background(Color.accentColor.opacity(0.06), in: RoundedRectangle(cornerRadius: 12))
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(.background.opacity(0.7), in: RoundedRectangle(cornerRadius: 10))
+        .overlay(
+            RoundedRectangle(cornerRadius: 10)
+                .strokeBorder(.separator.opacity(0.5), lineWidth: 0.5)
+        )
     }
 
-    // MARK: - Power Card
-
-    private var powerCard: some View {
-        CardView {
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("電源")
-                        .font(.headline)
-                    Text(vm.avr.isPoweredOn ? "オン" : "スタンバイ")
-                        .font(.subheadline)
-                        .foregroundStyle(vm.avr.isPoweredOn ? .green : .secondary)
-                }
-                Spacer()
-                Toggle("", isOn: Binding(
-                    get: { vm.avr.isPoweredOn },
-                    set: { vm.setPower($0) }
-                ))
-                .toggleStyle(.switch)
-                .labelsHidden()
-                .disabled(!vm.avr.isConnected)
-            }
-        }
+    private var separatorDot: some View {
+        Text("•")
+            .font(.caption2)
+            .foregroundStyle(.tertiary)
     }
 
     // MARK: - Volume Card
 
     private var volumeCard: some View {
         CardView {
-            VStack(alignment: .leading, spacing: 16) {
+            VStack(alignment: .leading, spacing: 12) {
                 Text("音量")
                     .font(.headline)
 
@@ -96,18 +100,18 @@ struct DashboardView: View {
 
     private var inputCard: some View {
         CardView {
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: 10) {
                 HStack {
                     Text("入力ソース")
                         .font(.headline)
                     Spacer()
                     Label(vm.avr.input.name(using: vm.inputNames), systemImage: vm.avr.input.systemImage)
-                        .font(.callout)
+                        .font(.caption.weight(.medium))
                         .foregroundStyle(Color.accentColor)
                 }
 
-                let columns = [GridItem(.adaptive(minimum: 90), spacing: 8)]
-                LazyVGrid(columns: columns, spacing: 8) {
+                let columns = [GridItem(.adaptive(minimum: 75), spacing: 6)]
+                LazyVGrid(columns: columns, spacing: 6) {
                     ForEach(vm.inputNames.visibleSources) { source in
                         InputButton(
                             source: source,
@@ -123,30 +127,45 @@ struct DashboardView: View {
         }
     }
 
-    // MARK: - Surround Card
+    // MARK: - Surround Card（カテゴリ別グループ）
 
     private var surroundCard: some View {
         CardView {
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: 10) {
                 HStack {
                     Text("サラウンドモード")
                         .font(.headline)
                     Spacer()
                     Text(vm.avr.surroundMode.displayName)
-                        .font(.callout)
+                        .font(.caption.weight(.medium))
                         .foregroundStyle(Color.accentColor)
                 }
 
-                let columns = [GridItem(.adaptive(minimum: 110), spacing: 8)]
-                LazyVGrid(columns: columns, spacing: 8) {
-                    ForEach(SurroundMode.allCases) { mode in
-                        SurroundButton(
-                            mode: mode,
-                            isSelected: vm.avr.surroundMode == mode,
-                            isEnabled: vm.avr.isConnected && vm.avr.isPoweredOn
-                        ) {
-                            vm.setSurroundMode(mode)
-                        }
+                surroundGroup(label: "スマート",   modes: [.auto, .stereo])
+                surroundGroup(label: "ダイレクト", modes: [.direct])
+                surroundGroup(label: "コンテンツ", modes: [.movie, .music, .game])
+                surroundGroup(label: "イマーシブ", modes: [.auro3D])
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func surroundGroup(label: String, modes: [SurroundMode]) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(LocalizedStringKey(label))
+                .font(.caption2.weight(.semibold))
+                .foregroundStyle(.tertiary)
+                .padding(.leading, 2)
+
+            let columns = [GridItem(.adaptive(minimum: 96), spacing: 6)]
+            LazyVGrid(columns: columns, spacing: 6) {
+                ForEach(modes) { mode in
+                    SurroundButton(
+                        mode: mode,
+                        isSelected: vm.avr.surroundMode == mode,
+                        isEnabled: vm.avr.isConnected && vm.avr.isPoweredOn
+                    ) {
+                        vm.setSurroundMode(mode)
                     }
                 }
             }
@@ -165,16 +184,16 @@ private struct InputButton: View {
 
     var body: some View {
         Button(action: action) {
-            VStack(spacing: 6) {
+            VStack(spacing: 5) {
                 Image(systemName: source.systemImage)
-                    .font(.title3)
+                    .font(.callout)
                 Text(name)
                     .font(.caption2.weight(.medium))
                     .lineLimit(1)
                     .minimumScaleFactor(0.7)
             }
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 8)
+            .padding(.vertical, 7)
             .background(
                 isSelected
                     ? Color.accentColor.opacity(0.2)
@@ -201,16 +220,16 @@ private struct SurroundButton: View {
 
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 6) {
+            HStack(spacing: 5) {
                 Image(systemName: mode.systemImage)
-                    .font(.callout)
+                    .font(.caption)
                 Text(mode.displayName)
                     .font(.caption.weight(.medium))
                     .lineLimit(1)
                     .minimumScaleFactor(0.7)
             }
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 7)
+            .padding(.vertical, 6)
             .background(
                 isSelected
                     ? Color.accentColor.opacity(0.2)
@@ -236,10 +255,10 @@ struct CardView<Content: View>: View {
 
     var body: some View {
         content
-            .padding(16)
-            .background(.background.opacity(0.7), in: RoundedRectangle(cornerRadius: 14))
+            .padding(14)
+            .background(.background.opacity(0.7), in: RoundedRectangle(cornerRadius: 12))
             .overlay(
-                RoundedRectangle(cornerRadius: 14)
+                RoundedRectangle(cornerRadius: 12)
                     .strokeBorder(.separator.opacity(0.6), lineWidth: 0.5)
             )
     }
