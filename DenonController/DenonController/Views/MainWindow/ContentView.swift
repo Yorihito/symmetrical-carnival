@@ -38,7 +38,7 @@ enum NavSection: String, Hashable, CaseIterable {
         case .input:     "rectangle.on.rectangle.angled"
         case .zone:      "square.split.2x1.fill"
         case .tuner:     "antenna.radiowaves.left.and.right"
-        case .remote:    "tv.remote"
+        case .remote:    "dpad"
         case .presets:   "star.fill"
         }
     }
