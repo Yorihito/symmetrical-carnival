@@ -2,17 +2,39 @@ import SwiftUI
 
 struct ContentView: View {
     @Environment(MainViewModel.self) private var vm
-    @Environment(\.locale) private var locale
     @State private var showConnection = false
+    @AppStorage("appLanguage") private var appLanguage = "system"
+
+    private var appLocale: Locale {
+        switch appLanguage {
+        case "ja": Locale(identifier: "ja")
+        case "en": Locale(identifier: "en")
+        default:   .autoupdatingCurrent
+        }
+    }
+
+    private var lBundle: Bundle { makeLocalizedBundle(for: appLocale) }
 
     var body: some View {
         if UIDevice.current.userInterfaceIdiom == .pad {
             iPadLayout
-                .sheet(isPresented: $showConnection) { ConnectionView() }
+                .environment(\.locale, appLocale)
+                .environment(\.localizedBundle, lBundle)
+                .sheet(isPresented: $showConnection) {
+                    ConnectionView()
+                        .environment(\.locale, appLocale)
+                        .environment(\.localizedBundle, lBundle)
+                }
                 .onAppear { autoConnect() }
         } else {
             iPhoneLayout
-                .sheet(isPresented: $showConnection) { ConnectionView() }
+                .environment(\.locale, appLocale)
+                .environment(\.localizedBundle, lBundle)
+                .sheet(isPresented: $showConnection) {
+                    ConnectionView()
+                        .environment(\.locale, appLocale)
+                        .environment(\.localizedBundle, lBundle)
+                }
                 .onAppear { autoConnect() }
         }
     }
@@ -34,14 +56,17 @@ struct ContentView: View {
                     DashboardView(showConnection: $showConnection)
                 }
             }
-            Tab("チューナー", systemImage: "radio.fill") {
+            Tab("チューナー", systemImage: "antenna.radiowaves.left.and.right") {
                 NavigationStack { TunerView() }
             }
-            Tab("プリセット", systemImage: "star.fill") {
-                NavigationStack { PresetView() }
+            Tab("入力ソース", systemImage: "rectangle.on.rectangle.angled") {
+                NavigationStack { InputView() }
             }
-            Tab("ゾーン", systemImage: "speaker.2.fill") {
+            Tab("ゾーン", systemImage: "square.split.2x1.fill") {
                 NavigationStack { ZoneView() }
+            }
+            Tab("リモコン", systemImage: "dpad") {
+                NavigationStack { RemoteView() }
             }
             Tab("設定", systemImage: "gear") {
                 NavigationStack { SettingsView(showConnection: $showConnection) }
@@ -56,6 +81,7 @@ struct ContentView: View {
         case tuner     = "チューナー"
         case presets   = "プリセット"
         case zone      = "ゾーン"
+        case remote    = "リモコン"
         case settings  = "設定"
 
         var systemImage: String {
@@ -64,6 +90,7 @@ struct ContentView: View {
             case .tuner:     "radio.fill"
             case .presets:   "star.fill"
             case .zone:      "speaker.2.fill"
+            case .remote:    "dpad"
             case .settings:  "gear"
             }
         }
@@ -91,6 +118,7 @@ struct ContentView: View {
         case .tuner:     TunerView()
         case .presets:   PresetView()
         case .zone:      ZoneView()
+        case .remote:    RemoteView()
         case .settings:  SettingsView(showConnection: $showConnection)
         }
     }

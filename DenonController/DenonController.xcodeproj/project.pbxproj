@@ -41,6 +41,7 @@
 		A552B2384A64070F14595C87 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2C97D129A06A4A87956F7FD /* AppDelegate.swift */; };
 		B3F1365972CF77F7177704C6 /* ZoneView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C62E5948C5D63D30BB07F2C /* ZoneView.swift */; };
 		B695A3D5A451FCF5E9F4A039 /* SurroundMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F00BCCBB5642689C5E0B915 /* SurroundMode.swift */; };
+		BDBBEF07D4AD3C23AD19F0FE /* RemoteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 762AA34BEC612F45E4B9C052 /* RemoteView.swift */; };
 		BFFA6C52F1C109A464B735D9 /* InputSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9ECA17A4A0B3A093DB6F604 /* InputSource.swift */; };
 		C047CC739A755CDD5AE482E3 /* DeviceInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 271AF613F454DB67A569A133 /* DeviceInfo.swift */; };
 		C2E702869124D81FEF45FBD9 /* LocalizationHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67CDCF1D31DD391F01631CE2 /* LocalizationHelper.swift */; };
@@ -85,6 +86,7 @@
 		6C3874D625282B482D38AE6A /* ConnectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionView.swift; sourceTree = "<group>"; };
 		6EBA445EDC221C01FA9C6049 /* ConnectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionView.swift; sourceTree = "<group>"; };
 		71B63BF0A3338974C13AD96C /* VolumeControlView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VolumeControlView.swift; sourceTree = "<group>"; };
+		762AA34BEC612F45E4B9C052 /* RemoteView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteView.swift; sourceTree = "<group>"; };
 		7B3CE8991C907B6926608E9F /* DenonController.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DenonController.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		7C3EE3F5E05059A0B9CC8309 /* TunerPreset.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TunerPreset.swift; sourceTree = "<group>"; };
 		7F00BCCBB5642689C5E0B915 /* SurroundMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SurroundMode.swift; sourceTree = "<group>"; };
@@ -264,6 +266,7 @@
 				9E3F661D100D83AE3D90486C /* DashboardView.swift */,
 				9AEBFDA374E25758961C3B07 /* InputView.swift */,
 				E8AAAE8AB7AA4238C35C99A6 /* PresetView.swift */,
+				762AA34BEC612F45E4B9C052 /* RemoteView.swift */,
 				0DD48B21048CEB692DAB7C46 /* SettingsView.swift */,
 				E6C6A70CDC90F4B7352DEBB5 /* TunerView.swift */,
 				D7F395F8FE0341BC628627D5 /* ZoneView.swift */,
@@ -440,6 +443,7 @@
 				D079330241F0CF45F84A6C49 /* Preset.swift in Sources */,
 				95EFC25C1D4B6A1A0D3F6586 /* PresetStore.swift in Sources */,
 				C73D769DF1CFD293E916453C /* PresetView.swift in Sources */,
+				BDBBEF07D4AD3C23AD19F0FE /* RemoteView.swift in Sources */,
 				53D6A9EA92F403A78ADAEE76 /* SettingsView.swift in Sources */,
 				B695A3D5A451FCF5E9F4A039 /* SurroundMode.swift in Sources */,
 				EE614F6A701643C3ACE29B46 /* TelnetClient.swift in Sources */,
