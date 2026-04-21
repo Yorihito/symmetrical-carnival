@@ -247,7 +247,7 @@ final class MainViewModel {
     func navBack()      { send("MNRTN") }
     func infoButton()   { send("MNINF") }
     func optionButton() { send("MNOPT") }
-    func setupMenu()    { send("MNMEN") }
+    func setupMenu()    { send("MNMEN ON") }
 
     // MARK: - Tuner
 
