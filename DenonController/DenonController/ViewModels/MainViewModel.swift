@@ -237,6 +237,18 @@ final class MainViewModel {
     func zone3VolumeUp()           { send("Z3UP") }
     func zone3VolumeDown()         { send("Z3DOWN") }
 
+    // MARK: - OSD Navigation
+
+    func cursorUp()     { send("MNCUP") }
+    func cursorDown()   { send("MNCDN") }
+    func cursorLeft()   { send("MNCLT") }
+    func cursorRight()  { send("MNCRT") }
+    func cursorEnter()  { send("MNENT") }
+    func navBack()      { send("MNRTN") }
+    func infoButton()   { send("MNINF") }
+    func optionButton() { send("MNOPT") }
+    func setupMenu()    { send("MNMEN") }
+
     // MARK: - Tuner
 
     func setTunerBand(_ band: TunerBand) {

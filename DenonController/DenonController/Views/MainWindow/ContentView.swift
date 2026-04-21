@@ -27,6 +27,7 @@ enum NavSection: String, Hashable, CaseIterable {
     case tuner     = "チューナー"
     case input     = "入力ソース"
     case zone      = "ゾーン"
+    case remote    = "リモコン"
     case presets   = "プリセット"
 
     var localizedTitle: LocalizedStringKey { LocalizedStringKey(rawValue) }
@@ -37,6 +38,7 @@ enum NavSection: String, Hashable, CaseIterable {
         case .input:     "rectangle.on.rectangle.angled"
         case .zone:      "square.split.2x1.fill"
         case .tuner:     "antenna.radiowaves.left.and.right"
+        case .remote:    "tv.remote"
         case .presets:   "star.fill"
         }
     }
@@ -144,6 +146,7 @@ struct ContentView: View {
         case .input:     InputView()
         case .zone:      ZoneView()
         case .tuner:     TunerView()
+        case .remote:    RemoteView()
         case .presets:   PresetView()
         }
     }

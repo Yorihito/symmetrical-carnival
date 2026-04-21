@@ -5,6 +5,14 @@
 "ゾーン" = "Zone";
 "チューナー" = "Tuner";
 "プリセット" = "Presets";
+"リモコン" = "Remote";
+
+/* RemoteView */
+"情報" = "Info";
+"オプション" = "Options";
+"設定メニュー" = "Setup";
+"決定" = "Enter";
+"戻る" = "Back";
 
 /* ConnectionStatus */
 "未接続" = "Disconnected";

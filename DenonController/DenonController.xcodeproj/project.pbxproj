@@ -31,6 +31,7 @@
 		68E65267FE353572BC4B7CBC /* VolumeControlView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 71B63BF0A3338974C13AD96C /* VolumeControlView.swift */; };
 		6F526542ED1AAC5FBA5A125F /* TunerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B68F7EA22CF66FAEDFC81885 /* TunerView.swift */; };
 		7306032949F820C71B3DA11E /* InputNameStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 495D17163A2E55D86ADB4C94 /* InputNameStore.swift */; };
+		7ED5C56644A95B215D350E86 /* InputView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AEBFDA374E25758961C3B07 /* InputView.swift */; };
 		85C6BEFABD78D72516F662D4 /* Preset.swift in Sources */ = {isa = PBXBuildFile; fileRef = F76C8EA4E66F47B8F0207066 /* Preset.swift */; };
 		87CB10DC1C014F5087070D0C /* MenuBarPopoverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20BE8F10BC0930A047050EF /* MenuBarPopoverView.swift */; };
 		95EFC25C1D4B6A1A0D3F6586 /* PresetStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0EAFCB048A23BD89077533F3 /* PresetStore.swift */; };
@@ -46,6 +47,7 @@
 		C73D769DF1CFD293E916453C /* PresetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8AAAE8AB7AA4238C35C99A6 /* PresetView.swift */; };
 		C8B659374EDECC0EF38A7A9F /* MDNSDiscovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A00BF5F14989E8C48AE08AB /* MDNSDiscovery.swift */; };
 		CB761EBF6993D6F10238BE12 /* SurroundView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 593531F756C20B22B1282906 /* SurroundView.swift */; };
+		CC5B7138DE1DEE475F8FCAA0 /* RemoteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F7373E45F2D8A0A873510C1 /* RemoteView.swift */; };
 		D06FB4A0EF2802537377E32F /* VolumeControlView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 71B63BF0A3338974C13AD96C /* VolumeControlView.swift */; };
 		D079330241F0CF45F84A6C49 /* Preset.swift in Sources */ = {isa = PBXBuildFile; fileRef = F76C8EA4E66F47B8F0207066 /* Preset.swift */; };
 		D3615836D1796E560FAFCB1E /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C88FB0556735B17869D5A94 /* ContentView.swift */; };
@@ -89,7 +91,9 @@
 		84B2E217523B349EC130FB92 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		87532AE642CC4C7933E62C61 /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
 		8C88FB0556735B17869D5A94 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		8F7373E45F2D8A0A873510C1 /* RemoteView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteView.swift; sourceTree = "<group>"; };
 		92DE52C6C47E8EE18C49EC97 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		9AEBFDA374E25758961C3B07 /* InputView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputView.swift; sourceTree = "<group>"; };
 		9E3F661D100D83AE3D90486C /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
 		A20BE8F10BC0930A047050EF /* MenuBarPopoverView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarPopoverView.swift; sourceTree = "<group>"; };
 		A2C97D129A06A4A87956F7FD /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -258,6 +262,7 @@
 				6C3874D625282B482D38AE6A /* ConnectionView.swift */,
 				EBCC033BDB61A8099289FAA5 /* ContentView.swift */,
 				9E3F661D100D83AE3D90486C /* DashboardView.swift */,
+				9AEBFDA374E25758961C3B07 /* InputView.swift */,
 				E8AAAE8AB7AA4238C35C99A6 /* PresetView.swift */,
 				0DD48B21048CEB692DAB7C46 /* SettingsView.swift */,
 				E6C6A70CDC90F4B7352DEBB5 /* TunerView.swift */,
@@ -291,6 +296,7 @@
 				87532AE642CC4C7933E62C61 /* DashboardView.swift */,
 				371B2F4E3F7CEE3A934FE1DC /* InputView.swift */,
 				F74152998E3524849FCB09AD /* PresetView.swift */,
+				8F7373E45F2D8A0A873510C1 /* RemoteView.swift */,
 				593531F756C20B22B1282906 /* SurroundView.swift */,
 				B68F7EA22CF66FAEDFC81885 /* TunerView.swift */,
 				2C62E5948C5D63D30BB07F2C /* ZoneView.swift */,
@@ -427,6 +433,7 @@
 				C047CC739A755CDD5AE482E3 /* DeviceInfo.swift in Sources */,
 				2AAA0C216218E52C0AC77822 /* InputNameStore.swift in Sources */,
 				BFFA6C52F1C109A464B735D9 /* InputSource.swift in Sources */,
+				7ED5C56644A95B215D350E86 /* InputView.swift in Sources */,
 				C2E702869124D81FEF45FBD9 /* LocalizationHelper.swift in Sources */,
 				586CC8A8C58A9B78BC42F4B5 /* MDNSDiscovery.swift in Sources */,
 				44DBFAB90E3BE083C08D6F0B /* MainViewModel.swift in Sources */,
@@ -465,6 +472,7 @@
 				85C6BEFABD78D72516F662D4 /* Preset.swift in Sources */,
 				2968E1C0723210303AC19292 /* PresetStore.swift in Sources */,
 				3E9CD6EF7FA601D09188C4D0 /* PresetView.swift in Sources */,
+				CC5B7138DE1DEE475F8FCAA0 /* RemoteView.swift in Sources */,
 				1154BACFEC09434FDA7A9A21 /* SettingsView.swift in Sources */,
 				F85DA1958EAB9A9D07F93D5C /* SurroundMode.swift in Sources */,
 				CB761EBF6993D6F10238BE12 /* SurroundView.swift in Sources */,
