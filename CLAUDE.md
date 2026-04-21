@@ -166,7 +166,7 @@ In iOS views, always add `@Environment(\.localizedBundle) private var lBundle` a
 
 ## SF Symbols
 
-This project targets iOS 26+ and macOS 14+. When choosing SF Symbols, verify availability in SF Symbols app — some symbols (e.g. `satellite`) only exist in newer OS versions. Safe alternatives for input/media icons: `cable.connector`, `antenna.radiowaves.left.and.right.circle`, `opticaldisc`, `record.circle`.
+This project targets iOS 26+ and macOS 14+. When choosing SF Symbols, verify availability in SF Symbols app — some symbols only exist in newer OS versions or are platform-specific. Known unavailable on macOS 14: `tv.remote`, `satellite`. Safe alternatives: `dpad` (remote/navigation), `cable.connector`, `antenna.radiowaves.left.and.right.circle`, `opticaldisc`, `record.circle`.
 
 ## Entitlements
 
