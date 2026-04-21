@@ -169,9 +169,25 @@ Denon AVR-X3800H をネットワーク経由でフル制御できる、洗練さ
 
 | ID | 機能 | コマンド例 | 優先度 |
 |----|------|------------|--------|
-| OSD-01 | メニュー表示 ON/OFF | `MNMEN ON` | Could |
-| OSD-02 | カーソル操作（上 / 下 / 左 / 右） | `MNCUP` / `MNCDN` | Could |
-| OSD-03 | 決定 / 戻る | `MNENT` / `MNRTN` | Could |
+| OSD-01 | セットアップメニュー表示 | `MNMEN` | Should |
+| OSD-02 | カーソル操作（上 / 下 / 左 / 右） | `MNCUP` / `MNCDN` / `MNCLT` / `MNCRT` | Should |
+| OSD-03 | 決定 / 戻る | `MNENT` / `MNRTN` | Should |
+| OSD-04 | 情報表示（Info） | `MNINF` | Should |
+| OSD-05 | オプションメニュー（Option） | `MNOPT` | Should |
+
+**全 OSD コマンド一覧**
+
+| 機能 | コマンド |
+|------|---------|
+| カーソル ↑ | `MNCUP` |
+| カーソル ↓ | `MNCDN` |
+| カーソル ← | `MNCLT` |
+| カーソル → | `MNCRT` |
+| 決定（Enter） | `MNENT` |
+| 戻る（Return） | `MNRTN` |
+| 情報（Info） | `MNINF` |
+| オプション（Option） | `MNOPT` |
+| セットアップメニュー | `MNMEN` |
 
 ---
 
