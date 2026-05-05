@@ -70,9 +70,11 @@ struct SettingsView: View {
             } label: {
                 HStack {
                     Spacer()
-                    Text(vm.connectionStatus.isConnected
-                         ? LocalizedStringKey("再接続")
-                         : LocalizedStringKey("今すぐ接続"))
+                    if vm.connectionStatus.isConnected {
+                        Text("再接続", bundle: bundle)
+                    } else {
+                        Text("今すぐ接続", bundle: bundle)
+                    }
                     Spacer()
                 }
             }

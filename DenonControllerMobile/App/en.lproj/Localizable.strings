@@ -150,3 +150,7 @@
 "入力ソース" = "Input";
 "リモコン" = "Remote";
 "ゾーン" = "Zone";
+
+"デバイスを検索" = "Search Devices";
+"カスタム名" = "Custom Name";
+"ローカライズ・デバッグ:" = "Localization Debug:";

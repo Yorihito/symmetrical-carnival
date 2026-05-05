@@ -219,6 +219,12 @@ struct TunerView: View {
                     }
                 }
 
+                Divider()
+                
+                Text("ローカライズ・デバッグ:", bundle: bundle)
+                    .font(.caption.weight(.bold))
+                    .foregroundStyle(.secondary)
+                
                 // 除外周波数
                 HStack(spacing: 8) {
                     Text("除外周波数:", bundle: bundle)
@@ -239,18 +245,22 @@ struct TunerView: View {
                 if vm.isScanningTuner {
                     VStack(alignment: .leading, spacing: 6) {
                         ProgressView(value: Double(vm.tunerScanProgress), total: 56)
-                        Text("スロット \(vm.tunerScanProgress) / 56 を確認中...")
+                        Text("スロット \(vm.tunerScanProgress) / 56 を確認中...", bundle: bundle)
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
                 } else if !vm.tunerAllPresets.isEmpty {
                     let total = vm.tunerAllPresets.count
                     let shown = vm.tunerPresets.count
-                    Text(total == shown
-                         ? "\(shown) 件のプリセットを取得しました。"
-                         : "\(shown) 件を表示中（\(total - shown) 件除外）")
-                        .font(.caption)
-                        .foregroundStyle(.green)
+                    if total == shown {
+                        Text("\(shown) 件のプリセットを取得しました。", bundle: bundle)
+                            .font(.caption)
+                            .foregroundStyle(.green)
+                    } else {
+                        Text("\(shown) 件を表示中（\(total - shown) 件除外）", bundle: bundle)
+                            .font(.caption)
+                            .foregroundStyle(.green)
+                    }
                 }
             }
         }
