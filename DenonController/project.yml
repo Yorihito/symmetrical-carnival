@@ -25,6 +25,9 @@ targets:
     platform: macOS
     sources:
       - path: DenonController
+    resources:
+      - path: ../Resources/en.lproj
+      - path: ../Resources/ja.lproj
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.ytada.DenonController
@@ -43,8 +46,8 @@ targets:
       - path: ../DenonControllerMobile
     resources:
       - path: ../DenonControllerMobile/Assets.xcassets
-      - path: DenonController/en.lproj
-      - path: DenonController/ja.lproj
+      - path: ../Resources/en.lproj
+      - path: ../Resources/ja.lproj
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.ytada.DenonControllerMobile
