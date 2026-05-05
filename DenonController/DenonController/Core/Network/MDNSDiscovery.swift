@@ -161,6 +161,14 @@ private class NWDiscoveryScanner: NSObject {
     func start(timeout: TimeInterval, completion: @escaping ([(String, String)], [String]) -> Void) {
         self.completion = completion
         self.scanLog.append("Starting NWBrowsers...")
+        self.scanLog.append("Localization Debug:")
+        self.scanLog.append("  Main Localizations: \(Bundle.main.localizations.joined(separator: ", "))")
+        self.scanLog.append("  Preferred: \(Bundle.main.preferredLocalizations.joined(separator: ", "))")
+        if let path = Bundle.main.path(forResource: "en", ofType: "lproj") {
+            self.scanLog.append("  'en.lproj' path: FOUND")
+        } else {
+            self.scanLog.append("  'en.lproj' path: NOT FOUND")
+        }
         
         for type in types {
             let descriptor = NWBrowser.Descriptor.bonjour(type: type, domain: nil)
