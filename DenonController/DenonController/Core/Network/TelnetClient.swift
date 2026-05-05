@@ -36,14 +36,8 @@ actor TelnetClient {
     func connect(host: String, port: UInt16 = 23) async throws {
         await internalDisconnect()
 
-        // sockaddr_in を構築
-        var addr = sockaddr_in()
-        addr.sin_len    = UInt8(MemoryLayout<sockaddr_in>.size)
-        addr.sin_family = sa_family_t(AF_INET)
-        addr.sin_port   = in_port_t(port).bigEndian
-        guard inet_aton(host, &addr.sin_addr) != 0 else {
-            throw AVRError.connectionFailed("無効な IP アドレス: \(host)")
-        }
+        // sockaddr_in を構築（var への &参照を分離するためヘルパーで生成）
+        let addr = try Self.makeSockAddr(host: host, port: port)
 
         let newFd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)
         guard newFd >= 0 else {
@@ -59,7 +53,7 @@ actor TelnetClient {
         var tvSend = timeval(tv_sec: 5, tv_usec: 0)
         setsockopt(newFd, SOL_SOCKET, SO_SNDTIMEO, &tvSend, socklen_t(MemoryLayout<timeval>.size))
 
-        let ret = try await withCheckedThrowingContinuation { (cont: CheckedContinuation<Int32, Error>) in
+        try await withCheckedThrowingContinuation { (cont: CheckedContinuation<Void, Error>) in
             DispatchQueue.global(qos: .userInitiated).async {
                 let r = withUnsafePointer(to: addr) {
                     $0.withMemoryRebound(to: sockaddr.self, capacity: 1) {
@@ -67,7 +61,7 @@ actor TelnetClient {
                     }
                 }
                 if r == 0 {
-                    cont.resume(returning: r)
+                    cont.resume()
                 } else {
                     Darwin.close(newFd)
                     cont.resume(throwing: AVRError.connectionFailed(
@@ -76,7 +70,6 @@ actor TelnetClient {
                 }
             }
         }
-        _ = ret
 
         // 受信タイムアウト: 100 ms（recv がブロックしすぎない）
         var tvRecv = timeval(tv_sec: 0, tv_usec: 100_000)
@@ -85,6 +78,18 @@ actor TelnetClient {
         fd = newFd
         startReceiving()
     }
+
+    private static func makeSockAddr(host: String, port: UInt16) throws -> sockaddr_in {
+        var addr = sockaddr_in()
+        addr.sin_len    = UInt8(MemoryLayout<sockaddr_in>.size)
+        addr.sin_family = sa_family_t(AF_INET)
+        addr.sin_port   = in_port_t(port).bigEndian
+        guard inet_aton(host, &addr.sin_addr) != 0 else {
+            throw AVRError.connectionFailed("無効な IP アドレス: \(host)")
+        }
+        return addr
+    }
+
 
     // MARK: - Send
 

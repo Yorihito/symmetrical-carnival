@@ -8,7 +8,7 @@ struct SurroundView: View {
         ("スマート",   [.auto, .stereo]),
         ("ダイレクト", [.direct]),
         ("コンテンツ", [.movie, .music, .game]),
-        ("イマーシブ", [.auro3D]),
+        ("イマーシブ", [.auro3D])
     ]
 
     var body: some View {

@@ -4,6 +4,12 @@ struct DashboardView: View {
     @Environment(MainViewModel.self) private var vm
     @Binding var showConnection: Bool
 
+    @State private var isDraggingVolume = false
+    @State private var isPendingVolume  = false
+    @State private var dragVolumeValue: Double = -30
+
+    private var displayDB: Double { (isDraggingVolume || isPendingVolume) ? dragVolumeValue : vm.avr.volumeDB }
+
     var body: some View {
         ScrollView {
             VStack(spacing: 0) {
@@ -98,7 +104,7 @@ struct DashboardView: View {
                     }
                 } else {
                     VStack(spacing: 2) {
-                        VolumeDisplay(vm: vm)
+                        VolumeDisplay(vm: vm, displayDB: displayDB)
                     }
                 }
             }
@@ -107,7 +113,12 @@ struct DashboardView: View {
             .padding(.top, 20)
 
             // スライダー
-            VolumeSlider(vm: vm)
+            VolumeSlider(
+                vm: vm,
+                isDragging: $isDraggingVolume,
+                isPending: $isPendingVolume,
+                dragValue: $dragVolumeValue
+            )
                 .padding(.horizontal, 20)
                 .padding(.vertical, 12)
                 .disabled(!isOn)
@@ -196,7 +207,7 @@ struct DashboardView: View {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 10) {
                     Spacer(minLength: 10)
-                    ForEach(SurroundMode.allCases) { mode in
+                    ForEach(SurroundMode.selectableModes) { mode in
                         SurroundChip(
                             mode: mode,
                             isSelected: vm.avr.surroundMode == mode,
@@ -239,13 +250,15 @@ struct DashboardView: View {
 
 private struct VolumeDisplay: View {
     let vm: MainViewModel
+    let displayDB: Double
+    
     var body: some View {
-        Text(String(format: "%.1f", vm.avr.volumeDB) + " dB")
+        Text(String(format: "%.1f", displayDB) + " dB")
             .font(.system(size: 52, weight: .bold, design: .rounded))
             .monospacedDigit()
             .contentTransition(.numericText())
-            .animation(.spring(duration: 0.15), value: vm.avr.volumeDB)
-        Text("Vol  \(vm.avr.volumeDBString)")
+            .animation(.spring(duration: 0.15), value: displayDB)
+        Text("Vol  \(String(format: "%.1f", displayDB + 80.0))")
             .font(.callout.weight(.medium))
             .foregroundStyle(.tertiary)
             .monospacedDigit()
@@ -256,9 +269,9 @@ private struct VolumeDisplay: View {
 
 private struct VolumeSlider: View {
     let vm: MainViewModel
-    @State private var isDragging = false
-    @State private var isPending  = false
-    @State private var dragValue: Double = -30
+    @Binding var isDragging: Bool
+    @Binding var isPending: Bool
+    @Binding var dragValue: Double
 
     private var displayDB: Double { (isDragging || isPending) ? dragValue : vm.avr.volumeDB }
 

@@ -51,26 +51,25 @@ struct ContentView: View {
 
     private var iPhoneLayout: some View {
         TabView {
-            Tab("ホーム", systemImage: "house.fill") {
-                NavigationStack {
-                    DashboardView(showConnection: $showConnection)
-                }
+            NavigationStack {
+                DashboardView(showConnection: $showConnection)
             }
-            Tab("チューナー", systemImage: "antenna.radiowaves.left.and.right") {
-                NavigationStack { TunerView() }
-            }
-            Tab("入力ソース", systemImage: "rectangle.on.rectangle.angled") {
-                NavigationStack { InputView() }
-            }
-            Tab("ゾーン", systemImage: "square.split.2x1.fill") {
-                NavigationStack { ZoneView() }
-            }
-            Tab("リモコン", systemImage: "dpad") {
-                NavigationStack { RemoteView() }
-            }
-            Tab("設定", systemImage: "gear") {
-                NavigationStack { SettingsView(showConnection: $showConnection) }
-            }
+            .tabItem { Label("ホーム", systemImage: "house.fill") }
+
+            NavigationStack { TunerView() }
+            .tabItem { Label("チューナー", systemImage: "antenna.radiowaves.left.and.right") }
+
+            NavigationStack { InputView() }
+            .tabItem { Label("入力ソース", systemImage: "rectangle.on.rectangle.angled") }
+
+            NavigationStack { RemoteView() }
+            .tabItem { Label("リモコン", systemImage: "dpad") }
+
+            NavigationStack { ZoneView() }
+            .tabItem { Label("ゾーン", systemImage: "square.split.2x1.fill") }
+
+            NavigationStack { SettingsView(showConnection: $showConnection) }
+            .tabItem { Label("設定", systemImage: "gear") }
         }
     }
 

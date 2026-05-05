@@ -13,6 +13,9 @@ enum SurroundMode: String, CaseIterable, Identifiable, Codable, Sendable {
     case auro3D        = "AURO3D"
     case imaxDTS       = "IMAX DTS"
 
+    /// UIで選択可能な（確実にコマンドが通る）モードのリスト
+    static let selectableModes: [SurroundMode] = [.auto, .stereo, .direct, .movie, .music, .game, .auro3D]
+
     var id: String { rawValue }
 
     // AVR-X3800H はスペース入りの MS コマンドを受け付けないためスペースを除去する。

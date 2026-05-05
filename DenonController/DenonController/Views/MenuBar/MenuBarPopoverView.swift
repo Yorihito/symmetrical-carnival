@@ -91,7 +91,7 @@ struct MenuBarPopoverView: View {
                     if vm.avr.isMuted {
                         Text("ミュート中")
                     } else {
-                        Text((isDraggingVolume || isPendingVolume) ? menuBarVolumeString(dragVolumeValue) : vm.avr.volumeDBString)
+                        Text((isDraggingVolume || isPendingVolume) ? menuBarVolumeString(dragVolumeValue) : vm.avr.volumedBLabel)
                     }
                 }
                 .font(.caption.weight(.semibold))
@@ -308,7 +308,7 @@ struct MenuBarPopoverView: View {
     // MARK: - Helpers
 
     private func menuBarVolumeString(_ db: Double) -> String {
-        String(format: "%.1f", db + 80.0)
+        String(format: "%.1f dB", db)
     }
 
     private var statusColor: Color {

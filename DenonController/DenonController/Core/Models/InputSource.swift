@@ -68,7 +68,7 @@ enum InputSource: String, CaseIterable, Identifiable, Codable, Sendable {
         case .tuner:       "antenna.radiowaves.left.and.right"
         case .game:        "gamecontroller"
         case .mediaPlayer: "play.circle"
-        case .cblSat:      "satellite"
+        case .cblSat:      "tv.and.mediabox"
         case .aux1, .aux2: "headphones.circle"
         }
     }
