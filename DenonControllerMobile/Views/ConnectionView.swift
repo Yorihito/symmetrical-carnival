@@ -107,12 +107,14 @@ struct ConnectionView: View {
                         .disabled(device.host.isEmpty)
                     }
 
-                    if !vm.discovery.scanLog.isEmpty {
-                        DisclosureGroup("診断ログ") {
-                            Text(vm.discovery.scanLog.joined(separator: "\n"))
-                                .font(.system(size: 10, design: .monospaced))
-                                .foregroundStyle(.secondary)
-                                .textSelection(.enabled)
+                    if !vm.discovery.isSearching && vm.discovery.devices.isEmpty {
+                        if !vm.discovery.scanLog.isEmpty {
+                            DisclosureGroup("診断ログ") {
+                                Text(vm.discovery.scanLog.joined(separator: "\n"))
+                                    .font(.system(size: 10, design: .monospaced))
+                                    .foregroundStyle(.secondary)
+                                    .textSelection(.enabled)
+                            }
                         }
                     }
                 } header: {

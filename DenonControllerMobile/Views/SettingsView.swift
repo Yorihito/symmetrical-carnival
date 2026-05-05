@@ -156,9 +156,23 @@ struct SettingsView: View {
                 Text("デバッグモード", bundle: bundle)
             }
             if debugMode {
-                Text("チューナー画面に Raw Data 確認パネルが表示されます。", bundle: bundle)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("チューナー画面に Raw Data 確認パネルが表示されます。", bundle: bundle)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    
+                    Divider()
+                    
+                    Text("ローカライズ・デバッグ:", bundle: bundle)
+                        .font(.caption.weight(.bold))
+                    
+                    Text("Main: \(Bundle.main.localizations.joined(separator: ", "))")
+                        .font(.system(size: 10, design: .monospaced))
+                    Text("Pref: \(Bundle.main.preferredLocalizations.joined(separator: ", "))")
+                        .font(.system(size: 10, design: .monospaced))
+                    Text("en.lproj: \(Bundle.main.path(forResource: "en", ofType: "lproj") != nil ? "FOUND" : "NOT FOUND")")
+                        .font(.system(size: 10, design: .monospaced))
+                }
             }
         }
     }
