@@ -57,7 +57,7 @@ enum MDNSScanner {
 
         let (pairs, innerLog): ([(String, String)], [String]) = await withCheckedContinuation { cont in
             let scanner = NetServiceScanner()
-            scanner.start(timeout: 3.0) { results, innerLog in
+            scanner.start(timeout: 5.0) { results, innerLog in
                 _ = scanner // keep alive
                 cont.resume(returning: (results, innerLog))
             }
@@ -185,26 +185,45 @@ private class NetServiceScanner: NSObject, NetServiceBrowserDelegate, NetService
     
     // @preconcurrency Foundation により警告抑制を試みる。
     // それでも出る場合は、MainActor.assumeIsolated を維持。
+    nonisolated func netServiceBrowserWillSearch(_ browser: NetServiceBrowser) {
+        MainActor.assumeIsolated {
+            scanLog.append("Browser starting search...")
+        }
+    }
+    
+    nonisolated func netServiceBrowser(_ browser: NetServiceBrowser, didNotSearch errorDict: [String : NSNumber]) {
+        MainActor.assumeIsolated {
+            scanLog.append("Browser failed to search: \(errorDict)")
+        }
+    }
+    
     nonisolated func netServiceBrowser(_ browser: NetServiceBrowser, didFind service: NetService, moreComing: Bool) {
         MainActor.assumeIsolated {
-            let name = service.name.lowercased()
-            let type = service.type.lowercased()
-            scanLog.append("Found: \(service.name) (\(service.type))")
+            let name = service.name
+            let type = service.type
+            scanLog.append("Found service: [\(name)] type: [\(type)]")
 
-            let isDenon = type.contains("denon") || type.contains("heos") || name.contains("denon") || name.contains("heos") || name.contains("marantz")
+            let nameLower = name.lowercased()
+            let typeLower = type.lowercased()
+            let isDenon = typeLower.contains("denon") || typeLower.contains("heos") || 
+                          nameLower.contains("denon") || nameLower.contains("heos") || nameLower.contains("marantz")
             
-            if isDenon || type.contains("http") {
+            if isDenon || typeLower.contains("http") {
+                scanLog.append("  -> Candidate for resolution: \(name)")
                 services.append(service)
                 service.delegate = self
                 service.schedule(in: .main, forMode: .default)
-                service.resolve(withTimeout: 2.0)
+                service.resolve(withTimeout: 4.0)
             }
         }
     }
     
     nonisolated func netServiceDidResolveAddress(_ sender: NetService) {
         MainActor.assumeIsolated {
-            guard let addresses = sender.addresses else { return }
+            guard let addresses = sender.addresses else { 
+                scanLog.append("  -> Resolved \(sender.name) but no addresses found.")
+                return 
+            }
             for data in addresses {
                 var hostname = [CChar](repeating: 0, count: 1025)
                 data.withUnsafeBytes { ptr in
@@ -213,7 +232,7 @@ private class NetServiceScanner: NSObject, NetServiceBrowserDelegate, NetService
                         if getnameinfo(sockaddrPtr, socklen_t(data.count), &hostname, socklen_t(hostname.count), nil, 0, 2) == 0 {
                             let ip = hostname.withUnsafeBufferPointer { String(cString: $0.baseAddress!) }
                             resolvedAddresses[ip] = sender.name
-                            scanLog.append("Resolved \(sender.name) -> \(ip)")
+                            scanLog.append("  -> IP Resolved: \(sender.name) -> \(ip)")
                         }
                     }
                 }
