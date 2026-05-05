@@ -7,6 +7,7 @@ struct SettingsView: View {
     @AppStorage("debugMode")    private var debugMode    = false
     @Environment(MainViewModel.self) private var vm
     @Environment(\.locale) private var locale
+    @Environment(\.localizedBundle) private var bundle
     @Binding var showConnection: Bool
 
     var body: some View {
@@ -82,7 +83,7 @@ struct SettingsView: View {
                 Label("デバイスを検索", systemImage: "magnifyingglass")
             }
         } header: {
-            Text("接続設定")
+            Text("接続設定", bundle: bundle)
         }
     }
 
@@ -103,11 +104,13 @@ struct SettingsView: View {
     // MARK: - App
 
     private var appSection: some View {
-        Section("アプリ") {
-            Picker("表示言語", selection: $appLanguage) {
-                Text("システム設定に従う").tag("system")
-                Text("日本語").tag("ja")
-                Text("English").tag("en")
+        Section(header: Text("アプリ", bundle: bundle)) {
+            Picker(selection: $appLanguage) {
+                Text("システム設定に従う", bundle: bundle).tag("system")
+                Text("日本語", bundle: bundle).tag("ja")
+                Text("English", bundle: bundle).tag("en")
+            } label: {
+                Text("表示言語", bundle: bundle)
             }
         }
     }
@@ -115,7 +118,7 @@ struct SettingsView: View {
     // MARK: - Input Sources
 
     private var inputSourcesSection: some View {
-        Section("入力ソース") {
+        Section(header: Text("入力ソース", bundle: bundle)) {
             ForEach(InputSource.allCases) { source in
                 HStack(spacing: 12) {
                     Toggle("", isOn: Binding(
@@ -148,10 +151,12 @@ struct SettingsView: View {
     // MARK: - Developer
 
     private var developerSection: some View {
-        Section("開発者") {
-            Toggle("デバッグモード", isOn: $debugMode)
+        Section(header: Text("開発者", bundle: bundle)) {
+            Toggle(isOn: $debugMode) {
+                Text("デバッグモード", bundle: bundle)
+            }
             if debugMode {
-                Text("チューナー画面に Raw Data 確認パネルが表示されます。")
+                Text("チューナー画面に Raw Data 確認パネルが表示されます。", bundle: bundle)
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -161,12 +166,28 @@ struct SettingsView: View {
     // MARK: - About
 
     private var aboutSection: some View {
-        Section("バージョン情報") {
-            LabeledContent("アプリ", value: "Denon / Marantz Controller")
-            LabeledContent("バージョン", value: "1.0.0")
+        Section(header: Text("バージョン情報", bundle: bundle)) {
+            LabeledContent {
+                Text("Denon / Marantz Controller")
+            } label: {
+                Text("アプリ", bundle: bundle)
+            }
+            LabeledContent {
+                Text("1.0.0")
+            } label: {
+                Text("バージョン", bundle: bundle)
+            }
             if !vm.avr.deviceInfo.modelName.isEmpty {
-                LabeledContent("接続中の機種", value: vm.avr.deviceInfo.modelName)
-                LabeledContent("ブランド", value: vm.avr.deviceInfo.brandName)
+                LabeledContent {
+                    Text(vm.avr.deviceInfo.modelName)
+                } label: {
+                    Text("接続中の機種", bundle: bundle)
+                }
+                LabeledContent {
+                    Text(vm.avr.deviceInfo.brandName)
+                } label: {
+                    Text("ブランド", bundle: bundle)
+                }
             }
         }
     }

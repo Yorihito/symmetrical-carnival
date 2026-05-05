@@ -54,22 +54,34 @@ struct ContentView: View {
             NavigationStack {
                 DashboardView(showConnection: $showConnection)
             }
-            .tabItem { Label("ホーム", systemImage: "house.fill") }
+            .tabItem { 
+                Label { Text("ホーム", bundle: lBundle) } icon: { Image(systemName: "house.fill") }
+            }
 
             NavigationStack { TunerView() }
-            .tabItem { Label("チューナー", systemImage: "antenna.radiowaves.left.and.right") }
+            .tabItem { 
+                Label { Text("チューナー", bundle: lBundle) } icon: { Image(systemName: "antenna.radiowaves.left.and.right") }
+            }
 
             NavigationStack { InputView() }
-            .tabItem { Label("入力ソース", systemImage: "rectangle.on.rectangle.angled") }
+            .tabItem { 
+                Label { Text("入力ソース", bundle: lBundle) } icon: { Image(systemName: "rectangle.on.rectangle.angled") }
+            }
 
             NavigationStack { RemoteView() }
-            .tabItem { Label("リモコン", systemImage: "dpad") }
+            .tabItem { 
+                Label { Text("リモコン", bundle: lBundle) } icon: { Image(systemName: "dpad") }
+            }
 
             NavigationStack { ZoneView() }
-            .tabItem { Label("ゾーン", systemImage: "square.split.2x1.fill") }
+            .tabItem { 
+                Label { Text("ゾーン", bundle: lBundle) } icon: { Image(systemName: "square.split.2x1.fill") }
+            }
 
             NavigationStack { SettingsView(showConnection: $showConnection) }
-            .tabItem { Label("設定", systemImage: "gear") }
+            .tabItem { 
+                Label { Text("設定", bundle: lBundle) } icon: { Image(systemName: "gear") }
+            }
         }
     }
 

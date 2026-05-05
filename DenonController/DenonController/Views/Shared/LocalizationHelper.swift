@@ -5,19 +5,23 @@ import SwiftUI
 /// navigationTitle は macOS では AppKit 経由のため \.locale を無視するので、
 /// String で渡すときにこの関数を使う。
 func localizedNavTitle(_ key: String, locale: Locale) -> String {
-    let langCode = locale.language.languageCode?.identifier ?? "en"
+    // iOS 17+ の Locale 構造に対応
+    let identifier = locale.identifier.lowercased()
+    let langCode = identifier.hasPrefix("ja") ? "ja" : (identifier.hasPrefix("en") ? "en" : "en")
+    
     if let path = Bundle.main.path(forResource: langCode, ofType: "lproj"),
        let bundle = Bundle(path: path) {
         return NSLocalizedString(key, bundle: bundle, comment: "")
     }
-    // 開発言語（Japanese）はキーがそのまま表示されるのでフォールバック不要
-    return NSLocalizedString(key, bundle: Bundle.main, comment: "")
+    return NSLocalizedString(key, comment: "")
 }
 
 // MARK: - Mobile Localization Helpers
 
 public func makeLocalizedBundle(for locale: Locale) -> Bundle {
-    let langCode = locale.language.languageCode?.identifier ?? "en"
+    let identifier = locale.identifier.lowercased()
+    let langCode = identifier.hasPrefix("ja") ? "ja" : (identifier.hasPrefix("en") ? "en" : "en")
+    
     if let path = Bundle.main.path(forResource: langCode, ofType: "lproj"),
        let bundle = Bundle(path: path) {
         return bundle

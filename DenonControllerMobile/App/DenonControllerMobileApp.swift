@@ -15,10 +15,12 @@ struct DenonControllerMobileApp: App {
 
     var body: some Scene {
         WindowGroup {
+            let locale = appLocale
             ContentView()
                 .id(appLanguage)
                 .environment(vm)
-                .environment(\.locale, appLocale)
+                .environment(\.locale, locale)
+                .environment(\.localizedBundle, makeLocalizedBundle(for: locale))
                 .onAppear { applyWindowBackground() }
         }
     }

@@ -140,3 +140,10 @@
 
 /* Settings window title */
 "設定" = "Settings";
+
+/* iPhone Tab Bar */
+"ホーム" = "Home";
+"チューナー" = "Tuner";
+"入力ソース" = "Input";
+"リモコン" = "Remote";
+"ゾーン" = "Zone";

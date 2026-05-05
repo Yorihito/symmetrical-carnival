@@ -2,6 +2,7 @@ import SwiftUI
 
 struct DashboardView: View {
     @Environment(MainViewModel.self) private var vm
+    @Environment(\.localizedBundle) private var bundle
     @Binding var showConnection: Bool
 
     @State private var isDraggingVolume = false
@@ -164,7 +165,7 @@ struct DashboardView: View {
     private var inputSection: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
-                Text("入力ソース")
+                Text("入力ソース", bundle: bundle)
                     .font(.footnote.weight(.semibold))
                     .foregroundStyle(.secondary)
                     .textCase(.uppercase)
@@ -197,7 +198,7 @@ struct DashboardView: View {
 
     private var surroundSection: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("サラウンドモード")
+            Text("サラウンドモード", bundle: bundle)
                 .font(.footnote.weight(.semibold))
                 .foregroundStyle(.secondary)
                 .textCase(.uppercase)
@@ -227,13 +228,13 @@ struct DashboardView: View {
 
     private var pillLabel: String {
         if vm.avr.isConnected {
-            return vm.avr.deviceInfo.modelName.isEmpty ? "接続済み" : vm.avr.deviceInfo.modelName
+            return vm.avr.deviceInfo.modelName.isEmpty ? LS("接続済み", bundle) : vm.avr.deviceInfo.modelName
         }
         switch vm.connectionStatus {
-        case .disconnected: return "未接続"
-        case .connecting:   return "接続中..."
-        case .connected:    return "接続済み"
-        case .error:        return "エラー"
+        case .disconnected: return LS("未接続", bundle)
+        case .connecting:   return LS("接続中...", bundle)
+        case .connected:    return LS("接続済み", bundle)
+        case .error:        return LS("エラー", bundle)
         }
     }
 
