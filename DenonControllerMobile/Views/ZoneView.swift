@@ -3,6 +3,7 @@ import SwiftUI
 struct ZoneView: View {
     @Environment(MainViewModel.self) private var vm
     @Environment(\.locale) private var locale
+    @Environment(\.localizedBundle) private var bundle
 
     var body: some View {
         ScrollView {
@@ -12,7 +13,7 @@ struct ZoneView: View {
                     zone3Card
                 }
                 if !vm.avr.isConnected {
-                    Text("AVR に接続するとゾーン情報が表示されます。")
+                    Text("AVR に接続するとゾーン情報が表示されます。", bundle: bundle)
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
@@ -58,7 +59,7 @@ struct ZoneView: View {
                         onMute:      { vm.setZone2Mute(!vm.avr.zone2Mute) }
                     )
                 } else {
-                    Text("Zone 2 はオフです")
+                    Text("Zone 2 はオフです", bundle: bundle)
                         .font(.callout)
                         .foregroundStyle(.secondary)
                 }
@@ -97,7 +98,7 @@ struct ZoneView: View {
                         onMute: { }
                     )
                 } else {
-                    Text("Zone 3 はオフです")
+                    Text("Zone 3 はオフです", bundle: bundle)
                         .font(.callout)
                         .foregroundStyle(.secondary)
                 }
@@ -117,6 +118,8 @@ private struct ZoneStepControl: View {
     let onDown: () -> Void
     let onMute: () -> Void
 
+    @Environment(\.localizedBundle) private var bundle
+
     var body: some View {
         VStack(spacing: 14) {
             HStack(spacing: 0) {
@@ -132,7 +135,7 @@ private struct ZoneStepControl: View {
                 VStack(spacing: 2) {
                     Text("Vol \(label)")
                         .font(.title2.weight(.bold).monospacedDigit())
-                    Text("音量")
+                    Text("音量", bundle: bundle)
                         .font(.caption2)
                         .foregroundStyle(.tertiary)
                 }
@@ -151,10 +154,11 @@ private struct ZoneStepControl: View {
 
             if supportsMute {
                 Button(action: onMute) {
-                    Label(
-                        isMuted ? LocalizedStringKey("ミュート解除") : LocalizedStringKey("ミュート"),
-                        systemImage: isMuted ? "speaker.slash.fill" : "speaker.wave.2.fill"
-                    )
+                    Label {
+                        Text(isMuted ? "ミュート解除" : "ミュート", bundle: bundle)
+                    } icon: {
+                        Image(systemName: isMuted ? "speaker.slash.fill" : "speaker.wave.2.fill")
+                    }
                     .font(.callout.weight(.medium))
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 10)

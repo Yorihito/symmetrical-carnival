@@ -3,6 +3,7 @@ import SwiftUI
 struct TunerView: View {
     @Environment(MainViewModel.self) private var vm
     @Environment(\.locale) private var locale
+    @Environment(\.localizedBundle) private var bundle
     @AppStorage("debugMode") private var debugMode = false
 
     var body: some View {
@@ -73,7 +74,7 @@ struct TunerView: View {
                     VStack(spacing: 4) {
                         Image(systemName: "exclamationmark.triangle.fill")
                             .foregroundStyle(.orange)
-                        Text("入力: TUNER\nを選択")
+                        Text("入力: TUNER\nを選択", bundle: bundle)
                             .font(.caption2)
                             .foregroundStyle(.secondary)
                             .multilineTextAlignment(.center)
@@ -91,7 +92,7 @@ struct TunerView: View {
             VStack(spacing: 20) {
                 // バンド切替
                 VStack(alignment: .leading, spacing: 10) {
-                    Text("バンド")
+                    Text("バンド", bundle: bundle)
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(.secondary)
 
@@ -113,7 +114,7 @@ struct TunerView: View {
 
                 // プリセット操作
                 VStack(alignment: .leading, spacing: 10) {
-                    Text("プリセット")
+                    Text("プリセット", bundle: bundle)
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(.secondary)
 
@@ -156,7 +157,7 @@ struct TunerView: View {
 
                 // 周波数ステップ
                 VStack(alignment: .leading, spacing: 10) {
-                    Text("周波数ステップ")
+                    Text("周波数ステップ", bundle: bundle)
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(.secondary)
 
@@ -197,29 +198,33 @@ struct TunerView: View {
             VStack(alignment: .leading, spacing: 14) {
                 HStack(alignment: .top) {
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("プリセット取得")
+                        Text("プリセット取得", bundle: bundle)
                             .font(.headline)
-                        Text("AVR に登録されたプリセットを一括取得します。")
+                        Text("AVR に登録されたプリセットを一括取得します。", bundle: bundle)
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
                     Spacer()
                     if vm.isScanningTuner {
-                        Button("キャンセル") { vm.cancelTunerScan() }
-                            .buttonStyle(.bordered)
+                        Button { vm.cancelTunerScan() } label: {
+                            Text("キャンセル", bundle: bundle)
+                        }
+                        .buttonStyle(.bordered)
                     } else {
-                        Button("取得") { vm.startTunerScan() }
-                            .buttonStyle(.borderedProminent)
-                            .disabled(!isEnabled)
+                        Button { vm.startTunerScan() } label: {
+                            Text("取得", bundle: bundle)
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .disabled(!isEnabled)
                     }
                 }
 
                 // 除外周波数
                 HStack(spacing: 8) {
-                    Text("除外周波数:")
+                    Text("除外周波数:", bundle: bundle)
                         .font(.caption)
                         .foregroundStyle(.secondary)
-                    TextField("例: 90.0, 85.0", text: $skipFreqText)
+                    TextField(LS("例: 90.0, 85.0", bundle), text: $skipFreqText)
                         .font(.caption.monospacedDigit())
                         .textFieldStyle(.roundedBorder)
                         .keyboardType(.decimalPad)
@@ -256,7 +261,7 @@ struct TunerView: View {
     private var presetListCard: some View {
         CardView {
             VStack(alignment: .leading, spacing: 12) {
-                Text("プリセット一覧")
+                Text("プリセット一覧", bundle: bundle)
                     .font(.headline)
 
                 ForEach(vm.tunerPresets) { preset in
@@ -316,16 +321,18 @@ struct TunerView: View {
             VStack(alignment: .leading, spacing: 10) {
                 HStack {
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("生データ確認")
+                        Text("生データ確認", bundle: bundle)
                             .font(.headline)
-                        Text("チューナー XML のレスポンスを表示します")
+                        Text("チューナー XML のレスポンスを表示します", bundle: bundle)
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
                     Spacer()
-                    Button(vm.isFetchingTunerDiag ? "取得中..." : "取得") {
+                    Button {
                         showDiag = true
                         vm.fetchTunerDiagnostics()
+                    } label: {
+                        Text(vm.isFetchingTunerDiag ? LS("取得中...", bundle) : LS("取得", bundle))
                     }
                     .buttonStyle(.bordered)
                     .disabled(!vm.avr.isConnected || vm.isFetchingTunerDiag)

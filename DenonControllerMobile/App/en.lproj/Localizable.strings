@@ -94,19 +94,22 @@
 "前" = "Prev";
 "次" = "Next";
 "周波数" = "Frequency";
+"周波数ステップ" = "Frequency Step";
 "プリセット取得" = "Fetch Presets";
-"AVR に登録されたチューナープリセットを一括取得します。" = "Bulk-fetch tuner presets stored in the AVR.";
+"AVR に登録されたプリセットを一括取得します。" = "Bulk-fetch all presets registered in the AVR.";
 "取得" = "Fetch";
-"除外する周波数" = "Exclude Frequencies";
+"キャンセル" = "Cancel";
+"除外周波数:" = "Exclude Frequencies:";
 "例: 90.0, 85.0" = "e.g. 90.0, 85.0";
-"スロット %lld / 56 を確認中..." = "Checking slot %lld / 56...";
-"%lld 件のプリセットを取得しました。" = "%lld preset(s) found.";
-"%lld 件を表示中（%lld 件除外）" = "%lld shown (%lld excluded)";
+"スロット %d / 56 を確認中..." = "Checking slot %d / 56...";
+"%d 件のプリセットを取得しました。" = "Fetched %d presets.";
+"%d 件を表示中（%d 件除外）" = "Showing %d (%d excluded)";
 "プリセット一覧" = "Preset List";
 "生データ確認" = "Raw Data";
-"チューナー XML の実際のレスポンスを表示します" = "Show actual XML responses from the tuner endpoints";
+"チューナー XML のレスポンスを表示します" = "Show raw XML response from tuner";
 "取得中..." = "Fetching...";
-"入力: TUNER を選択してください" = "Please select TUNER as input";
+"入力: TUNER\nを選択" = "Select\nTUNER Input";
+"入力: TUNER を選択してください" = "Please select TUNER input";
 
 /* PresetView */
 "追加" = "Add";

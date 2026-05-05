@@ -46,14 +46,16 @@ struct SettingsView: View {
             HStack {
                 Image(systemName: "network")
                     .foregroundStyle(.secondary)
-                TextField("AVR の IP アドレス", text: $defaultHost)
+                TextField(LS("AVR の IP アドレス", bundle), text: $defaultHost)
                     .keyboardType(.decimalPad)
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
                     .onSubmit { triggerConnect() }
             }
 
-            Toggle("起動時に自動接続", isOn: $autoConnect)
+            Toggle(isOn: $autoConnect) {
+                Text("起動時に自動接続", bundle: bundle)
+            }
 
             // 接続ボタン
             Button {
@@ -80,7 +82,11 @@ struct SettingsView: View {
             Button {
                 showConnection = true
             } label: {
-                Label("デバイスを検索", systemImage: "magnifyingglass")
+                Label {
+                    Text("デバイスを検索", bundle: bundle)
+                } icon: {
+                    Image(systemName: "magnifyingglass")
+                }
             }
         } header: {
             Text("接続設定", bundle: bundle)
@@ -133,7 +139,7 @@ struct SettingsView: View {
 
                     Spacer()
 
-                    TextField("カスタム名",
+                    TextField(LS("カスタム名", bundle),
                               text: Binding(
                                 get: { vm.inputNames.customName(for: source) ?? "" },
                                 set: { vm.inputNames.setName($0, for: source) }

@@ -2,6 +2,7 @@ import SwiftUI
 
 struct InputView: View {
     @Environment(MainViewModel.self) private var vm
+    @Environment(\.localizedBundle) private var bundle
 
     var body: some View {
         ScrollView {
@@ -24,7 +25,7 @@ struct InputView: View {
             }
             .padding()
         }
-        .navigationTitle("入力ソース")
+        .navigationTitle(Text("入力ソース", bundle: bundle))
         .navigationBarTitleDisplayMode(.inline)
     }
 
@@ -37,7 +38,7 @@ struct InputView: View {
                 .background(Color.accentColor.opacity(0.1), in: RoundedRectangle(cornerRadius: 10))
 
             VStack(alignment: .leading, spacing: 2) {
-                Text("現在の入力")
+                Text("現在の入力", bundle: bundle)
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 Text(vm.avr.input.name(using: vm.inputNames))
