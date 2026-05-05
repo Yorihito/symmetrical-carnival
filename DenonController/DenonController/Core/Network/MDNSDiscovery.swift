@@ -57,7 +57,7 @@ enum MDNSScanner {
 
         let (pairs, innerLog): ([(String, String)], [String]) = await withCheckedContinuation { cont in
             let scanner = NetServiceScanner()
-            scanner.start(timeout: 5.0) { results, innerLog in
+            scanner.start(timeout: 7.0) { results, innerLog in
                 _ = scanner // keep alive
                 cont.resume(returning: (results, innerLog))
             }
@@ -161,12 +161,17 @@ private class NetServiceScanner: NSObject, NetServiceBrowserDelegate, NetService
         self.completion = completion
         self.scanLog.append("Starting Bonjour browsers...")
         
-        for type in types {
-            let browser = NetServiceBrowser()
-            browser.delegate = self
-            browser.schedule(in: .main, forMode: .default)
-            browser.searchForServices(ofType: type, inDomain: "local.")
-            browsers.append(browser)
+        for (index, type) in types.enumerated() {
+            // わずかに開始をずらして衝突を避ける
+            DispatchQueue.main.asyncAfter(deadline: .now() + Double(index) * 0.1) {
+                let browser = NetServiceBrowser()
+                browser.delegate = self
+                browser.schedule(in: .main, forMode: .default)
+                // domain: "local." ではなく "" (default) を使用して互換性を高める
+                browser.searchForServices(ofType: type, inDomain: "")
+                self.browsers.append(browser)
+                self.scanLog.append("  -> Browser for \(type) started")
+            }
         }
         
         DispatchQueue.main.asyncAfter(deadline: .now() + timeout) {
