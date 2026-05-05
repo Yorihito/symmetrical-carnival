@@ -1,0 +1,12 @@
+.DS_Store
+*.xcodeproj/
+*.xcworkspace/
+DerivedData/
+build/
+.ruby-version
+.ruby-gemset
+vendor/bundle
+.bundle/
+*.swp
+*~
+.lock
