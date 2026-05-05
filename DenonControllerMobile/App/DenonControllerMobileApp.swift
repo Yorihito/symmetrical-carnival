@@ -16,6 +16,7 @@ struct DenonControllerMobileApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .id(appLanguage)
                 .environment(vm)
                 .environment(\.locale, appLocale)
                 .onAppear { applyWindowBackground() }
