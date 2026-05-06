@@ -4,6 +4,7 @@ struct ConnectionView: View {
     @Environment(MainViewModel.self) private var vm
     @Environment(\.dismiss) private var dismiss
     @Environment(\.locale) private var locale
+    @Environment(\.localizedBundle) private var bundle
 
     @AppStorage("defaultHost") private var defaultHost = ""
     @State private var ipAddress = ""
@@ -16,7 +17,7 @@ struct ConnectionView: View {
                     HStack {
                         Image(systemName: "network")
                             .foregroundStyle(.secondary)
-                        TextField("例: 192.168.1.100", text: $ipAddress)
+                        TextField(LS("例: 192.168.1.100", bundle), text: $ipAddress)
                             .keyboardType(.decimalPad)
                             .textInputAutocapitalization(.never)
                             .autocorrectionDisabled()
@@ -35,8 +36,8 @@ struct ConnectionView: View {
                                     .padding(.trailing, 6)
                             }
                             Text(vm.connectionStatus.isConnected
-                                 ? LocalizedStringKey("再接続")
-                                 : LocalizedStringKey("接続"))
+                                 ? LS("再接続", bundle)
+                                 : LS("接続", bundle))
                                 .font(.callout.weight(.semibold))
                             Spacer()
                         }
@@ -49,9 +50,9 @@ struct ConnectionView: View {
                             .foregroundStyle(.red)
                     }
                 } header: {
-                    Text("手動入力")
+                    Text("手動入力", bundle: bundle)
                 } footer: {
-                    Text("Denon / Marantz AVR の IP アドレスを入力してください。")
+                    Text("Denon / Marantz AVR の IP アドレスを入力してください。", bundle: bundle)
                 }
 
                 // mDNS 自動検索セクション
@@ -60,7 +61,7 @@ struct ConnectionView: View {
                         HStack {
                             ProgressView()
                                 .controlSize(.small)
-                            Text("デバイスを検索中...")
+                            Text("デバイスを検索中...", bundle: bundle)
                                 .font(.callout)
                                 .foregroundStyle(.secondary)
                         }
@@ -68,7 +69,7 @@ struct ConnectionView: View {
                         Button {
                             vm.discovery.start()
                         } label: {
-                            Label("ネットワークを再検索", systemImage: "magnifyingglass")
+                            Label(LS("ネットワークを再検索", bundle), systemImage: "magnifyingglass")
                         }
                     }
 
@@ -94,7 +95,7 @@ struct ConnectionView: View {
                                     Text(device.name)
                                         .font(.callout.weight(.semibold))
                                         .foregroundStyle(.primary)
-                                    Text(device.host.isEmpty ? "解決中..." : device.host)
+                                    Text(device.host.isEmpty ? LS("解決中...", bundle) : device.host)
                                         .font(.caption.monospacedDigit())
                                         .foregroundStyle(.secondary)
                                 }
@@ -109,7 +110,7 @@ struct ConnectionView: View {
 
                     if !vm.discovery.isSearching && vm.discovery.devices.isEmpty {
                         if !vm.discovery.scanLog.isEmpty {
-                            DisclosureGroup("診断ログ") {
+                            DisclosureGroup(LS("診断ログ", bundle)) {
                                 Text(vm.discovery.scanLog.joined(separator: "\n"))
                                     .font(.system(size: 10, design: .monospaced))
                                     .foregroundStyle(.secondary)
@@ -118,10 +119,10 @@ struct ConnectionView: View {
                         }
                     }
                 } header: {
-                    Text("自動検索 (Bonjour)")
+                    Text("自動検出 (Bonjour)", bundle: bundle)
                 } footer: {
                     if !vm.discovery.devices.isEmpty {
-                        Text("\(vm.discovery.devices.count) 台見つかりました。タップして接続します。")
+                        Text(verbatim: String(format: LS("%lld 台見つかりました。タップして接続します。", bundle), vm.discovery.devices.count))
                     }
                 }
 
@@ -133,7 +134,7 @@ struct ConnectionView: View {
                                 .fill(Color.green)
                                 .frame(width: 9, height: 9)
                             VStack(alignment: .leading, spacing: 2) {
-                                Text("接続済み")
+                                Text("接続済み", bundle: bundle)
                                     .font(.callout.weight(.semibold))
                                 if !vm.avr.deviceInfo.modelName.isEmpty {
                                     Text(vm.avr.deviceInfo.modelName)
@@ -142,20 +143,20 @@ struct ConnectionView: View {
                                 }
                             }
                             Spacer()
-                            Button("切断") { Task { await vm.disconnect() } }
+                            Button(LS("切断", bundle)) { Task { await vm.disconnect() } }
                                 .foregroundStyle(.red)
                         }
                     } header: {
-                        Text("現在の接続")
+                        Text("現在の接続", bundle: bundle)
                     }
                 }
             }
             .listStyle(.insetGrouped)
-            .navigationTitle(localizedNavTitle("接続設定", locale: locale))
+            .navigationTitle(LS("接続設定", bundle))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("閉じる") { dismiss() }
+                    Button(LS("閉じる", bundle)) { dismiss() }
                 }
             }
             .onAppear {

@@ -8,7 +8,7 @@ enum ConnectionStatus: Equatable, Sendable {
     case connected
     case error(String)
 
-    var label: LocalizedStringKey {
+    var label: String {
         switch self {
         case .disconnected: "未接続"
         case .connecting:   "接続中..."

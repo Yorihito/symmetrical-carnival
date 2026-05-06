@@ -41,7 +41,7 @@ struct SettingsView: View {
                 Circle()
                     .fill(statusColor)
                     .frame(width: 9, height: 9)
-                Text(vm.connectionStatus.label)
+                Text(LS(vm.connectionStatus.label, bundle))
                     .font(.callout)
                 if case .error(let msg) = vm.connectionStatus {
                     Spacer()

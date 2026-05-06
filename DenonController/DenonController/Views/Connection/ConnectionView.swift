@@ -3,8 +3,9 @@ import SwiftUI
 struct ConnectionView: View {
     @Environment(MainViewModel.self) private var vm
     @Environment(\.dismiss) private var dismiss
-    @AppStorage("defaultHost") private var defaultHost = ""
+    @Environment(\.localizedBundle) private var bundle
 
+    @AppStorage("defaultHost") private var defaultHost = ""
     @AppStorage("debugMode") private var debugMode = false
     @State private var ipAddress = ""
     @State private var isConnecting = false
@@ -15,14 +16,14 @@ struct ConnectionView: View {
             // Header
             HStack {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("AVR に接続")
+                    Text("AVR に接続", bundle: bundle)
                         .font(.title2.weight(.bold))
-                    Text("Denon / Marantz AVR")
+                    Text("Denon / Marantz AVR", bundle: bundle)
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
                 Spacer()
-                Button("閉じる") { dismiss() }
+                Button(LS("閉じる", bundle)) { dismiss() }
                     .keyboardShortcut(.escape)
             }
             .padding()
@@ -33,11 +34,11 @@ struct ConnectionView: View {
 
                 // ── 手動接続（メイン） ──────────────────────────────────
                 VStack(alignment: .leading, spacing: 12) {
-                    Label("IP アドレスで接続", systemImage: "network")
+                    Label(LS("IP アドレスで接続", bundle), systemImage: "network")
                         .font(.headline)
 
                     HStack {
-                        TextField("例: 192.168.1.100", text: $ipAddress)
+                        TextField(LS("例: 192.168.1.100", bundle), text: $ipAddress)
                             .textFieldStyle(.roundedBorder)
                             .onSubmit { connectManual() }
                             .onChange(of: ipAddress) { _, val in
@@ -49,7 +50,7 @@ struct ConnectionView: View {
                                 ProgressView().scaleEffect(0.75)
                                     .frame(width: 60)
                             } else {
-                                Text("接続")
+                                Text("接続", bundle: bundle)
                                     .frame(width: 60)
                             }
                         }
@@ -61,7 +62,7 @@ struct ConnectionView: View {
                     // ステータス表示
                     switch vm.connectionStatus {
                     case .connecting:
-                        Label("接続中...", systemImage: "arrow.triangle.2.circlepath")
+                        Label(LS("接続中...", bundle), systemImage: "arrow.triangle.2.circlepath")
                             .font(.callout)
                             .foregroundStyle(.secondary)
                     case .error(let msg):
@@ -93,7 +94,7 @@ struct ConnectionView: View {
                             .padding(.top, 8)
                     },
                     label: {
-                        Label("自動検出 (Bonjour)", systemImage: "antenna.radiowaves.left.and.right")
+                        Label(LS("自動検出 (Bonjour)", bundle), systemImage: "antenna.radiowaves.left.and.right")
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
                     }
@@ -125,10 +126,10 @@ struct ConnectionView: View {
                 HStack(spacing: 8) {
                     if vm.discovery.isSearching {
                         ProgressView().scaleEffect(0.7)
-                        Text("検索中...")
+                        Text("検索中...", bundle: bundle)
                     } else {
                         Image(systemName: "questionmark.circle")
-                        Text("デバイスが見つかりません")
+                        Text("デバイスが見つかりません", bundle: bundle)
                     }
                 }
                 .font(.callout)
@@ -154,7 +155,7 @@ struct ConnectionView: View {
                             Text(device.name)
                                 .font(.body.weight(.medium))
                             if device.host.isEmpty {
-                                Text("解決中...")
+                                Text("解決中...", bundle: bundle)
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
                             } else {
@@ -164,7 +165,7 @@ struct ConnectionView: View {
                             }
                         }
                         Spacer()
-                        Button("接続") {
+                        Button(LS("接続", bundle)) {
                             Task {
                                 isConnecting = true
                                 defer { isConnecting = false }

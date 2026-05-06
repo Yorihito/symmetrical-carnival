@@ -59,7 +59,7 @@ struct MenuBarPopoverView: View {
                     Circle()
                         .fill(statusColor)
                         .frame(width: 6, height: 6)
-                    Text(vm.connectionStatus.label)
+                    Text(LS(vm.connectionStatus.label, bundle))
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }

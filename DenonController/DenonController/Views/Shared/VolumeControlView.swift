@@ -10,6 +10,7 @@ struct VolumeControlView: View {
     let onVolumeUp: () -> Void
     let onVolumeDown: () -> Void
 
+    @Environment(\.localizedBundle) private var bundle
     @State private var isDragging = false
     @State private var isPending = false   // ドラッグ終了〜AVR確認応答まで
     @State private var dragValue: Double = -30
@@ -29,9 +30,13 @@ struct VolumeControlView: View {
             // 音量表示（dB 主表示 ＋ Denon 単位 副表示）
             Group {
                 if isMuted {
-                    Label("ミュート中", systemImage: "speaker.slash.fill")
-                        .font(.title2.weight(.semibold))
-                        .foregroundStyle(.orange)
+                    Label {
+                        Text("ミュート中", bundle: bundle)
+                    } icon: {
+                        Image(systemName: "speaker.slash.fill")
+                    }
+                    .font(.title2.weight(.semibold))
+                    .foregroundStyle(.orange)
                 } else {
                     VStack(alignment: .center, spacing: 1) {
                         Text(displayDBLabel)
@@ -99,10 +104,11 @@ struct VolumeControlView: View {
 
             // ミュートボタン
             Button(action: onMuteToggle) {
-                Label(
-                    isMuted ? LocalizedStringKey("ミュート解除") : LocalizedStringKey("ミュート"),
-                    systemImage: isMuted ? "speaker.slash.fill" : "speaker.wave.2.fill"
-                )
+                Label {
+                    Text(isMuted ? "ミュート解除" : "ミュート", bundle: bundle)
+                } icon: {
+                    Image(systemName: isMuted ? "speaker.slash.fill" : "speaker.wave.2.fill")
+                }
                 .font(.callout.weight(.medium))
                 .padding(.horizontal, 16)
                 .padding(.vertical, 6)

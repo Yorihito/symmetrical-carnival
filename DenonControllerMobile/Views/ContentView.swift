@@ -112,7 +112,11 @@ struct ContentView: View {
     private var iPadLayout: some View {
         NavigationSplitView {
             List(SidebarItem.allCases, id: \.self, selection: $selectedItem) { item in
-                Label(LocalizedStringKey(item.rawValue), systemImage: item.systemImage)
+                Label {
+                    Text(LocalizedStringKey(item.rawValue), bundle: lBundle)
+                } icon: {
+                    Image(systemName: item.systemImage)
+                }
             }
             .navigationTitle("Denon Controller")
             .listStyle(.sidebar)
@@ -137,7 +141,7 @@ struct ContentView: View {
     private var connectionFooter: some View {
         HStack(spacing: 8) {
             Circle().fill(statusColor).frame(width: 8, height: 8)
-            Text(vm.connectionStatus.label).font(.caption).foregroundStyle(.secondary)
+            Text(LS(vm.connectionStatus.label, lBundle)).font(.caption).foregroundStyle(.secondary)
             Spacer()
             Button { showConnection = true } label: {
                 Image(systemName: "network").font(.callout).foregroundStyle(.secondary)

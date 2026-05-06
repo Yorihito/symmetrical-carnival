@@ -15,7 +15,7 @@ struct ZoneView: View {
             }
             .padding()
         }
-        .navigationTitle(localizedNavTitle("ゾーン制御", locale: locale))
+        .navigationTitle(LS("ゾーン制御", bundle))
     }
 
     // MARK: - Zone 2

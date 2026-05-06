@@ -26,7 +26,7 @@ struct InputView: View {
             }
             .padding()
         }
-        .navigationTitle(localizedNavTitle("入力ソース", locale: locale))
+        .navigationTitle(LS("入力ソース", bundle))
     }
 
     private var currentInputBanner: some View {

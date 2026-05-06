@@ -130,7 +130,7 @@ struct ContentView: View {
                 Circle()
                     .fill(statusColor)
                     .frame(width: 7, height: 7)
-                Text(vm.connectionStatus.label)
+                Text(LS(vm.connectionStatus.label, bundle))
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)

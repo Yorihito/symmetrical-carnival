@@ -141,3 +141,21 @@
 "取得" = "Fetch";
 "除外周波数:" = "Skip Freq:";
 "周波数ステップ" = "Freq Step";
+
+/* ConnectionView Missing Keys */
+"手動入力" = "Manual Input";
+"Denon / Marantz AVR の IP アドレスを入力してください。" = "Enter the IP address of your Denon / Marantz AVR.";
+"デバイスを検索中..." = "Searching for devices...";
+"ネットワークを再検索" = "Rescan Network";
+"1 台見つかりました。タップして接続します。" = "1 device found. Tap to connect.";
+"%lld 台見つかりました。タップして接続します。" = "%lld devices found. Tap to connect.";
+"解決中..." = "Resolving...";
+"診断ログ" = "Diagnostic Log";
+"現在の接続" = "Current Connection";
+"接続済み" = "Connected";
+"切断" = "Disconnect";
+"接続設定" = "Connection Settings";
+"閉じる" = "Close";
+"接続" = "Connect";
+"再接続" = "Reconnect";
+"例: 192.168.1.100" = "e.g. 192.168.1.100";

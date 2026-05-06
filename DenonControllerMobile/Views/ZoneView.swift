@@ -24,7 +24,7 @@ struct ZoneView: View {
             .padding(.vertical, 12)
         }
         
-        .navigationTitle(localizedNavTitle("ゾーン制御", locale: locale))
+        .navigationTitle(LS("ゾーン制御", bundle))
         .navigationBarTitleDisplayMode(.large)
     }
 

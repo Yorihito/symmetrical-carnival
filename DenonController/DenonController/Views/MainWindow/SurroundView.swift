@@ -3,6 +3,7 @@ import SwiftUI
 struct SurroundView: View {
     @Environment(MainViewModel.self) private var vm
     @Environment(\.locale) private var locale
+    @Environment(\.localizedBundle) private var bundle
 
     private let groups: [(label: String, modes: [SurroundMode])] = [
         ("スマート",   [.auto, .stereo]),
@@ -18,7 +19,7 @@ struct SurroundView: View {
 
                 ForEach(groups, id: \.label) { group in
                     VStack(alignment: .leading, spacing: 6) {
-                        Text(LocalizedStringKey(group.label))
+                        Text(LocalizedStringKey(group.label), bundle: bundle)
                             .font(.caption.weight(.semibold))
                             .foregroundStyle(.secondary)
                             .padding(.leading, 2)
@@ -40,7 +41,7 @@ struct SurroundView: View {
             }
             .padding()
         }
-        .navigationTitle(localizedNavTitle("サラウンドモード", locale: locale))
+        .navigationTitle(LS("サラウンドモード", bundle))
     }
 
     private var currentModeBanner: some View {
@@ -52,7 +53,7 @@ struct SurroundView: View {
                 .background(Color.accentColor.opacity(0.1), in: RoundedRectangle(cornerRadius: 10))
 
             VStack(alignment: .leading, spacing: 2) {
-                Text("現在のモード")
+                Text("現在のモード", bundle: bundle)
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 Text(vm.avr.surroundMode.displayName)
