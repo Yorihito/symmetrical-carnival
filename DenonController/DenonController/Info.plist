@@ -2,31 +2,31 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-    <key>CFBundleName</key>
-    <string>Denon Controller</string>
-    <key>CFBundleIdentifier</key>
-    <string>com.ytada.DenonController</string>
-    <key>CFBundleVersion</key>
-    <string>1</string>
-    <key>CFBundleShortVersionString</key>
-    <string>1.0.1</string>
-    <key>CFBundlePackageType</key>
-    <string>APPL</string>
-    <key>LSMinimumSystemVersion</key>
-    <string>14.0</string>
-    <key>NSPrincipalClass</key>
-    <string>NSApplication</string>
-    <key>NSLocalNetworkUsageDescription</key>
-    <string>Denon / Marantz AV レシーバーをローカルネットワーク経由で制御します。</string>
-    <key>NSBonjourServices</key>
-    <array>
-        <string>_denon-heos._tcp</string>
-        <string>_heos-audio._tcp</string>
-        <string>_http._tcp</string>
-    </array>
-    <key>LSUIElement</key>
-    <false/>
-    <key>NSHumanReadableCopyright</key>
-    <string>Copyright © 2026. All rights reserved.</string>
+	<key>CFBundleIdentifier</key>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<key>CFBundleName</key>
+	<string>Denon Controller</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>1.0.0</string>
+	<key>CFBundleVersion</key>
+	<string>1</string>
+	<key>LSMinimumSystemVersion</key>
+	<string>14.0</string>
+	<key>LSUIElement</key>
+	<false/>
+	<key>NSBonjourServices</key>
+	<array>
+		<string>_denon-heos._tcp</string>
+		<string>_heos-audio._tcp</string>
+		<string>_http._tcp</string>
+	</array>
+	<key>NSHumanReadableCopyright</key>
+	<string>Copyright (c) 2026 Yorihito Tada. All rights reserved.</string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>Control a Denon / Marantz AV receiver over the local network.</string>
+	<key>NSPrincipalClass</key>
+	<string>NSApplication</string>
 </dict>
 </plist>

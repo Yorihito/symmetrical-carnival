@@ -60,7 +60,7 @@
 >
 > 【Compatibility】
 > Compatible with network-enabled Denon and Marantz AV Receivers (HEOS-ready models recommended).
-> * Please ensure your AVR supports network control via Port 8080.
+> * Please ensure your AVR supports network control.
 
 ### Keywords
 **Limit: 100 chars**
