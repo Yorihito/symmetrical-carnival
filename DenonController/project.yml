@@ -25,9 +25,7 @@ targets:
     platform: macOS
     sources:
       - path: DenonController
-    resources:
-      - path: ../DenonControllerMobile/App/en.lproj
-      - path: ../DenonControllerMobile/App/ja.lproj
+      - path: DenonController/Resources/Localization
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.ytada.DenonController
@@ -43,11 +41,10 @@ targets:
       - path: DenonController/Core
       - path: DenonController/ViewModels
       - path: DenonController/Views/Shared
+      - path: DenonController/Resources/Localization
       - path: ../DenonControllerMobile
     resources:
       - path: ../DenonControllerMobile/Assets.xcassets
-      - path: ../DenonControllerMobile/App/en.lproj
-      - path: ../DenonControllerMobile/App/ja.lproj
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.ytada.DenonControllerMobile

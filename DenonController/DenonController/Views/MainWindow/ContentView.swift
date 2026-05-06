@@ -30,7 +30,9 @@ enum NavSection: String, Hashable, CaseIterable {
     case remote    = "リモコン"
     case presets   = "プリセット"
 
-    var localizedTitle: LocalizedStringKey { LocalizedStringKey(rawValue) }
+    func localizedTitle(bundle: Bundle) -> Text {
+        Text(LocalizedStringKey(rawValue), bundle: bundle)
+    }
 
     var systemImage: String {
         switch self {
@@ -47,6 +49,7 @@ enum NavSection: String, Hashable, CaseIterable {
 struct ContentView: View {
     @Environment(MainViewModel.self) private var vm
     @Environment(\.locale) private var locale
+    @Environment(\.localizedBundle) private var bundle
     @State private var selectedSection: NavSection? = .dashboard
     @State private var showingConnection = false
     @State private var columnVisibility: NavigationSplitViewVisibility = .all
@@ -64,19 +67,20 @@ struct ContentView: View {
                 Button {
                     showingConnection = true
                 } label: {
-                    Label(
-                        vm.connectionStatus.isConnected ? LocalizedStringKey("接続済み") : LocalizedStringKey("接続"),
-                        systemImage: vm.connectionStatus.isConnected
+                    Label {
+                        Text(vm.connectionStatus.isConnected ? "接続済み" : "接続", bundle: bundle)
+                    } icon: {
+                        Image(systemName: vm.connectionStatus.isConnected
                             ? "network.badge.shield.half.filled"
-                            : "network"
-                    )
+                            : "network")
+                    }
                     .foregroundStyle(
                         vm.connectionStatus.isConnected ? Color.green
                         : vm.connectionStatus == .connecting ? Color.orange
                         : Color.primary
                     )
                 }
-                .help(vm.connectionStatus.isConnected ? LocalizedStringKey("接続済み — クリックで再設定") : LocalizedStringKey("AVR に接続"))
+                .help(Text(vm.connectionStatus.isConnected ? "接続済み — クリックで再設定" : "AVR に接続", bundle: bundle))
             }
         }
         .background(WindowAccessor { window in
@@ -96,6 +100,7 @@ struct ContentView: View {
         .sheet(isPresented: $showingConnection) {
             ConnectionView()
                 .environment(\.locale, locale)
+                .environment(\.localizedBundle, bundle)
         }
         .onAppear {
             let host = UserDefaults.standard.string(forKey: "defaultHost") ?? ""
@@ -111,7 +116,11 @@ struct ContentView: View {
     private var sidebar: some View {
         VStack(spacing: 0) {
             List(NavSection.allCases.filter { $0 != .presets }, id: \.self, selection: $selectedSection) { section in
-                Label(section.localizedTitle, systemImage: section.systemImage)
+                Label {
+                    section.localizedTitle(bundle: bundle)
+                } icon: {
+                    Image(systemName: section.systemImage)
+                }
             }
             .listStyle(.sidebar)
 

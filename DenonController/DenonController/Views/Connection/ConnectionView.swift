@@ -5,9 +5,10 @@ struct ConnectionView: View {
     @Environment(\.dismiss) private var dismiss
     @AppStorage("defaultHost") private var defaultHost = ""
 
+    @AppStorage("debugMode") private var debugMode = false
     @State private var ipAddress = ""
     @State private var isConnecting = false
-    @State private var showDiscovery = false
+    @State private var showDiscovery = true
 
     var body: some View {
         VStack(spacing: 0) {
@@ -16,7 +17,7 @@ struct ConnectionView: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("AVR に接続")
                         .font(.title2.weight(.bold))
-                    Text("Denon / Marantz AVR  —  HTTP API (ポート 8080)")
+                    Text("Denon / Marantz AVR")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
@@ -70,6 +71,16 @@ struct ConnectionView: View {
                     default:
                         EmptyView()
                     }
+
+                    // 接続ログ表示（デバッグモード時のみ）
+                    if debugMode && !vm.connectionLog.isEmpty {
+                        TextEditor(text: .constant(vm.connectionLog.joined(separator: "\n")))
+                            .font(.system(size: 10, design: .monospaced))
+                            .scrollContentBackground(.hidden)
+                            .background(Color.secondary.opacity(0.08))
+                            .clipShape(RoundedRectangle(cornerRadius: 6))
+                            .frame(height: 100)
+                    }
                 }
 
                 Divider()
@@ -98,6 +109,7 @@ struct ConnectionView: View {
         .background(.windowBackground)
         .onAppear {
             if ipAddress.isEmpty { ipAddress = defaultHost }
+            vm.discovery.start() // 自動的に開始
         }
         .onDisappear {
             vm.discovery.stop()
@@ -155,8 +167,8 @@ struct ConnectionView: View {
                         Button("接続") {
                             Task {
                                 isConnecting = true
-                                await vm.connect(host: device.host)
-                                isConnecting = false
+                                defer { isConnecting = false }
+                                await vm.connect(host: device.host, port: device.port)
                                 if vm.connectionStatus.isConnected { dismiss() }
                             }
                         }

@@ -35,6 +35,8 @@ final class MainViewModel {
 
     var connectionStatus: ConnectionStatus = .disconnected
     var connectingDetail: String = ""
+    var connectionLog: [String] = []  // 接続の詳細ログ
+    private var currentConnectionID: UUID? // 世代管理用 ID
     var errorMessage: String?
     var lastConnectedHost: String = ""
 
@@ -50,6 +52,10 @@ final class MainViewModel {
            let saved = try? JSONDecoder().decode([TunerPreset].self, from: data) {
             tunerAllPresets = saved
         }
+    }
+    
+    deinit {
+        print("[DenonLog] MainViewModel.deinit")
     }
 
     // MARK: - Connection
@@ -74,66 +80,111 @@ final class MainViewModel {
         }
 
         connectingDetail = ""
-        await connect(host: device.host)
+        await connect(host: device.host, port: device.port)
         if connectionStatus.isConnected {
             UserDefaults.standard.set(device.host, forKey: "defaultHost")
+            UserDefaults.standard.set(device.port, forKey: "defaultPort")
         }
     }
 
-    func connect(host: String) async {
-        guard !connectionStatus.isConnected else { return }
+    func connect(host: String, port: Int? = nil) async {
+        let connectionID = UUID()
+        currentConnectionID = connectionID
+        
+        print("[DenonLog] [\(connectionID.uuidString.prefix(4))] connect(host: \(host), port: \(port ?? 0)) called")
+        connectionLog = ["--- Connection Started ---", "Target: \(host):\(port ?? 0)"]
+        
+        // 既存の接続があれば確実に終了するまで待つ
+        print("[DenonLog] Step 1: Disconnecting previous sessions...")
+        connectionLog.append("Step 1: Disconnecting previous sessions...")
+        await disconnect()
+        print("[DenonLog] Disconnect complete")
+        
+        let savedPort = UserDefaults.standard.integer(forKey: "defaultPort")
+        let targetPort = port ?? (savedPort > 0 ? savedPort : 8080)
+        
         connectionStatus = .connecting
         connectingDetail = ""
         errorMessage = nil
 
         do {
-            var info = try await client.connect(host: host, port: 8080) { [weak self] step in
+            connectionLog.append("Step 2: Connecting via HTTP to port \(targetPort)...")
+            let (info, updates) = try await client.connect(host: host, port: targetPort) { [weak self] step in
                 Task { @MainActor [weak self] in
                     self?.connectingDetail = step
+                    self?.connectionLog.append("  -> HTTP: \(step)")
                 }
             }
-            info.hasZone3 = await client.probeZone3()
+            connectionLog.append("Step 3: Probing additional zones...")
+            var finalInfo = info
+            finalInfo.hasZone3 = await client.probeZone3()
 
+            connectionLog.append("Step 4: Finalizing app state...")
             connectingDetail = ""
             connectionStatus = .connected
             avr.isConnected = true
-            avr.deviceInfo  = info
+            avr.deviceInfo  = finalInfo
             lastConnectedHost = host
 
             // HTTP ポーリング
+            connectionLog.append("Step 5: Starting status update loop...")
             updateTask = Task { [weak self] in
                 guard let self else { return }
-                for await snapshot in client.updates {
+                for await snapshot in updates {
+                    // このタスクがまだ有効（最新）かチェック
+                    if self.currentConnectionID != connectionID { break }
                     self.avr.apply(snapshot)
                 }
-                self.handleDisconnect()
+                self.connectionLog.append("!!! Update loop ended (ID: \(connectionID.uuidString.prefix(4)))")
+                if self.currentConnectionID == connectionID {
+                    self.handleDisconnect()
+                }
             }
 
-            // Telnet 接続（ベストエフォート — 失敗しても HTTP は動き続ける）
+            // Telnet 接続
+            connectionLog.append("Step 6: Connecting to Telnet (port 23)...")
             Task { [weak self] in
                 guard let self else { return }
                 do {
                     try await telnet.connect(host: host, port: 23)
+                    self.connectionLog.append("  -> Telnet connected successfully")
                     startTelnetListening()
                 } catch {
-                    // Telnet 未対応 or NWConnection 失敗 → 無視
+                    self.connectionLog.append("  -> Telnet failed (optional): \(error.localizedDescription)")
                 }
             }
+            connectionLog.append("Success: Connection sequence complete.")
+            print("[DenonLog] Success: Fully connected to \(host)")
 
         } catch {
+            print("[DenonLog] Fatal Error: \(error.localizedDescription)")
+            connectionLog.append("Fatal Error: \(error.localizedDescription)")
             connectingDetail = ""
             connectionStatus = .error(error.localizedDescription)
             avr.isConnected = false
         }
     }
 
-    func disconnect() {
+    func disconnect() async {
         updateTask?.cancel()
         updateTask = nil
         telnetListenTask?.cancel()
         telnetListenTask = nil
-        Task { await client.disconnect() }
-        Task { await telnet.disconnect() }
+        
+        // 切断処理がハングして次の接続をブロックしないよう、タイムアウト付きで実行
+        await withTaskGroup(of: Void.self) { group in
+            group.addTask { await self.client.disconnect() }
+            group.addTask { await self.telnet.disconnect() }
+            
+            // 最大1秒待って次へ進む
+            let timeoutTask = Task { try? await Task.sleep(for: .seconds(1)) }
+            await withTaskCancellationHandler {
+                _ = await group.next()
+            } onCancel: {
+                timeoutTask.cancel()
+            }
+        }
+        
         handleDisconnect()
     }
 

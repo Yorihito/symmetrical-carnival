@@ -80,7 +80,9 @@ struct DashboardView: View {
             }
             .buttonStyle(.plain)
             .disabled(!vm.avr.isConnected)
+            #if !targetEnvironment(simulator)
             .sensoryFeedback(.impact, trigger: vm.avr.isPoweredOn)
+            #endif
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 14)
@@ -144,7 +146,9 @@ struct DashboardView: View {
                         .frame(maxWidth: .infinity, minHeight: 52)
                 }
                 .buttonStyle(.plain)
+                #if !targetEnvironment(simulator)
                 .sensoryFeedback(.impact, trigger: vm.avr.isMuted)
+                #endif
 
                 Divider().frame(height: 44)
 
@@ -345,7 +349,9 @@ private struct InputChip: View {
         .buttonStyle(.plain)
         .disabled(!isEnabled)
         .opacity(isEnabled ? 1 : 0.4)
+        #if !targetEnvironment(simulator)
         .sensoryFeedback(.selection, trigger: isSelected)
+        #endif
     }
 }
 
@@ -377,6 +383,8 @@ private struct SurroundChip: View {
         .buttonStyle(.plain)
         .disabled(!isEnabled)
         .opacity(isEnabled ? 1 : 0.4)
+        #if !targetEnvironment(simulator)
         .sensoryFeedback(.selection, trigger: isSelected)
+        #endif
     }
 }

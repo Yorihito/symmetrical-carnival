@@ -3,6 +3,7 @@ import SwiftUI
 struct RemoteView: View {
     @Environment(MainViewModel.self) private var vm
     @Environment(\.locale) private var locale
+    @Environment(\.localizedBundle) private var bundle
 
     private var isEnabled: Bool { vm.avr.isConnected && vm.avr.isPoweredOn }
 
@@ -23,9 +24,9 @@ struct RemoteView: View {
     private var functionButtons: some View {
         CardView {
             HStack(spacing: 12) {
-                RemoteButton(label: "情報",     systemImage: "info.circle")   { vm.infoButton() }
-                RemoteButton(label: "オプション", systemImage: "ellipsis.circle") { vm.optionButton() }
-                RemoteButton(label: "設定メニュー", systemImage: "gearshape")    { vm.setupMenu() }
+                RemoteButton(label: "情報",     systemImage: "info.circle", bundle: bundle)   { vm.infoButton() }
+                RemoteButton(label: "オプション", systemImage: "ellipsis.circle", bundle: bundle) { vm.optionButton() }
+                RemoteButton(label: "設定メニュー", systemImage: "gearshape", bundle: bundle)    { vm.setupMenu() }
             }
             .frame(maxWidth: .infinity)
             .disabled(!isEnabled)
@@ -42,7 +43,7 @@ struct RemoteView: View {
 
                 HStack(spacing: 8) {
                     RemoteButton(systemImage: "chevron.left")  { vm.cursorLeft() }
-                    RemoteButton(label: "決定", systemImage: "return") { vm.cursorEnter() }
+                    RemoteButton(label: "決定", systemImage: "return", bundle: bundle) { vm.cursorEnter() }
                     RemoteButton(systemImage: "chevron.right") { vm.cursorRight() }
                 }
 
@@ -57,7 +58,7 @@ struct RemoteView: View {
 
     private var backButton: some View {
         CardView {
-            RemoteButton(label: "戻る", systemImage: "arrow.uturn.left") { vm.navBack() }
+            RemoteButton(label: "戻る", systemImage: "arrow.uturn.left", bundle: bundle) { vm.navBack() }
                 .frame(maxWidth: .infinity)
                 .disabled(!isEnabled)
                 .opacity(isEnabled ? 1 : 0.4)
@@ -68,13 +69,15 @@ struct RemoteView: View {
 // MARK: - RemoteButton
 
 private struct RemoteButton: View {
-    let label: LocalizedStringKey?
+    let label: String?
     let systemImage: String
+    let bundle: Bundle
     let action: () -> Void
 
-    init(label: LocalizedStringKey? = nil, systemImage: String, action: @escaping () -> Void) {
+    init(label: String? = nil, systemImage: String, bundle: Bundle = .main, action: @escaping () -> Void) {
         self.label = label
         self.systemImage = systemImage
+        self.bundle = bundle
         self.action = action
     }
 
@@ -84,7 +87,7 @@ private struct RemoteButton: View {
                 Image(systemName: systemImage)
                     .font(.title3)
                 if let label {
-                    Text(label)
+                    Text(LocalizedStringKey(label), bundle: bundle)
                         .font(.caption2.weight(.medium))
                 }
             }

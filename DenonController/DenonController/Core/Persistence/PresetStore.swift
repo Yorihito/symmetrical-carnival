@@ -50,4 +50,10 @@ final class PresetStore {
         }
         presets = decoded
     }
+
+    /// すべてのプリセットを削除して初期値に戻す
+    func reset() {
+        presets = []
+        UserDefaults.standard.removeObject(forKey: Self.key)
+    }
 }

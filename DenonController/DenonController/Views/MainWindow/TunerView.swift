@@ -3,6 +3,7 @@ import SwiftUI
 struct TunerView: View {
     @Environment(MainViewModel.self) private var vm
     @Environment(\.locale) private var locale
+    @Environment(\.localizedBundle) private var bundle
 
     @AppStorage("debugMode") private var debugMode = false
     @State private var showDiag = false
@@ -71,7 +72,7 @@ struct TunerView: View {
 
             // チューナー以外の入力が選択されているときの案内
             if vm.avr.isConnected && vm.avr.isPoweredOn && vm.avr.input != .tuner {
-                Text("入力: TUNER を選択してください")
+                Text("入力: TUNER\nを選択", bundle: bundle)
                     .font(.caption2)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.trailing)
@@ -87,12 +88,12 @@ struct TunerView: View {
     private var controlsCard: some View {
         CardView {
             VStack(alignment: .leading, spacing: 16) {
-                Text("操作")
+                Text("操作", bundle: bundle)
                     .font(.headline)
 
                 // バンド切替
                 HStack(spacing: 12) {
-                    Text("バンド")
+                    Text("バンド", bundle: bundle)
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                         .frame(width: 60, alignment: .leading)
@@ -113,14 +114,14 @@ struct TunerView: View {
 
                 // プリセット操作
                 HStack(spacing: 12) {
-                    Text("プリセット")
+                    Text("プリセット", bundle: bundle)
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                         .frame(width: 60, alignment: .leading)
 
                     StepButton(
                         systemImage: "chevron.backward",
-                        label: "前",
+                        label: LS("前", bundle),
                         isEnabled: isEnabled
                     ) { vm.tunerPresetDown() }
 
@@ -137,7 +138,7 @@ struct TunerView: View {
 
                     StepButton(
                         systemImage: "chevron.forward",
-                        label: "次",
+                        label: LS("次", bundle),
                         isEnabled: isEnabled
                     ) { vm.tunerPresetUp() }
 
@@ -148,7 +149,7 @@ struct TunerView: View {
 
                 // 周波数ステップ
                 HStack(spacing: 12) {
-                    Text("周波数")
+                    Text("周波数ステップ", bundle: bundle)
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                         .frame(width: 60, alignment: .leading)
@@ -180,31 +181,35 @@ struct TunerView: View {
             VStack(alignment: .leading, spacing: 12) {
                 HStack {
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("プリセット取得")
+                        Text("プリセット取得", bundle: bundle)
                             .font(.headline)
-                        Text("AVR に登録されたチューナープリセットを一括取得します。")
+                        Text("AVR に登録されたプリセットを一括取得します。", bundle: bundle)
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
                     Spacer()
                     if vm.isScanningTuner {
-                        Button("キャンセル") { vm.cancelTunerScan() }
-                            .buttonStyle(.bordered)
-                            .controlSize(.small)
+                        Button { vm.cancelTunerScan() } label: {
+                            Text("キャンセル", bundle: bundle)
+                        }
+                        .buttonStyle(.bordered)
+                        .controlSize(.small)
                     } else {
-                        Button("取得") { vm.startTunerScan() }
-                            .buttonStyle(.borderedProminent)
-                            .controlSize(.small)
-                            .disabled(!vm.avr.isConnected || !vm.avr.isPoweredOn)
+                        Button { vm.startTunerScan() } label: {
+                            Text("取得", bundle: bundle)
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .controlSize(.small)
+                        .disabled(!vm.avr.isConnected || !vm.avr.isPoweredOn)
                     }
                 }
 
                 // 除外周波数設定
                 HStack(spacing: 8) {
-                    Text("除外する周波数")
+                    Text("除外周波数:", bundle: bundle)
                         .font(.caption)
                         .foregroundStyle(.secondary)
-                    TextField("例: 90.0, 85.0", text: $skipFreqText)
+                    TextField(LS("例: 90.0, 85.0", bundle), text: $skipFreqText)
                         .font(.caption.monospacedDigit())
                         .textFieldStyle(.roundedBorder)
                         .frame(maxWidth: 160)
@@ -219,7 +224,7 @@ struct TunerView: View {
                 if vm.isScanningTuner {
                     VStack(alignment: .leading, spacing: 6) {
                         ProgressView(value: Double(vm.tunerScanProgress), total: 56)
-                        Text("スロット \(vm.tunerScanProgress) / 56 を確認中...")
+                        Text("スロット \(vm.tunerScanProgress) / 56 を確認中...", bundle: bundle)
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
@@ -228,9 +233,9 @@ struct TunerView: View {
                     let shown = vm.tunerPresets.count
                     Group {
                         if total == shown {
-                            Text("\(shown) 件のプリセットを取得しました。")
+                            Text("\(shown) 件のプリセットを取得しました。", bundle: bundle)
                         } else {
-                            Text("\(shown) 件を表示中（\(total - shown) 件除外）")
+                            Text("\(shown) 件を表示中（\(total - shown) 件除外）", bundle: bundle)
                         }
                     }
                     .font(.caption)
@@ -245,7 +250,7 @@ struct TunerView: View {
     private var presetListCard: some View {
         CardView {
             VStack(alignment: .leading, spacing: 12) {
-                Text("プリセット一覧")
+                Text("プリセット一覧", bundle: bundle)
                     .font(.headline)
 
                 let columns = [GridItem(.adaptive(minimum: 140), spacing: 10)]
@@ -271,16 +276,18 @@ struct TunerView: View {
             VStack(alignment: .leading, spacing: 10) {
                 HStack {
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("生データ確認")
+                        Text("生データ確認", bundle: bundle)
                             .font(.headline)
-                        Text("チューナー XML の実際のレスポンスを表示します")
+                        Text("チューナー XML のレスポンスを表示します", bundle: bundle)
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
                     Spacer()
-                    Button(vm.isFetchingTunerDiag ? "取得中..." : "取得") {
+                    Button {
                         showDiag = true
                         vm.fetchTunerDiagnostics()
+                    } label: {
+                        Text(vm.isFetchingTunerDiag ? LS("取得中...", bundle) : LS("取得", bundle))
                     }
                     .buttonStyle(.bordered)
                     .controlSize(.small)

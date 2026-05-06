@@ -142,7 +142,7 @@ struct ConnectionView: View {
                                 }
                             }
                             Spacer()
-                            Button("切断") { vm.disconnect() }
+                            Button("切断") { Task { await vm.disconnect() } }
                                 .foregroundStyle(.red)
                         }
                     } header: {

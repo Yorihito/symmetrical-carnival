@@ -9,6 +9,7 @@ struct SettingsView: View {
     @Environment(\.locale) private var locale
     @Environment(\.localizedBundle) private var bundle
     @Binding var showConnection: Bool
+    @State private var showResetAlert = false
 
     var body: some View {
         Form {
@@ -17,9 +18,18 @@ struct SettingsView: View {
             inputSourcesSection
             developerSection
             aboutSection
+            resetSection
         }
         .navigationTitle(localizedNavTitle("設定", locale: locale))
         .navigationBarTitleDisplayMode(.large)
+        .alert(Text("すべての設定をリセット", bundle: bundle), isPresented: $showResetAlert) {
+            Button(LS("リセット", bundle), role: .destructive) {
+                Task { await resetToDefaults() }
+            }
+            Button(LS("キャンセル", bundle), role: .cancel) { }
+        } message: {
+            Text("すべての設定が初期値に戻ります。この操作は取り消せません。", bundle: bundle)
+        }
     }
 
     // MARK: - Connection
@@ -59,22 +69,20 @@ struct SettingsView: View {
 
             // 接続ボタン
             Button {
-                if vm.connectionStatus.isConnected {
-                    vm.disconnect()
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                        triggerConnect()
+                Task {
+                    if vm.connectionStatus.isConnected {
+                        await vm.disconnect()
+                        // ネットワークの解放を待つために少し待機
+                        try? await Task.sleep(nanoseconds: 300_000_000)
                     }
-                } else {
                     triggerConnect()
                 }
             } label: {
                 HStack {
                     Spacer()
-                    if vm.connectionStatus.isConnected {
-                        Text("再接続", bundle: bundle)
-                    } else {
-                        Text("今すぐ接続", bundle: bundle)
-                    }
+                    Text(vm.connectionStatus.isConnected
+                         ? LS("再接続", bundle)
+                         : LS("今すぐ接続", bundle))
                     Spacer()
                 }
             }
@@ -212,5 +220,49 @@ struct SettingsView: View {
                 }
             }
         }
+    }
+
+    // MARK: - Reset
+
+    private var resetSection: some View {
+        Section {
+            Button(role: .destructive) {
+                showResetAlert = true
+            } label: {
+                Label {
+                    Text("すべての設定をリセット", bundle: bundle)
+                } icon: {
+                    Image(systemName: "arrow.counterclockwise")
+                }
+                .foregroundStyle(.red)
+            }
+        } header: {
+            Text("リセット", bundle: bundle)
+        } footer: {
+            Text("接続先、入力ソース名、プリセット、アプリ設定などすべてを初期値に戻します。", bundle: bundle)
+        }
+    }
+
+    private func resetToDefaults() async {
+        // 先に切断を完了させる
+        await vm.disconnect()
+
+        // 接続・アプリ設定
+        defaultHost  = ""
+        autoConnect  = false
+        appLanguage  = "system"
+        debugMode    = false
+
+        // 入力ソース名・非表示設定
+        UserDefaults.standard.removeObject(forKey: "customInputNames")
+        UserDefaults.standard.removeObject(forKey: "hiddenInputSources")
+        vm.inputNames.reset()
+
+        // チューナープリセット・スキップ周波数
+        UserDefaults.standard.removeObject(forKey: "savedTunerPresets")
+        UserDefaults.standard.removeObject(forKey: "tunerSkipFrequencies")
+
+        // コントロールプリセット
+        vm.presetStore.reset()
     }
 }

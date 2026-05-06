@@ -48,14 +48,16 @@
 "ゾーン制御" = "Zone Control";
 "Zone 2 はオフです" = "Zone 2 is off";
 "Zone 3 はオフです" = "Zone 3 is off";
+"音量" = "Volume";
+"ミュート" = "Mute";
+"ミュート解除" = "Unmute";
+"AVR に接続するとゾーン情報が表示されます。" = "Connect to AVR to see zone info.";
 
 /* VolumeControlView / MenuBarPopoverView */
 "ミュート中" = "Muted";
-"ミュート解除" = "Unmute";
-"ミュート" = "Mute";
 
 /* ConnectionView */
-"Denon / Marantz AVR  —  HTTP API (ポート 8080)" = "Denon / Marantz AVR  —  HTTP API (port 8080)";
+"Denon / Marantz AVR  —  HTTP API (ポート 8080)" = "Denon / Marantz AVR";
 "閉じる" = "Close";
 "IP アドレスで接続" = "Connect by IP Address";
 "例: 192.168.1.100" = "e.g. 192.168.1.100";
@@ -72,28 +74,26 @@
 "起動時に自動接続" = "Auto-connect on launch";
 "再接続" = "Reconnect";
 "今すぐ接続" = "Connect Now";
+"デバイスを検索" = "Search Devices";
 "アプリ" = "App";
-"Dock にアイコンを表示" = "Show icon in Dock";
-"起動時はメニューバーのみ（メインウィンドウを表示しない）" = "Menu bar only on launch (hide main window)";
-"次回起動時から適用されます。メインウィンドウはメニューバーの「詳細を開く」から開けます。" = "Takes effect on next launch. Open the main window from \"Open Details\" in the menu bar.";
-"カスタム名（省略可）" = "Custom name (optional)";
+"表示言語" = "Language";
+"システム設定に従う" = "Follow System Setting";
+"日本語" = "Japanese";
+"English" = "English";
+"入力ソース" = "Input";
+"カスタム名" = "Custom Name";
+"開発者" = "Developer";
+"デバッグモード" = "Debug Mode";
+"チューナー画面に Raw Data 確認パネルが表示されます。" = "Shows the Raw Data panel in the Tuner view.";
+"ローカライズ・デバッグ:" = "Localization Debug:";
 "バージョン情報" = "About";
 "バージョン" = "Version";
 "接続中の機種" = "Connected Model";
 "ブランド" = "Brand";
-"対応機種" = "Compatible Models";
-"Denon / Marantz AVR（HTTP API 対応機種）" = "Denon / Marantz AVR (HTTP API compatible)";
-
-/* MenuBarPopoverView */
-"入力切替" = "Input";
-"詳細を開く" = "Open Details";
 
 /* TunerView */
-"操作" = "Controls";
 "バンド" = "Band";
-"前" = "Prev";
-"次" = "Next";
-"周波数" = "Frequency";
+"プリセット" = "Presets";
 "周波数ステップ" = "Frequency Step";
 "プリセット取得" = "Fetch Presets";
 "AVR に登録されたプリセットを一括取得します。" = "Bulk-fetch all presets registered in the AVR.";
@@ -101,56 +101,43 @@
 "キャンセル" = "Cancel";
 "除外周波数:" = "Exclude Frequencies:";
 "例: 90.0, 85.0" = "e.g. 90.0, 85.0";
-"スロット %d / 56 を確認中..." = "Checking slot %d / 56...";
-"%d 件のプリセットを取得しました。" = "Fetched %d presets.";
-"%d 件を表示中（%d 件除外）" = "Showing %d (%d excluded)";
+"スロット %lld / 56 を確認中..." = "Checking slot %lld / 56...";
+"%lld 件のプリセットを取得しました。" = "Fetched %lld presets.";
+"%lld 件を表示中（%lld 件除外）" = "Showing %lld (%lld excluded)";
 "プリセット一覧" = "Preset List";
 "生データ確認" = "Raw Data";
 "チューナー XML のレスポンスを表示します" = "Show raw XML response from tuner";
 "取得中..." = "Fetching...";
 "入力: TUNER\nを選択" = "Select\nTUNER Input";
-"入力: TUNER を選択してください" = "Please select TUNER input";
 
-/* PresetView */
-"追加" = "Add";
-"プリセットがありません" = "No Presets";
-"現在の設定（入力・音量・サラウンド）を\nプリセットとして保存できます" = "Save current settings (input, volume, surround)\nas a preset";
-"プリセットを追加" = "Add Preset";
-"適用" = "Apply";
-"削除" = "Delete";
-"編集" = "Edit";
-"プリセットを保存" = "Save Preset";
-"絵文字" = "Emoji";
-"プリセット名" = "Preset Name";
-"現在の設定" = "Current Settings";
-"キャンセル" = "Cancel";
-"保存" = "Save";
-"プリセットを編集" = "Edit Preset";
-
-/* AVRError */
-"AVR に接続されていません" = "Not connected to AVR";
-"接続失敗" = "Connection failed";
-
-/* SettingsView — Developer section */
-"開発者" = "Developer";
-"デバッグモード" = "Debug Mode";
-"チューナー画面に Raw Data 確認パネルが表示されます。" = "Shows the Raw Data panel in the Tuner view.";
-
-/* Language settings */
-"表示言語" = "Language";
-"システム設定に従う" = "Follow System Setting";
-"エラー" = "Error";
-
-/* Settings window title */
+/* Tab Bar */
+"ホーム" = "Home";
 "設定" = "Settings";
 
-/* iPhone Tab Bar */
-"ホーム" = "Home";
-"チューナー" = "Tuner";
-"入力ソース" = "Input";
-"リモコン" = "Remote";
-"ゾーン" = "Zone";
+/* SettingsView - Reset */
+"リセット" = "Reset";
+"すべての設定をリセット" = "Reset All Settings";
+"接続先、入力ソース名、プリセット、アプリ設定などすべてを初期値に戻します。" = "Resets all settings including connection, input names, presets and app preferences to their defaults.";
+"すべての設定が初期値に戻ります。この操作は取り消せません。" = "All settings will be restored to defaults. This action cannot be undone.";
+"キャンセル" = "Cancel";
 
-"デバイスを検索" = "Search Devices";
-"カスタム名" = "Custom Name";
-"ローカライズ・デバッグ:" = "Localization Debug:";
+/* Mac Specific */
+"Dock にアイコンを表示" = "Show Icon in Dock";
+"起動時はメニューバーのみ（メインウィンドウを表示しない）" = "Start only in Menu Bar (do not show Main Window)";
+"次回起動時から適用されます。メインウィンドウはメニューバーの「詳細を開く」から開けます。" = "Takes effect next launch. Main window can be opened from 'Open Details' in Menu Bar.";
+"開発者" = "Developer";
+"デバッグモード" = "Debug Mode";
+"チューナー画面に Raw Data 確認パネルが表示されます。" = "Raw Data debug panel will be shown in Tuner view.";
+
+/* Menu Bar Popover */
+"入力切替" = "Input Source";
+"詳細を開く" = "Open Details";
+
+/* Tuner & Dashboard */
+"操作" = "Controls";
+"生データ確認" = "Raw Data Viewer";
+"チューナー XML のレスポンスを表示します" = "Displays raw XML response from Tuner.";
+"取得中..." = "Fetching...";
+"取得" = "Fetch";
+"除外周波数:" = "Skip Freq:";
+"周波数ステップ" = "Freq Step";

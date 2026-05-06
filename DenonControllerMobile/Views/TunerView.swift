@@ -392,6 +392,8 @@ private struct TunerBandButton: View {
         .disabled(!isEnabled)
         .opacity(isEnabled ? 1 : 0.35)
         .animation(.spring(duration: 0.2), value: isSelected)
+        #if !targetEnvironment(simulator)
         .sensoryFeedback(.selection, trigger: isSelected)
+        #endif
     }
 }

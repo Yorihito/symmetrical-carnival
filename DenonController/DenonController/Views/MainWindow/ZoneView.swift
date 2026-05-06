@@ -3,6 +3,7 @@ import SwiftUI
 struct ZoneView: View {
     @Environment(MainViewModel.self) private var vm
     @Environment(\.locale) private var locale
+    @Environment(\.localizedBundle) private var bundle
 
     var body: some View {
         ScrollView {
@@ -50,7 +51,7 @@ struct ZoneView: View {
                         onVolumeDown: { vm.zone2VolumeDown() }
                     )
                 } else {
-                    Text("Zone 2 はオフです")
+                    Text("Zone 2 はオフです", bundle: bundle)
                         .font(.callout)
                         .foregroundStyle(.secondary)
                 }
@@ -86,7 +87,7 @@ struct ZoneView: View {
                         .buttonStyle(.plain)
 
                         VStack(spacing: 2) {
-                            Text("音量")
+                            Text("音量", bundle: bundle)
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                             Text(vm.avr.zone2VolumeDBString)
@@ -101,7 +102,7 @@ struct ZoneView: View {
                         .buttonStyle(.plain)
                     }
                 } else {
-                    Text("Zone 3 はオフです")
+                    Text("Zone 3 はオフです", bundle: bundle)
                         .font(.callout)
                         .foregroundStyle(.secondary)
                 }

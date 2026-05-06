@@ -9,7 +9,7 @@
     <key>CFBundleVersion</key>
     <string>1</string>
     <key>CFBundleShortVersionString</key>
-    <string>1.0.0</string>
+    <string>1.0.1</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>LSMinimumSystemVersion</key>
@@ -21,6 +21,8 @@
     <key>NSBonjourServices</key>
     <array>
         <string>_denon-heos._tcp</string>
+        <string>_heos-audio._tcp</string>
+        <string>_http._tcp</string>
     </array>
     <key>LSUIElement</key>
     <false/>

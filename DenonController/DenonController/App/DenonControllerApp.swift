@@ -14,12 +14,15 @@ struct DenonControllerApp: App {
         }
     }
 
+    private var lBundle: Bundle { makeLocalizedBundle(for: appLocale) }
+
     var body: some Scene {
         // ── Main Window ────────────────────────────────────────────────
         WindowGroup(id: "main") {
             ContentView()
                 .environment(vm)
                 .environment(\.locale, appLocale)
+                .environment(\.localizedBundle, lBundle)
         }
         .windowStyle(.titleBar)
         .windowToolbarStyle(.unified)
@@ -35,6 +38,7 @@ struct DenonControllerApp: App {
             MenuBarPopoverView()
                 .environment(vm)
                 .environment(\.locale, appLocale)
+                .environment(\.localizedBundle, lBundle)
         } label: {
             Image("MenuBarIcon")
                 .renderingMode(.template)
@@ -46,6 +50,7 @@ struct DenonControllerApp: App {
             SettingsView()
                 .environment(vm)
                 .environment(\.locale, appLocale)
+                .environment(\.localizedBundle, lBundle)
         }
     }
 }

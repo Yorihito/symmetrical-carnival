@@ -3,7 +3,9 @@ import SwiftUI
 struct MenuBarPopoverView: View {
     @Environment(MainViewModel.self) private var vm
     @Environment(\.openWindow) private var openWindow
+    @Environment(\.openSettings) private var openSettings
     @Environment(\.locale) private var locale
+    @Environment(\.localizedBundle) private var bundle
     @State private var showingConnectionSheet = false
     @State private var isDraggingVolume = false
     @State private var isPendingVolume = false   // ドラッグ終了〜AVR確認応答まで
@@ -28,6 +30,7 @@ struct MenuBarPopoverView: View {
             ConnectionView()
                 .environment(vm)
                 .environment(\.locale, locale)
+                .environment(\.localizedBundle, bundle)
         }
         .onAppear {
             // menuBarOnly モードでは ContentView が自動接続をスキップするため、ここで行う
@@ -83,13 +86,13 @@ struct MenuBarPopoverView: View {
     private var volumeSection: some View {
         VStack(spacing: 8) {
             HStack {
-                Text("音量")
+                Text("音量", bundle: bundle)
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 Spacer()
                 Group {
                     if vm.avr.isMuted {
-                        Text("ミュート中")
+                        Text("ミュート中", bundle: bundle)
                     } else {
                         Text((isDraggingVolume || isPendingVolume) ? menuBarVolumeString(dragVolumeValue) : vm.avr.volumedBLabel)
                     }
@@ -141,9 +144,12 @@ struct MenuBarPopoverView: View {
             Button {
                 vm.toggleMute()
             } label: {
-                Label(vm.avr.isMuted ? LocalizedStringKey("ミュート解除") : LocalizedStringKey("ミュート"),
-                      systemImage: vm.avr.isMuted ? "speaker.slash.fill" : "speaker.wave.2.fill")
-                    .font(.caption.weight(.medium))
+                Label {
+                    Text(vm.avr.isMuted ? "ミュート解除" : "ミュート", bundle: bundle)
+                } icon: {
+                    Image(systemName: vm.avr.isMuted ? "speaker.slash.fill" : "speaker.wave.2.fill")
+                }
+                .font(.caption.weight(.medium))
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 5)
                     .background(vm.avr.isMuted ? Color.orange.opacity(0.15) : Color.secondary.opacity(0.12), in: RoundedRectangle(cornerRadius: 6))
@@ -160,7 +166,7 @@ struct MenuBarPopoverView: View {
 
     private var quickInputSection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("入力切替")
+            Text("入力切替", bundle: bundle)
                 .font(.caption)
                 .foregroundStyle(.secondary)
 
@@ -205,16 +211,28 @@ struct MenuBarPopoverView: View {
             Button {
                 showingConnectionSheet = true
             } label: {
-                Label(
-                    vm.connectionStatus.isConnected ? LocalizedStringKey("接続済み") : LocalizedStringKey("接続"),
-                    systemImage: "network"
-                )
+                Label {
+                    Text(vm.connectionStatus.isConnected ? "接続済み" : "接続", bundle: bundle)
+                } icon: {
+                    Image(systemName: "network")
+                }
                 .font(.caption.weight(.medium))
             }
             .buttonStyle(.plain)
             .foregroundStyle(.secondary)
 
             Spacer()
+
+            Button {
+                NSApp.activate(ignoringOtherApps: true)
+                openSettings()
+            } label: {
+                Image(systemName: "gearshape")
+                    .font(.body.weight(.medium))
+            }
+            .buttonStyle(.plain)
+            .foregroundStyle(.secondary)
+            .padding(.trailing, 4)
 
             Button {
                 let delegate = AppDelegate.shared
@@ -230,8 +248,12 @@ struct MenuBarPopoverView: View {
                     openWindow(id: "main")
                 }
             } label: {
-                Label("詳細を開く", systemImage: "arrow.up.forward.app")
-                    .font(.caption.weight(.medium))
+                Label {
+                    Text("詳細を開く", bundle: bundle)
+                } icon: {
+                    Image(systemName: "arrow.up.forward.app")
+                }
+                .font(.caption.weight(.medium))
             }
             .buttonStyle(.plain)
             .foregroundStyle(.secondary)
@@ -248,7 +270,7 @@ struct MenuBarPopoverView: View {
                 Image(systemName: "antenna.radiowaves.left.and.right")
                     .font(.caption)
                     .foregroundStyle(.secondary)
-                Text("チューナー")
+                Text("チューナー", bundle: bundle)
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 Spacer()

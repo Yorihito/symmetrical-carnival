@@ -59,4 +59,12 @@ final class InputNameStore {
     var visibleSources: [InputSource] {
         InputSource.allCases.filter { !isHidden($0) }
     }
+
+    /// すべてのカスタム名・非表示設定を初期値に戻す
+    func reset() {
+        names = [:]
+        hiddenRawValues = []
+        UserDefaults.standard.removeObject(forKey: namesKey)
+        UserDefaults.standard.removeObject(forKey: hiddenKey)
+    }
 }

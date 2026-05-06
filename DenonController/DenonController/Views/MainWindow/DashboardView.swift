@@ -3,6 +3,7 @@ import SwiftUI
 struct DashboardView: View {
     @Environment(MainViewModel.self) private var vm
     @Environment(\.locale) private var locale
+    @Environment(\.localizedBundle) private var bundle
 
     var body: some View {
         ScrollView {
@@ -36,13 +37,13 @@ struct DashboardView: View {
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
                 separatorDot
-                Text(vm.avr.isMuted ? "ミュート" : vm.avr.volumedBLabel)
+                Text(vm.avr.isMuted ? LS("ミュート", bundle) : vm.avr.volumedBLabel)
                     .font(.caption.weight(.medium))
                     .foregroundStyle(vm.avr.isMuted ? .orange : .secondary)
                     .lineLimit(1)
             } else if vm.avr.isConnected {
                 separatorDot
-                Text("スタンバイ")
+                Text("スタンバイ", bundle: bundle)
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -78,7 +79,7 @@ struct DashboardView: View {
     private var volumeCard: some View {
         CardView {
             VStack(alignment: .leading, spacing: 12) {
-                Text("音量")
+                Text("音量", bundle: bundle)
                     .font(.headline)
 
                 VolumeControlView(
@@ -102,7 +103,7 @@ struct DashboardView: View {
         CardView {
             VStack(alignment: .leading, spacing: 10) {
                 HStack {
-                    Text("入力ソース")
+                    Text("入力ソース", bundle: bundle)
                         .font(.headline)
                     Spacer()
                     Label(vm.avr.input.name(using: vm.inputNames), systemImage: vm.avr.input.systemImage)
@@ -133,7 +134,7 @@ struct DashboardView: View {
         CardView {
             VStack(alignment: .leading, spacing: 10) {
                 HStack {
-                    Text("サラウンドモード")
+                    Text("サラウンドモード", bundle: bundle)
                         .font(.headline)
                     Spacer()
                     Text(vm.avr.surroundMode.displayName)
@@ -152,7 +153,7 @@ struct DashboardView: View {
     @ViewBuilder
     private func surroundGroup(label: String, modes: [SurroundMode]) -> some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(LocalizedStringKey(label))
+            Text(LocalizedStringKey(label), bundle: bundle)
                 .font(.caption2.weight(.semibold))
                 .foregroundStyle(.tertiary)
                 .padding(.leading, 2)

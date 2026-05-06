@@ -44,7 +44,9 @@ struct ZoneView: View {
                     .toggleStyle(.switch)
                     .labelsHidden()
                     .disabled(!vm.avr.isConnected)
+                    #if !targetEnvironment(simulator)
                     .sensoryFeedback(.impact, trigger: vm.avr.zone2Power)
+                    #endif
                 }
 
                 if vm.avr.zone2Power {
@@ -83,7 +85,9 @@ struct ZoneView: View {
                     .toggleStyle(.switch)
                     .labelsHidden()
                     .disabled(!vm.avr.isConnected)
+                    #if !targetEnvironment(simulator)
                     .sensoryFeedback(.impact, trigger: vm.avr.zone3Power)
+                    #endif
                 }
 
                 if vm.avr.zone3Power {
@@ -170,7 +174,9 @@ private struct ZoneStepControl: View {
                 }
                 .buttonStyle(.plain)
                 .disabled(!isEnabled)
+                #if !targetEnvironment(simulator)
                 .sensoryFeedback(.impact, trigger: isMuted)
+                #endif
             }
         }
     }

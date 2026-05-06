@@ -138,6 +138,8 @@ private struct RemoteActionButton: View {
         .buttonStyle(.plain)
         .disabled(!isEnabled)
         .opacity(isEnabled ? 1 : 0.4)
+        #if !targetEnvironment(simulator)
         .sensoryFeedback(.impact, trigger: hapticTrigger)
+        #endif
     }
 }

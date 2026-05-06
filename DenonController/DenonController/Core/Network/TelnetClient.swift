@@ -80,13 +80,18 @@ actor TelnetClient {
     }
 
     private static func makeSockAddr(host: String, port: UInt16) throws -> sockaddr_in {
-        var addr = sockaddr_in()
-        addr.sin_len    = UInt8(MemoryLayout<sockaddr_in>.size)
-        addr.sin_family = sa_family_t(AF_INET)
-        addr.sin_port   = in_port_t(port).bigEndian
-        guard inet_aton(host, &addr.sin_addr) != 0 else {
-            throw AVRError.connectionFailed("無効な IP アドレス: \(host)")
+        // ─── ホスト名または IP を解決 ─────────────────────────────────────
+        var hints = addrinfo(ai_flags: AI_DEFAULT, ai_family: AF_INET, ai_socktype: SOCK_STREAM, ai_protocol: 0, ai_addrlen: 0, ai_canonname: nil, ai_addr: nil, ai_next: nil)
+        var resPtr: UnsafeMutablePointer<addrinfo>?
+        let gaiRet = getaddrinfo(host, String(port), &hints, &resPtr)
+        guard gaiRet == 0, let first = resPtr else {
+            throw AVRError.connectionFailed("アドレス解決失敗 (\(host)): \(gaiRet)")
         }
+        defer { freeaddrinfo(resPtr) }
+        
+        let targetAddrIn = first.pointee.ai_addr.withMemoryRebound(to: sockaddr_in.self, capacity: 1) { $0.pointee }
+        var addr = targetAddrIn
+        addr.sin_port = in_port_t(port).bigEndian
         return addr
     }
 

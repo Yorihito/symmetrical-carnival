@@ -46,20 +46,19 @@ struct AVRStatusSnapshot: Sendable {
 /// OS ルーティングテーブル通りに接続する。
 actor AVRHTTPClient {
 
-    nonisolated let updates: AsyncStream<AVRStatusSnapshot>
-    private nonisolated let continuation: AsyncStream<AVRStatusSnapshot>.Continuation
-
     private var host: String = ""
     private var port: Int    = 8080
     private var pollTask: Task<Void, Never>?
+    private var currentContinuation: AsyncStream<AVRStatusSnapshot>.Continuation?
 
     init() {
-        let (stream, cont) = AsyncStream<AVRStatusSnapshot>.makeStream()
-        updates = stream
-        continuation = cont
+        print("[DenonLog] AVRHTTPClient.init")
     }
 
-    deinit { continuation.finish() }
+    deinit {
+        print("[DenonLog] AVRHTTPClient.deinit")
+        currentContinuation?.finish()
+    }
 
     // MARK: - Connect
 
@@ -67,7 +66,7 @@ actor AVRHTTPClient {
         host: String,
         port: Int = 8080,
         onProgress: (@Sendable (String) -> Void)? = nil
-    ) async throws -> DeviceInfo {
+    ) async throws -> (DeviceInfo, AsyncStream<AVRStatusSnapshot>) {
         self.host = host
         self.port = port
 
@@ -84,8 +83,8 @@ actor AVRHTTPClient {
         let info = parseDeviceInfo(data: data, host: host, port: port)
 
         onProgress?("ポーリング開始...")
-        startPolling()
-        return info
+        let stream = startPolling()
+        return (info, stream)
     }
 
     /// Deviceinfo.xml からモデル名・ブランド・ゾーン数を解析する
@@ -161,14 +160,22 @@ actor AVRHTTPClient {
 
     // MARK: - Polling
 
-    private func startPolling() {
+    private func startPolling() -> AsyncStream<AVRStatusSnapshot> {
         pollTask?.cancel()
+        currentContinuation?.finish()
+        
+        let (stream, cont) = AsyncStream<AVRStatusSnapshot>.makeStream()
+        self.currentContinuation = cont
+        
         pollTask = Task { [weak self] in
             while !Task.isCancelled {
-                await self?.poll()
+                guard let self else { break }
+                await self.poll()
                 try? await Task.sleep(for: .seconds(1.5))
             }
+            cont.finish()
         }
+        return stream
     }
 
     private func poll() async {
@@ -209,7 +216,7 @@ actor AVRHTTPClient {
             }
         }
 
-        continuation.yield(snap)
+        currentContinuation?.yield(snap)
     }
 
     // MARK: - Tuner Diagnostics
@@ -379,14 +386,18 @@ actor AVRHTTPClient {
     /// マルチ NIC 環境でも正しいインターフェース経由で接続する。
     private static func bsdGETBlocking(host: String, port: Int, path: String) throws -> (Data, Int) {
 
-        // ─── sockaddr_in を直接構築（IPv4 決め打ち）──────────────────────
-        var addr = sockaddr_in()
-        addr.sin_len    = UInt8(MemoryLayout<sockaddr_in>.size)
-        addr.sin_family = sa_family_t(AF_INET)
-        addr.sin_port   = in_port_t(port).bigEndian
-        guard inet_aton(host, &addr.sin_addr) != 0 else {
-            throw AVRError.connectionFailed("無効な IP アドレス: \(host)")
+        // ─── ホスト名または IP を解決 ─────────────────────────────────────
+        var hints = addrinfo(ai_flags: AI_DEFAULT, ai_family: AF_INET, ai_socktype: SOCK_STREAM, ai_protocol: 0, ai_addrlen: 0, ai_canonname: nil, ai_addr: nil, ai_next: nil)
+        var resPtr: UnsafeMutablePointer<addrinfo>?
+        let gaiRet = getaddrinfo(host, String(port), &hints, &resPtr)
+        guard gaiRet == 0, let first = resPtr else {
+            throw AVRError.connectionFailed("アドレス解決失敗 (\(host)): \(gaiRet)")
         }
+        defer { freeaddrinfo(resPtr) }
+        
+        let targetAddrIn = first.pointee.ai_addr.withMemoryRebound(to: sockaddr_in.self, capacity: 1) { $0.pointee }
+        var addr = targetAddrIn
+        addr.sin_port = in_port_t(port).bigEndian
         let targetIP = addr.sin_addr.s_addr
 
         // ─── ソケット作成 ─────────────────────────────────────────────────
@@ -473,13 +484,18 @@ actor AVRHTTPClient {
     }
 
     private static func bsdPOSTBlocking(host: String, port: Int, path: String, body: String) throws -> (Data, Int) {
-        var addr = sockaddr_in()
-        addr.sin_len    = UInt8(MemoryLayout<sockaddr_in>.size)
-        addr.sin_family = sa_family_t(AF_INET)
-        addr.sin_port   = in_port_t(port).bigEndian
-        guard inet_aton(host, &addr.sin_addr) != 0 else {
-            throw AVRError.connectionFailed("無効な IP アドレス: \(host)")
+        // ─── ホスト名または IP を解決 ─────────────────────────────────────
+        var hints = addrinfo(ai_flags: AI_DEFAULT, ai_family: AF_INET, ai_socktype: SOCK_STREAM, ai_protocol: 0, ai_addrlen: 0, ai_canonname: nil, ai_addr: nil, ai_next: nil)
+        var resPtr: UnsafeMutablePointer<addrinfo>?
+        let gaiRet = getaddrinfo(host, String(port), &hints, &resPtr)
+        guard gaiRet == 0, let first = resPtr else {
+            throw AVRError.connectionFailed("アドレス解決失敗 (\(host)): \(gaiRet)")
         }
+        defer { freeaddrinfo(resPtr) }
+        
+        let targetAddrIn = first.pointee.ai_addr.withMemoryRebound(to: sockaddr_in.self, capacity: 1) { $0.pointee }
+        var addr = targetAddrIn
+        addr.sin_port = in_port_t(port).bigEndian
         let targetIP = addr.sin_addr.s_addr
 
         let fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)
