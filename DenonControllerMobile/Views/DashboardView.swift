@@ -8,6 +8,8 @@ struct DashboardView: View {
     @State private var isDraggingVolume = false
     @State private var isPendingVolume  = false
     @State private var dragVolumeValue: Double = -30
+    @State private var lastInteractionTime = Date.distantPast
+    @State private var hapticTrigger = 0
 
     private var displayDB: Double { (isDraggingVolume || isPendingVolume) ? dragVolumeValue : vm.avr.volumeDB }
 
@@ -29,7 +31,25 @@ struct DashboardView: View {
                 surroundSection
             }
         }
+        .sensoryFeedback(.impact(weight: .light), trigger: hapticTrigger)
         .toolbar(.hidden, for: .navigationBar)
+        .onChange(of: vm.avr.lastUpdate) { _, _ in
+            let dragging = isDraggingVolume
+            let pending = isPendingVolume
+            let quietTime = Date().timeIntervalSince(lastInteractionTime)
+            
+            print("[DenonLog] DashboardView: Sync. dragging=\(dragging), quiet=\(String(format: "%.1f", quietTime))s, currentDB=\(vm.avr.volumeDB)")
+            
+            // 指を離した（pending）か、あるいは 0.5秒以上操作が沈黙しているなら強制同期
+            if pending || !dragging || quietTime > 0.5 {
+                if isPendingVolume || isDraggingVolume {
+                    print("[DenonLog] DashboardView: Force resetting flags due to silence/pending")
+                }
+                isPendingVolume = false
+                isDraggingVolume = false
+                dragVolumeValue = vm.avr.volumeDB
+            }
+        }
     }
 
     // MARK: - ナビゲーションバー: 接続状態ピル
@@ -120,7 +140,8 @@ struct DashboardView: View {
                 vm: vm,
                 isDragging: $isDraggingVolume,
                 isPending: $isPendingVolume,
-                dragValue: $dragVolumeValue
+                dragValue: $dragVolumeValue,
+                lastTouch: $lastInteractionTime
             )
                 .padding(.horizontal, 20)
                 .padding(.vertical, 12)
@@ -130,6 +151,7 @@ struct DashboardView: View {
             HStack(spacing: 0) {
                 // −
                 VolumeStepButton(systemImage: "minus", label: "音量 −") {
+                    hapticTrigger += 1
                     vm.volumeDown()
                 }
                 .frame(maxWidth: .infinity)
@@ -138,6 +160,7 @@ struct DashboardView: View {
 
                 // Mute
                 Button {
+                    hapticTrigger += 1
                     vm.toggleMute()
                 } label: {
                     Image(systemName: vm.avr.isMuted ? "speaker.slash.fill" : "speaker.wave.2.fill")
@@ -146,14 +169,12 @@ struct DashboardView: View {
                         .frame(maxWidth: .infinity, minHeight: 52)
                 }
                 .buttonStyle(.plain)
-                #if !targetEnvironment(simulator)
-                .sensoryFeedback(.impact, trigger: vm.avr.isMuted)
-                #endif
 
                 Divider().frame(height: 44)
 
                 // +
                 VolumeStepButton(systemImage: "plus", label: "音量 +") {
+                    hapticTrigger += 1
                     vm.volumeUp()
                 }
                 .frame(maxWidth: .infinity)
@@ -277,6 +298,7 @@ private struct VolumeSlider: View {
     @Binding var isDragging: Bool
     @Binding var isPending: Bool
     @Binding var dragValue: Double
+    @Binding var lastTouch: Date
 
     private var displayDB: Double { (isDragging || isPending) ? dragValue : vm.avr.volumeDB }
 
@@ -284,23 +306,27 @@ private struct VolumeSlider: View {
         Slider(
             value: Binding(
                 get: { displayDB },
-                set: { v in dragValue = v; isDragging = true }
+                set: { v in 
+                    dragValue = v 
+                    lastTouch = Date() // 操作時刻を更新
+                }
             ),
             in: -80...18,
             step: 0.5,
             onEditingChanged: { editing in
-                if !editing {
+                if editing {
+                    // ジェスチャー開始時のみ dragging を true に
+                    isDragging = true
+                    isPending = false
+                } else {
+                    // ジェスチャー終了時、即座に dragging を false に
                     isDragging = false
-                    isPending  = true
+                    isPending = true
                     vm.setVolume(dragValue)
                 }
             }
         )
         .tint(vm.avr.isMuted ? .orange : .accentColor)
-        .onAppear { dragValue = vm.avr.volumeDB }
-        .onChange(of: vm.avr.volumeDB) { _, v in
-            if !isDragging { dragValue = v; isPending = false }
-        }
     }
 }
 

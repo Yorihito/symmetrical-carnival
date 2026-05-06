@@ -49,6 +49,12 @@ actor AVRHTTPClient {
     private var host: String = ""
     private var port: Int    = 8080
     private var pollTask: Task<Void, Never>?
+    
+    // バックオフ・調整用
+    private var lastActivityTime: Date = Date()
+    private var currentInterval: Double = 1.5
+    private var lastSnapshot: AVRStatusSnapshot?
+    
     private var currentContinuation: AsyncStream<AVRStatusSnapshot>.Continuation?
 
     init() {
@@ -145,9 +151,20 @@ actor AVRHTTPClient {
 
     func send(_ command: String) async {
         guard !host.isEmpty else { return }
+        
+        // コマンド送信時は即座にポーリングを再開させ、
+        // かつバックオフを最小（0.5s）にリセットしてしばらく超高頻度で追跡する
+        self.currentInterval = 0.5
+        
+        // 操作があったので高頻度モードへリセットし、即座にポーリングを再開
+        lastActivityTime = Date()
+        
         let enc = command.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? command
         _ = try? await bsdGET(path: "/goform/formiPhoneAppDirect.xml?\(enc)",
                               host: host, port: port)
+        
+        // 待ち時間をキャンセルして即座に次のポーリングを走らせる
+        restartPollLoop()
     }
 
     // MARK: - Disconnect
@@ -167,56 +184,101 @@ actor AVRHTTPClient {
         let (stream, cont) = AsyncStream<AVRStatusSnapshot>.makeStream()
         self.currentContinuation = cont
         
-        pollTask = Task { [weak self] in
-            while !Task.isCancelled {
-                guard let self else { break }
-                await self.poll()
-                try? await Task.sleep(for: .seconds(1.5))
-            }
-            cont.finish()
-        }
+        restartPollLoop()
         return stream
     }
 
-    private func poll() async {
+    private func restartPollLoop() {
+        pollTask?.cancel()
+        pollTask = Task { [weak self] in
+            // キャンセルされたら即座に終了するが、継続（Continuation）は閉じない
+            while !Task.isCancelled {
+                guard let self else { break }
+                
+                let (success, changed) = await self.performPoll()
+                let nextSleep = await self.calculateNextInterval(success: success, stateChanged: changed)
+                
+                try? await Task.sleep(for: .seconds(nextSleep))
+            }
+        }
+    }
+
+    @discardableResult
+    private func performPoll() async -> (success: Bool, changed: Bool) {
         let h = host; let p = port
+        print("[DenonLog] Polling started (\(h):\(p))...")
         async let mainXML  = try? bsdGET(path: "/goform/formMainZone_MainZoneXmlStatusLite.xml", host: h, port: p).0
         async let zone2XML = try? bsdGET(path: "/goform/formZone2_Zone2XmlStatusLite.xml",       host: h, port: p).0
 
         let (main, z2) = await (mainXML, zone2XML)
-        var snap = AVRStatusSnapshot()
-
-        if let data = main, let xml = String(data: data, encoding: .utf8) {
-            snap.isPoweredOn = xmlValue(in: xml, key: "Power") == "ON"
-            snap.volumeDB    = Double(xmlValue(in: xml, key: "MasterVolume") ?? "-60") ?? -60
-            snap.isMuted     = xmlValue(in: xml, key: "Mute") == "on"
-            snap.inputCode   = xmlValue(in: xml, key: "InputFuncSelect") ?? ""
+        print("[DenonLog] Poll result: mainZone=\(main != nil ? "OK" : "Fail"), zone2=\(z2 != nil ? "OK" : "Fail")")
+        
+        guard let data = main, let xml = String(data: data, encoding: .utf8) else {
+            return (false, false)
         }
-        if let data = z2, let xml = String(data: data, encoding: .utf8) {
-            snap.zone2Power     = xmlValue(in: xml, key: "Power") == "ON"
-            snap.zone2VolumeDB  = Double(xmlValue(in: xml, key: "MasterVolume") ?? "-40") ?? -40
-            snap.zone2Muted     = xmlValue(in: xml, key: "Mute") == "on"
-            snap.zone2InputCode = xmlValue(in: xml, key: "InputFuncSelect") ?? ""
+
+        var snap = AVRStatusSnapshot()
+        let rawVol = xmlValue(in: xml, key: "MasterVolume") ?? ""
+        print("[DenonLog] Raw MasterVolume from XML: [\(rawVol)]")
+        
+        snap.isPoweredOn = xmlValue(in: xml, key: "Power") == "ON"
+        snap.volumeDB    = Double(rawVol) ?? -60
+        snap.isMuted     = xmlValue(in: xml, key: "Mute") == "on"
+        snap.inputCode   = xmlValue(in: xml, key: "InputFuncSelect") ?? ""
+        
+        if let data2 = z2, let xml2 = String(data: data2, encoding: .utf8) {
+            snap.zone2Power     = xmlValue(in: xml2, key: "Power") == "ON"
+            snap.zone2VolumeDB  = Double(xmlValue(in: xml2, key: "MasterVolume") ?? "-40") ?? -40
+            snap.zone2Muted     = xmlValue(in: xml2, key: "Mute") == "on"
+            snap.zone2InputCode = xmlValue(in: xml2, key: "InputFuncSelect") ?? ""
         }
 
         // チューナー XML は TUNER 入力選択中のみ取得
-        // チューナー XML は <Band>FM</Band> のフラット形式のため simpleXML を使用する
         if snap.inputCode.trimmingCharacters(in: .whitespaces) == "TUNER" && snap.isPoweredOn {
-            if let (data, status) = try? await bsdGET(
+            if let (data3, status) = try? await bsdGET(
                 path: "/goform/formTuner_TunerXml.xml", host: h, port: p
-            ), status == 200, let xml = String(data: data, encoding: .utf8) {
+            ), status == 200, let xml3 = String(data: data3, encoding: .utf8) {
                 snap.tunerDataFetched = true
-                snap.tunerBand      = (tunerXML(xml, "Band") ?? "FM")
-                    .trimmingCharacters(in: .whitespaces).uppercased()
-                snap.tunerFrequency = tunerXML(xml, "Frequency") ?? ""
-                let presetStr       = tunerXML(xml, "preset") ?? tunerXML(xml, "Preset") ?? "0"
+                snap.tunerBand      = (tunerXML(xml3, "Band") ?? "FM").trimmingCharacters(in: .whitespaces).uppercased()
+                snap.tunerFrequency = tunerXML(xml3, "Frequency") ?? ""
+                let presetStr       = tunerXML(xml3, "preset") ?? tunerXML(xml3, "Preset") ?? "0"
                 snap.tunerPreset    = Int(presetStr.trimmingCharacters(in: .whitespaces)) ?? 0
-                snap.tunerStationName = (tunerXML(xml, "StationName") ?? "")
-                    .trimmingCharacters(in: .whitespaces)
+                snap.tunerStationName = (tunerXML(xml3, "StationName") ?? "").trimmingCharacters(in: .whitespaces)
             }
         }
 
+        // 状態変化チェック（音量、電源、入力）
+        let changed = lastSnapshot?.volumeDB != snap.volumeDB || 
+                      lastSnapshot?.isPoweredOn != snap.isPoweredOn || 
+                      lastSnapshot?.inputCode != snap.inputCode
+        
+        lastSnapshot = snap
         currentContinuation?.yield(snap)
+        
+        return (true, changed)
+    }
+
+    private func calculateNextInterval(success: Bool, stateChanged: Bool) -> Double {
+        let now = Date()
+        
+        // 1. 状態変化、または最近（10秒以内）に操作があった場合は高速（1.5s）
+        if stateChanged || now.timeIntervalSince(lastActivityTime) < 10.0 {
+            if stateChanged { lastActivityTime = now }
+            currentInterval = 1.5
+            return currentInterval
+        }
+        
+        // 2. 通信失敗時は、即座に少し広げる
+        if !success {
+            currentInterval = min(currentInterval + 5.0, 30.0) 
+            return currentInterval
+        }
+        
+        // 3. 変化がない場合、徐々に間隔を広げる（1.5s -> 3s -> 6s ... 最大600s）
+        currentInterval = min(600.0, currentInterval * 1.5)
+        
+        print("[DenonLog] No activity. Next poll in \(Int(currentInterval))s")
+        return currentInterval
     }
 
     // MARK: - Tuner Diagnostics
@@ -334,15 +396,20 @@ actor AVRHTTPClient {
     // これにより Apple 独自のネットワーク到達性チェックを完全に回避する。
 
     private func bsdGET(path: String, host: String, port: Int) async throws -> (Data, Int) {
-        try await withCheckedThrowingContinuation { cont in
-            DispatchQueue.global(qos: .userInitiated).async {
-                do {
-                    let result = try Self.bsdGETBlocking(host: host, port: port, path: path)
-                    cont.resume(returning: result)
-                } catch {
-                    cont.resume(throwing: error)
+        do {
+            return try await withCheckedThrowingContinuation { cont in
+                DispatchQueue.global(qos: .userInitiated).async {
+                    do {
+                        let result = try Self.bsdGETBlocking(host: host, port: port, path: path)
+                        cont.resume(returning: result)
+                    } catch {
+                        print("[DenonLog] bsdGET failed: \(path) -> \(error.localizedDescription)")
+                        cont.resume(throwing: error)
+                    }
                 }
             }
+        } catch {
+            throw error
         }
     }
 

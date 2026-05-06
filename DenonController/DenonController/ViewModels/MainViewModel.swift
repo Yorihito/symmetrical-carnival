@@ -130,11 +130,17 @@ final class MainViewModel {
             connectionLog.append("Step 5: Starting status update loop...")
             updateTask = Task { [weak self] in
                 guard let self else { return }
+                print("[DenonLog] [\(connectionID.uuidString.prefix(4))] Update loop started")
                 for await snapshot in updates {
                     // このタスクがまだ有効（最新）かチェック
-                    if self.currentConnectionID != connectionID { break }
+                    if self.currentConnectionID != connectionID { 
+                        print("[DenonLog] [\(connectionID.uuidString.prefix(4))] Update loop aborted (ID mismatch)")
+                        break 
+                    }
+                    print("[DenonLog] [\(connectionID.uuidString.prefix(4))] Received snapshot: Vol=\(snapshot.volumeDB)")
                     self.avr.apply(snapshot)
                 }
+                print("[DenonLog] [\(connectionID.uuidString.prefix(4))] Update loop finished (Stream ended)")
                 self.connectionLog.append("!!! Update loop ended (ID: \(connectionID.uuidString.prefix(4)))")
                 if self.currentConnectionID == connectionID {
                     self.handleDisconnect()
@@ -260,7 +266,10 @@ final class MainViewModel {
 
     func volumeUp()   { send("MVUP") }
     func volumeDown() { send("MVDOWN") }
-    func setVolume(_ db: Double) { send(AVRState.volumeCommand(forDB: db)) }
+    func setVolume(_ db: Double) { 
+        avr.volumeDB = db
+        send(AVRState.volumeCommand(forDB: db)) 
+    }
     func setMute(_ on: Bool)    { send(on ? "MUON" : "MUOFF") }
     func toggleMute()           { setMute(!avr.isMuted) }
 

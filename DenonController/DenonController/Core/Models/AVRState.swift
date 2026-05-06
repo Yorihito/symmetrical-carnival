@@ -18,6 +18,10 @@ final class AVRState {
     var volumeDB:  Double = -60.0   // 実際の dB 値（-80 〜 +18）
     var isMuted       = false
     var input: InputSource   = .hdmi1
+    
+    /// 最後にアンプから正常に応答を受け取った時刻。
+    /// 数値に変化がなくても更新されるため、UI の同期完了検知に使用する。
+    var lastUpdate = Date()
     var surroundMode: SurroundMode = .auto   // HTTP では取得不可 → コマンド送信時に追跡
 
     // MARK: - Zone 2
@@ -53,6 +57,11 @@ final class AVRState {
     // MARK: - Apply HTTP snapshot
 
     func apply(_ snap: AVRStatusSnapshot) {
+        lastUpdate = Date()
+        
+        if self.volumeDB != snap.volumeDB {
+            print("[DenonLog] AVRState: Applying new volume: \(snap.volumeDB) (Old: \(self.volumeDB))")
+        }
         isPoweredOn  = snap.isPoweredOn
         volumeDB     = snap.volumeDB
         isMuted      = snap.isMuted
