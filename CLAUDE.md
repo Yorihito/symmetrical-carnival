@@ -193,11 +193,11 @@ This project targets iOS 26+ and macOS 14+. When choosing SF Symbols, verify ava
     - **Mac-specific**: Disable `IP_BOUND_IF` (interface binding) on macOS as it conflicts with Sandbox; use standard OS routing instead.
     - **Timeout**: Use 5s timeout for device verification to allow for Sandbox/Network permission delays.
 - **Permissions**: If discovery fails silently, reset Local Network permissions via:
-  `tccutil reset LocalNetwork com.ytada.DenonController`
+  `tccutil reset LocalNetwork cc.nyoyapoya.denoncontroller`
 
 ### Project Identity
-- **Mac Bundle ID**: `com.ytada.DenonController`
-- **iOS Bundle ID**: `com.ytada.DenonControllerMobile`
+- **Mac Bundle ID**: `cc.nyoyapoya.denoncontroller`
+- **iOS Bundle ID**: `cc.nyoyapoya.denoncontroller`
 
 ## Multi-language Support (Localization)
 

@@ -1,6 +1,6 @@
 name: DenonController
 options:
-  bundleIdPrefix: com.ytada
+  bundleIdPrefix: cc.nyoyapoya
   developmentLanguage: ja
   deploymentTarget:
     macOS: "14.0"
@@ -28,7 +28,7 @@ targets:
       - path: DenonController/Resources/Localization
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.ytada.DenonController
+        PRODUCT_BUNDLE_IDENTIFIER: cc.nyoyapoya.denoncontroller
         INFOPLIST_FILE: DenonController/Info.plist
         CODE_SIGN_ENTITLEMENTS: DenonController/DenonController.entitlements
         PRODUCT_NAME: "Denon Controller"
@@ -47,7 +47,7 @@ targets:
       - path: ../DenonControllerMobile/Assets.xcassets
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.ytada.DenonControllerMobile
+        PRODUCT_BUNDLE_IDENTIFIER: cc.nyoyapoya.denoncontroller
         INFOPLIST_FILE: ../DenonControllerMobile/App/Info.plist
         CODE_SIGN_ENTITLEMENTS: ../DenonControllerMobile/App/DenonControllerMobile.entitlements
         PRODUCT_NAME: "Denon Controller"
