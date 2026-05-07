@@ -72,15 +72,23 @@ struct TunerView: View {
                 Spacer()
 
                 if vm.avr.isConnected && vm.avr.isPoweredOn && vm.avr.input != .tuner {
-                    VStack(spacing: 4) {
-                        Image(systemName: "exclamationmark.triangle.fill")
-                            .foregroundStyle(.orange)
-                        Text("入力: TUNER\nを選択", bundle: bundle)
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
-                            .multilineTextAlignment(.center)
+                    Button {
+                        hapticTrigger += 1
+                        vm.setInput(.tuner)
+                    } label: {
+                        VStack(spacing: 4) {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .foregroundStyle(.orange)
+                            Text("TUNER に\n切り替える", bundle: bundle)
+                                .font(.caption2.weight(.bold))
+                                .foregroundStyle(.orange)
+                                .multilineTextAlignment(.center)
+                        }
+                        .padding(8)
+                        .background(Color.orange.opacity(0.1), in: RoundedRectangle(cornerRadius: 8))
                     }
-                    .frame(maxWidth: 64)
+                    .buttonStyle(.plain)
+                    .frame(maxWidth: 80)
                 }
             }
         }
@@ -102,7 +110,7 @@ struct TunerView: View {
                             TunerBandButton(
                                 band: band,
                                 isSelected: vm.avr.tunerBand == band,
-                                isEnabled: isEnabled
+                                isEnabled: isEnabled && isTunerMode
                             ) {
                                 hapticTrigger += 1
                                 vm.setTunerBand(band)
@@ -132,7 +140,7 @@ struct TunerView: View {
                                 .background(Color.secondary.opacity(0.1), in: RoundedRectangle(cornerRadius: 12))
                         }
                         .buttonStyle(.plain)
-                        .disabled(!isEnabled)
+                        .disabled(!isEnabled || !isTunerMode)
 
                         // 現在プリセット番号
                         Text(vm.avr.tunerPreset > 0
@@ -153,7 +161,7 @@ struct TunerView: View {
                                 .background(Color.secondary.opacity(0.1), in: RoundedRectangle(cornerRadius: 12))
                         }
                         .buttonStyle(.plain)
-                        .disabled(!isEnabled)
+                        .disabled(!isEnabled || !isTunerMode)
                     }
                 }
 
@@ -176,7 +184,7 @@ struct TunerView: View {
                                 .background(Color.secondary.opacity(0.1), in: RoundedRectangle(cornerRadius: 10))
                         }
                         .buttonStyle(.plain)
-                        .disabled(!isEnabled)
+                        .disabled(!isEnabled || !isTunerMode)
 
                         Button {
                             hapticTrigger += 1
@@ -188,7 +196,7 @@ struct TunerView: View {
                                 .background(Color.secondary.opacity(0.1), in: RoundedRectangle(cornerRadius: 10))
                         }
                         .buttonStyle(.plain)
-                        .disabled(!isEnabled)
+                        .disabled(!isEnabled || !isTunerMode)
                     }
                 }
             }
@@ -314,8 +322,8 @@ struct TunerView: View {
                         )
                     }
                     .buttonStyle(.plain)
-                    .disabled(!isEnabled)
-                    .opacity(isEnabled ? 1 : 0.4)
+                    .disabled(!isEnabled || !isTunerMode)
+                    .opacity((isEnabled && isTunerMode) ? 1 : 0.4)
 
                     if preset.id != vm.tunerPresets.last?.id {
                         Divider().padding(.leading, 42)
@@ -369,6 +377,10 @@ struct TunerView: View {
 
     private var isEnabled: Bool {
         vm.avr.isConnected && vm.avr.isPoweredOn
+    }
+
+    private var isTunerMode: Bool {
+        vm.avr.input == .tuner
     }
 }
 

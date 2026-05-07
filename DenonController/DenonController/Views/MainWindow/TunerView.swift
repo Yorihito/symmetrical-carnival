@@ -72,11 +72,20 @@ struct TunerView: View {
 
             // チューナー以外の入力が選択されているときの案内
             if vm.avr.isConnected && vm.avr.isPoweredOn && vm.avr.input != .tuner {
-                Text("入力: TUNER\nを選択", bundle: bundle)
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.trailing)
-                    .frame(maxWidth: 110)
+                Button {
+                    vm.setInput(.tuner)
+                } label: {
+                    VStack(spacing: 4) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .foregroundStyle(.orange)
+                        Text("TUNER に切り替える", bundle: bundle)
+                            .font(.caption2.weight(.bold))
+                            .foregroundStyle(.orange)
+                    }
+                    .padding(8)
+                    .background(Color.orange.opacity(0.1), in: RoundedRectangle(cornerRadius: 8))
+                }
+                .buttonStyle(.plain)
             }
         }
         .padding(14)
@@ -102,7 +111,7 @@ struct TunerView: View {
                         BandButton(
                             band: band,
                             isSelected: vm.avr.tunerBand == band,
-                            isEnabled: isEnabled
+                            isEnabled: isEnabled && isTunerMode
                         ) {
                             vm.setTunerBand(band)
                         }
@@ -122,24 +131,26 @@ struct TunerView: View {
                     StepButton(
                         systemImage: "chevron.backward",
                         label: LS("前", bundle),
-                        isEnabled: isEnabled
+                        isEnabled: isEnabled && isTunerMode
                     ) { vm.tunerPresetDown() }
 
                     if vm.avr.tunerPreset > 0 {
-                        Text("P\(String(format: "%02d", vm.avr.tunerPreset))")
-                            .font(.headline.monospacedDigit())
-                            .frame(minWidth: 44)
+                        Text(String(format: "P%02d", vm.avr.tunerPreset))
+                            .font(.title2.monospacedDigit())
+                            .fontWeight(.bold)
+                            .frame(width: 60)
                     } else {
                         Text("--")
-                            .font(.headline)
+                            .font(.title2.monospacedDigit())
+                            .fontWeight(.bold)
                             .foregroundStyle(.secondary)
-                            .frame(minWidth: 44)
+                            .frame(width: 60)
                     }
 
                     StepButton(
                         systemImage: "chevron.forward",
                         label: LS("次", bundle),
-                        isEnabled: isEnabled
+                        isEnabled: isEnabled && isTunerMode
                     ) { vm.tunerPresetUp() }
 
                     Spacer()
@@ -157,13 +168,13 @@ struct TunerView: View {
                     StepButton(
                         systemImage: "minus",
                         label: "Down",
-                        isEnabled: isEnabled
+                        isEnabled: isEnabled && isTunerMode
                     ) { vm.tunerFreqDown() }
 
                     StepButton(
                         systemImage: "plus",
                         label: "Up",
-                        isEnabled: isEnabled
+                        isEnabled: isEnabled && isTunerMode
                     ) { vm.tunerFreqUp() }
 
                     Spacer()
@@ -200,7 +211,7 @@ struct TunerView: View {
                         }
                         .buttonStyle(.borderedProminent)
                         .controlSize(.small)
-                        .disabled(!vm.avr.isConnected || !vm.avr.isPoweredOn)
+                        .disabled(!isEnabled || !isTunerMode)
                     }
                 }
 
@@ -259,7 +270,7 @@ struct TunerView: View {
                         TunerPresetButton(
                             preset: preset,
                             isSelected: vm.avr.tunerPreset == preset.id,
-                            isEnabled: isEnabled
+                            isEnabled: isEnabled && isTunerMode
                         ) {
                             vm.selectTunerPreset(preset.id)
                         }
@@ -312,6 +323,10 @@ struct TunerView: View {
 
     private var isEnabled: Bool {
         vm.avr.isConnected && vm.avr.isPoweredOn
+    }
+
+    private var isTunerMode: Bool {
+        vm.avr.input == .tuner
     }
 }
 
@@ -411,6 +426,6 @@ private struct TunerPresetButton: View {
         }
         .buttonStyle(.plain)
         .disabled(!isEnabled)
-        .opacity(isEnabled ? 1 : 0.35)
+        .opacity(isEnabled ? 1 : 0.4)
     }
 }

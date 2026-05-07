@@ -276,7 +276,10 @@ final class MainViewModel {
 
     // MARK: - Input
 
-    func setInput(_ input: InputSource) { send(input.command) }
+    func setInput(_ input: InputSource) {
+        avr.input = input   // 楽観的更新（UIへ即時反映）
+        send(input.command)
+    }
 
     // MARK: - Surround（HTTP では取得不可 → ローカル追跡 + Telnet 通知で補正）
 
@@ -319,11 +322,11 @@ final class MainViewModel {
 
     /// プリセット ↑。
     /// スキャン済みリストがあればそのリスト内を循環（空スロット・スキップを自動回避）。
-    /// 未スキャンなら単純に +1。
+    /// 未スキャンなら単純に +1 し、56 を超えたら 1 に戻る。
     func tunerPresetUp() {
         let presets = tunerPresets
         if presets.isEmpty {
-            let next = avr.tunerPreset > 0 ? min(56, avr.tunerPreset + 1) : 1
+            let next = (avr.tunerPreset % 56) + 1
             selectTunerPreset(next)
         } else {
             let cur = avr.tunerPreset
@@ -339,7 +342,7 @@ final class MainViewModel {
     func tunerPresetDown() {
         let presets = tunerPresets
         if presets.isEmpty {
-            let prev = avr.tunerPreset > 1 ? avr.tunerPreset - 1 : 1
+            let prev = avr.tunerPreset <= 1 ? 56 : avr.tunerPreset - 1
             selectTunerPreset(prev)
         } else {
             let cur = avr.tunerPreset
@@ -360,7 +363,8 @@ final class MainViewModel {
     func selectTunerPreset(_ n: Int) {
         send(String(format: "TPAN%02d", n))
         avr.tunerPreset = n
-        avr.tunerStationName = ""   // Telnet からの更新を待つ
+        avr.tunerStationName = ""   // 更新を待つ
+        avr.tunerFrequency = ""     // 更新を待つ
     }
 
     // MARK: - Tuner Preset Scan
@@ -372,7 +376,8 @@ final class MainViewModel {
     let maxTunerSlots = 56
 
     /// 除外する周波数（カンマ区切り MHz、例: "90.0" or "90.0, 85.0"）
-    var tunerSkipFrequencies: String = UserDefaults.standard.string(forKey: "tunerSkipFrequencies") ?? "90.0"
+    /// デフォルトは空（ユーザーが意図的に設定しない限りすべて表示）
+    var tunerSkipFrequencies: String = UserDefaults.standard.string(forKey: "tunerSkipFrequencies") ?? ""
 
     /// 除外周波数を適用し、重複を排除したプリセット一覧
     var tunerPresets: [TunerPreset] {
@@ -441,7 +446,16 @@ final class MainViewModel {
                 tunerScanProgress = i
 
                 selectTunerPreset(i)
-                try? await Task.sleep(for: .milliseconds(800))
+                
+                // 周波数が更新されるのを待つ（最大2秒）
+                for _ in 0..<20 {
+                    if !avr.tunerFrequency.isEmpty { break }
+                    try? await Task.sleep(for: .milliseconds(100))
+                    if Task.isCancelled { break }
+                }
+                
+                // 名前などの確定のため少しだけ余分に待つ
+                try? await Task.sleep(for: .milliseconds(200))
                 if Task.isCancelled { break }
 
                 let newFreq = avr.tunerFrequency
