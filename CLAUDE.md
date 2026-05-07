@@ -5,18 +5,24 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Build Commands
 
 ```bash
-# Generate Xcode project from project.yml (required after adding/removing files)
+# 1. Generate Xcode project from project.yml (required after adding/removing files)
 cd DenonController && xcodegen generate
 
-# Build macOS app
-xcodebuild -scheme DenonController -configuration Debug -destination 'platform=macOS' build
+# 2. Set Developer Directory (Required if xcodebuild fails due to CommandLineTools)
+export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
 
-# Build iOS/iPadOS app (use an available simulator name from the list below)
-xcodebuild -scheme DenonControllerMobile -configuration Debug \
+# 3. Build macOS app (from project root)
+xcodebuild -project ./DenonController/DenonController.xcodeproj \
+  -scheme DenonController -destination 'platform=macOS,arch=arm64' build
+
+# 4. Build iOS app (from project root)
+xcodebuild -project ./DenonController/DenonController.xcodeproj \
+  -scheme DenonControllerMobile -destination 'generic/platform=iOS' build
+
+# (Optional) Build for iOS Simulator
+xcodebuild -project ./DenonController/DenonController.xcodeproj \
+  -scheme DenonControllerMobile -configuration Debug \
   -destination 'platform=iOS Simulator,name=iPhone 17' build
-
-# List available iOS simulators (if the above fails)
-xcodebuild -scheme DenonControllerMobile -destination 'platform=iOS Simulator,name=iPhone 17' build 2>&1 | grep "platform:iOS Simulator"
 ```
 
 No test targets exist. Validation is manual against a physical Denon AVR-X3800H (or the simulator for UI-only changes).

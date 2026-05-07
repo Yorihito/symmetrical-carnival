@@ -5,14 +5,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Build Commands
 
 ```bash
-# Generate Xcode project from project.yml (requires XcodeGen)
+# 1. Generate Xcode project from project.yml (requires XcodeGen)
 xcodegen generate
 
-# Build
-xcodebuild -scheme DenonController -configuration Debug -destination 'platform=macOS' build
+# 2. Set Developer Directory (Required if xcodebuild fails)
+export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
 
-# Release build
-xcodebuild -scheme DenonController -configuration Release -destination 'platform=macOS' build
+# 3. Build macOS
+xcodebuild -scheme DenonController -configuration Debug -destination 'platform=macOS,arch=arm64' build
+
+# 4. Build iOS
+xcodebuild -scheme DenonControllerMobile -configuration Debug -destination 'generic/platform=iOS' build
 ```
 
 No test targets exist. Validation is manual against a physical Denon AVR-X3800H.
