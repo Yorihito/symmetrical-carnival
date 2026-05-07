@@ -10,15 +10,18 @@ final class NetworkPathMonitor {
     
     var isReachable: Bool = true
     var isWiFi: Bool = false
+    var isEthernet: Bool = false
     
     init() {
         monitor.pathUpdateHandler = { [weak self] path in
             let status = path.status
             let isWiFi = path.usesInterfaceType(.wifi)
+            let isEthernet = path.usesInterfaceType(.wiredEthernet)
             Task { @MainActor in
                 self?.isReachable = (status == .satisfied)
                 self?.isWiFi = isWiFi
-                print("[DenonLog] Network status changed: reachable=\(status == .satisfied), wifi=\(isWiFi)")
+                self?.isEthernet = isEthernet
+                print("[DenonLog] Network status: reachable=\(status == .satisfied), wifi=\(isWiFi), eth=\(isEthernet)")
             }
         }
         monitor.start(queue: queue)

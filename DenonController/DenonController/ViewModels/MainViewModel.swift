@@ -62,9 +62,10 @@ final class MainViewModel {
             // Observation で監視
             while !Task.isCancelled {
                 guard let self else { break }
-                if !self.pathMonitor.isReachable {
+                // ローカルネットワーク（WiFi/Ethernet）がオフ、または到達不能になった場合
+                if !self.pathMonitor.isReachable || (!self.pathMonitor.isWiFi && !self.pathMonitor.isEthernet) {
                     if self.connectionStatus != .disconnected {
-                        print("[DenonLog] Network is unreachable. Forcing disconnect.")
+                        print("[DenonLog] Network (WiFi) is lost. Forcing disconnect.")
                         await self.disconnect()
                     }
                 }
@@ -215,8 +216,15 @@ final class MainViewModel {
     }
 
     private func handleDisconnect() {
+        print("[DenonLog] handleDisconnect() called")
         connectionStatus = .disconnected
         avr.isConnected = false
+        errorMessage = nil
+        connectingDetail = ""
+        
+        Task {
+            await disconnect()
+        }
     }
 
     // MARK: - Telnet Listener
@@ -575,6 +583,7 @@ final class MainViewModel {
                     try await client.send(command)
                 } catch {
                     print("[DenonLog] All communication failed for command: \(command)")
+                    handleDisconnect()
                     showCommandError(String(localized: "通信に失敗しました。ネットワークを確認してください。"))
                 }
             }
