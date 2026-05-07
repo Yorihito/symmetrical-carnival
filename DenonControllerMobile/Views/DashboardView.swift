@@ -154,7 +154,9 @@ struct DashboardView: View {
                 // −
                 VolumeStepButton(systemImage: "minus", label: "音量 −") {
                     hapticTrigger += 1
-                    isPendingVolume = false
+                    let newVal = max(-80.0, ((isDraggingVolume || isPendingVolume) ? dragVolumeValue : vm.avr.volumeDB) - 0.5)
+                    dragVolumeValue = newVal
+                    isPendingVolume = true
                     lastInteractionTime = Date()
                     vm.volumeDown()
                 }
@@ -165,7 +167,7 @@ struct DashboardView: View {
                 // Mute
                 Button {
                     hapticTrigger += 1
-                    isPendingVolume = false
+                    isPendingVolume = false // ミュートは即時反映を優先
                     lastInteractionTime = Date()
                     vm.toggleMute()
                 } label: {
@@ -181,7 +183,9 @@ struct DashboardView: View {
                 // +
                 VolumeStepButton(systemImage: "plus", label: "音量 +") {
                     hapticTrigger += 1
-                    isPendingVolume = false
+                    let newVal = min(18.0, ((isDraggingVolume || isPendingVolume) ? dragVolumeValue : vm.avr.volumeDB) + 0.5)
+                    dragVolumeValue = newVal
+                    isPendingVolume = true
                     lastInteractionTime = Date()
                     vm.volumeUp()
                 }
