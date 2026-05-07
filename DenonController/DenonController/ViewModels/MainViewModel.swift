@@ -437,10 +437,11 @@ final class MainViewModel {
             }
 
             // ── Phase 2: Telnet ベーススキャン（フォールバック）───────────
-            // 周波数変化で登録済みスロットを判定する。
-            // 空スロットは同じプレースホルダー周波数（例: 90.0 MHz）になるため
-            // freqChanged が false になり追加されない。
-            // プレースホルダーが初回だけ変化して入る場合は tunerSkipFrequencies で除外する。
+            // 既に P01 を選択している場合に応答が来ないのを防ぐため、一度 P56 を選んでリセットする
+            selectTunerPreset(maxTunerSlots)
+            try? await Task.sleep(for: .milliseconds(400))
+            if Task.isCancelled { return }
+
             var found: [TunerPreset] = []
             var seen = Set<String>()
 
@@ -450,13 +451,14 @@ final class MainViewModel {
 
                 selectTunerPreset(i)
                 
-                // 周波数が更新されるのを待つ（最大1秒）
-                for j in 0..<10 {
+                // 周波数が更新されるのを待つ（最大1.2秒）
+                for j in 0..<12 {
                     if !avr.tunerFrequency.isEmpty { break }
                     
-                    // 0.4秒待っても来ない場合は、明示的に周波数を問い合わせる (TF?)
+                    // 0.4秒待っても来ない場合は、明示的に周波数とプリセットを問い合わせる
                     if j == 4 {
                         send("TF?")
+                        send("TP?")
                     }
                     
                     try? await Task.sleep(for: .milliseconds(100))
