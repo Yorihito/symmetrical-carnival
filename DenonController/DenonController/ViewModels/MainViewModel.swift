@@ -374,13 +374,20 @@ final class MainViewModel {
     /// 除外する周波数（カンマ区切り MHz、例: "90.0" or "90.0, 85.0"）
     var tunerSkipFrequencies: String = UserDefaults.standard.string(forKey: "tunerSkipFrequencies") ?? "90.0"
 
-    /// 除外周波数を適用したプリセット一覧（表示・ナビゲーション用）
+    /// 除外周波数を適用し、重複を排除したプリセット一覧
     var tunerPresets: [TunerPreset] {
         let skipSet = skipFreqSet(from: tunerSkipFrequencies)
-        guard !skipSet.isEmpty else { return tunerAllPresets }
+        var seen = Set<String>()
         return tunerAllPresets.filter { p in
-            guard let f = Double(p.frequency) else { return true }
-            return !skipSet.contains(f)
+            // 1. 除外周波数チェック
+            if let f = Double(p.frequency), skipSet.contains(f) { return false }
+            
+            // 2. 重複チェック（周波数 + バンド）
+            let key = "\(p.band.rawValue)_\(p.frequency)"
+            if seen.contains(key) { return false }
+            
+            seen.insert(key)
+            return true
         }
     }
 
@@ -427,10 +434,9 @@ final class MainViewModel {
             // freqChanged が false になり追加されない。
             // プレースホルダーが初回だけ変化して入る場合は tunerSkipFrequencies で除外する。
             var found: [TunerPreset] = []
-            var prevFreq = avr.tunerFrequency
-            var prevBand = avr.tunerBand
+            var seen = Set<String>()
 
-            for i in 1...56 {
+            for i in 1...maxTunerSlots {
                 if Task.isCancelled { break }
                 tunerScanProgress = i
 
@@ -442,17 +448,15 @@ final class MainViewModel {
                 let newBand = avr.tunerBand
                 let name    = avr.tunerStationName
 
-                guard !newFreq.isEmpty else { prevFreq = newFreq; prevBand = newBand; continue }
+                guard !newFreq.isEmpty else { continue }
 
-                let freqChanged = newFreq != prevFreq || newBand != prevBand
-                // P01 は比較対象の前スロットがないため freqChanged に関わらず追加する
-                if freqChanged || i == 1 {
+                let key = "\(newBand.rawValue)_\(newFreq)"
+                if !seen.contains(key) {
                     found.append(TunerPreset(
                         id: i, band: newBand, frequency: newFreq, stationName: name
                     ))
+                    seen.insert(key)
                 }
-                prevFreq = newFreq
-                prevBand = newBand
             }
 
             tunerAllPresets = found
