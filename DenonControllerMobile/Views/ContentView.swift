@@ -15,8 +15,37 @@ struct ContentView: View {
 
     private var lBundle: Bundle { makeLocalizedBundle(for: appLocale) }
 
+    @State private var isSplashScreenActive = true
+
     var body: some View {
         ZStack {
+            if isSplashScreenActive {
+                splashView
+                    .transition(.opacity)
+                    .zIndex(2)
+            }
+            
+            mainContent
+                .zIndex(1)
+            
+            // 共通エラー通知オーバーレイ
+            if let msg = vm.errorMessage {
+                errorOverlay(msg: msg)
+                    .zIndex(3)
+            }
+        }
+        .animation(.spring(), value: vm.errorMessage)
+        .onAppear {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                withAnimation(.easeOut(duration: 0.5)) {
+                    isSplashScreenActive = false
+                }
+            }
+        }
+    }
+
+    private var mainContent: some View {
+        Group {
             if UIDevice.current.userInterfaceIdiom == .pad {
                 iPadLayout
                     .environment(\.locale, appLocale)
@@ -38,25 +67,51 @@ struct ContentView: View {
                     }
                     .onAppear { autoConnect() }
             }
+        }
+    }
+
+    private var splashView: some View {
+        ZStack {
+            Color.black.ignoresSafeArea()
             
-            // 共通エラー通知オーバーレイ
-            if let msg = vm.errorMessage {
-                VStack {
-                    Text(msg)
-                        .font(.subheadline.weight(.medium))
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 10)
-                        .background(Color.red.opacity(0.9), in: Capsule())
-                        .shadow(radius: 4)
-                        .padding(.top, 50)   // ノッチ回避
-                    Spacer()
-                }
-                .transition(.move(edge: .top).combined(with: .opacity))
-                .zIndex(999)
+            // 背景に薄いグラデーションで高級感を出す
+            RadialGradient(
+                gradient: Gradient(colors: [Color.accentColor.opacity(0.15), .black]),
+                center: .center,
+                startRadius: 0,
+                endRadius: 500
+            )
+            .ignoresSafeArea()
+            
+            VStack(spacing: 20) {
+                Image("SplashIcon")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 160, height: 160)
+                    .clipShape(RoundedRectangle(cornerRadius: 36, style: .continuous))
+                    .shadow(color: Color.accentColor.opacity(0.3), radius: 20)
+                
+                Text("Denon Controller")
+                    .font(.system(size: 24, weight: .bold, design: .rounded))
+                    .foregroundStyle(.white)
+                    .tracking(1.0)
             }
         }
-        .animation(.spring(), value: vm.errorMessage)
+    }
+
+    private func errorOverlay(msg: String) -> some View {
+        VStack {
+            Text(msg)
+                .font(.subheadline.weight(.medium))
+                .foregroundStyle(.white)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 10)
+                .background(Color.red.opacity(0.9), in: Capsule())
+                .shadow(radius: 4)
+                .padding(.top, 50)
+            Spacer()
+        }
+        .transition(.move(edge: .top).combined(with: .opacity))
     }
 
     private func autoConnect() {
