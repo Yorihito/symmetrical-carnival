@@ -87,8 +87,8 @@ struct ContentView: View {
                 Image("SplashIcon")
                     .resizable()
                     .aspectRatio(contentMode: .fit)
-                    .frame(width: 160, height: 160)
-                    .clipShape(RoundedRectangle(cornerRadius: 36, style: .continuous))
+                    .frame(width: 341, height: 341)
+                    .clipShape(RoundedRectangle(cornerRadius: 72, style: .continuous))
                     .shadow(color: Color.accentColor.opacity(0.3), radius: 20)
                 
                 Text("Denon Controller")
