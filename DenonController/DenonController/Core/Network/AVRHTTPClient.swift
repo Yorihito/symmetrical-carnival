@@ -134,8 +134,8 @@ actor AVRHTTPClient {
 
     /// タグ `<Tag>value</Tag>` を抽出する簡易パーサー
     private func simpleXML(in xml: String, tag: String) -> String? {
-        guard let s = xml.range(of: "<\(tag)>"),
-              let e = xml.range(of: "</\(tag)>", range: s.upperBound..<xml.endIndex)
+        guard let s = xml.range(of: "<\(tag)>", options: .caseInsensitive),
+              let e = xml.range(of: "</\(tag)>", options: .caseInsensitive, range: s.upperBound..<xml.endIndex)
         else { return nil }
         return String(xml[s.upperBound..<e.lowerBound])
     }
@@ -405,19 +405,20 @@ actor AVRHTTPClient {
         // AppCommand.xml のパース（<list> <item> <preset> <band> <freq> <name>...）
         var presets: [TunerPreset] = []
         var searchRange = xml.startIndex..<xml.endIndex
-        while let itemStart = xml.range(of: "<item>", range: searchRange) {
-            guard let itemEnd = xml.range(of: "</item>", range: itemStart.upperBound..<xml.endIndex) else { break }
+        
+        while let itemStart = xml.range(of: "<item>", options: .caseInsensitive, range: searchRange) {
+            guard let itemEnd = xml.range(of: "</item>", options: .caseInsensitive, range: itemStart.upperBound..<xml.endIndex) else { break }
             let itemXml = String(xml[itemStart.lowerBound..<itemEnd.upperBound])
             searchRange = itemEnd.upperBound..<xml.endIndex
 
-            let presetStr = simpleXML(in: itemXml, tag: "preset") ?? ""
+            let presetStr = simpleXML(in: itemXml, tag: "preset") ?? xmlValue(in: itemXml, key: "preset") ?? ""
             guard let idx = Int(presetStr.trimmingCharacters(in: .whitespaces)) else { continue }
 
-            let freq = simpleXML(in: itemXml, tag: "freq") ?? ""
+            let freq = simpleXML(in: itemXml, tag: "freq") ?? xmlValue(in: itemXml, key: "freq") ?? ""
             guard !freq.isEmpty && freq != "0.00" && freq != "0" else { continue }
 
-            let bandStr = simpleXML(in: itemXml, tag: "band") ?? "FM"
-            let name = simpleXML(in: itemXml, tag: "name") ?? ""
+            let bandStr = simpleXML(in: itemXml, tag: "band") ?? xmlValue(in: itemXml, key: "band") ?? "FM"
+            let name = simpleXML(in: itemXml, tag: "name") ?? xmlValue(in: itemXml, key: "name") ?? ""
 
             let band = TunerBand(rawValue: bandStr.uppercased()) ?? .fm
             presets.append(TunerPreset(id: idx, band: band, frequency: freq, stationName: name))

@@ -447,15 +447,16 @@ final class MainViewModel {
 
                 selectTunerPreset(i)
                 
-                // 周波数が更新されるのを待つ（最大2秒）
-                for _ in 0..<20 {
+                // 周波数が更新されるのを待つ（最大0.8秒）
+                // 登録済みなら 100-200ms で抜ける。空なら 800ms で次へ。
+                for _ in 0..<8 {
                     if !avr.tunerFrequency.isEmpty { break }
                     try? await Task.sleep(for: .milliseconds(100))
                     if Task.isCancelled { break }
                 }
                 
-                // 名前などの確定のため少しだけ余分に待つ
-                try? await Task.sleep(for: .milliseconds(200))
+                // 確定のため少しだけ待つ
+                try? await Task.sleep(for: .milliseconds(100))
                 if Task.isCancelled { break }
 
                 let newFreq = avr.tunerFrequency
