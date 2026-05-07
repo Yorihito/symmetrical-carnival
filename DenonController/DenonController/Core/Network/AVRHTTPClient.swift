@@ -149,8 +149,8 @@ actor AVRHTTPClient {
 
     // MARK: - Send command
 
-    func send(_ command: String) async {
-        guard !host.isEmpty else { return }
+    func send(_ command: String) async throws {
+        guard !host.isEmpty else { throw AVRError.notConnected }
         
         // コマンド送信時は即座にポーリングを再開させ、
         // かつバックオフを最小（0.5s）にリセットしてしばらく超高頻度で追跡する
@@ -160,8 +160,8 @@ actor AVRHTTPClient {
         lastActivityTime = Date()
         
         let enc = command.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? command
-        _ = try? await bsdGET(path: "/goform/formiPhoneAppDirect.xml?\(enc)",
-                              host: host, port: port)
+        _ = try await bsdGET(path: "/goform/formiPhoneAppDirect.xml?\(enc)",
+                             host: host, port: port)
         
         // 待ち時間をキャンセルして即座に次のポーリングを走らせる
         restartPollLoop()

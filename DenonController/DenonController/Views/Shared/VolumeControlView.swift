@@ -121,5 +121,9 @@ struct VolumeControlView: View {
             .buttonStyle(.plain)
             .keyboardShortcut("m", modifiers: .command)
         }
+        #if os(iOS)
+        .sensoryFeedback(.selection, trigger: dragValue)
+        .sensoryFeedback(.impact(weight: .light), trigger: volumeDB)
+        #endif
     }
 }

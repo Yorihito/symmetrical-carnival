@@ -166,6 +166,7 @@ final class MainViewModel {
             print("[DenonLog] Fatal Error: \(error.localizedDescription)")
             connectionLog.append("Fatal Error: \(error.localizedDescription)")
             connectingDetail = ""
+            errorMessage = error.localizedDescription
             connectionStatus = .error(error.localizedDescription)
             avr.isConnected = false
         }
@@ -320,30 +321,32 @@ final class MainViewModel {
     /// スキャン済みリストがあればそのリスト内を循環（空スロット・スキップを自動回避）。
     /// 未スキャンなら単純に +1。
     func tunerPresetUp() {
-        if tunerPresets.isEmpty {
+        let presets = tunerPresets
+        if presets.isEmpty {
             let next = avr.tunerPreset > 0 ? min(56, avr.tunerPreset + 1) : 1
             selectTunerPreset(next)
         } else {
             let cur = avr.tunerPreset
-            if let idx = tunerPresets.firstIndex(where: { $0.id == cur }) {
-                selectTunerPreset(tunerPresets[(idx + 1) % tunerPresets.count].id)
-            } else {
-                selectTunerPreset(tunerPresets[0].id)
+            if let idx = presets.firstIndex(where: { $0.id == cur }) {
+                selectTunerPreset(presets[(idx + 1) % presets.count].id)
+            } else if let first = presets.first {
+                selectTunerPreset(first.id)
             }
         }
     }
 
     /// プリセット ↓（同上）。
     func tunerPresetDown() {
-        if tunerPresets.isEmpty {
+        let presets = tunerPresets
+        if presets.isEmpty {
             let prev = avr.tunerPreset > 1 ? avr.tunerPreset - 1 : 1
             selectTunerPreset(prev)
         } else {
             let cur = avr.tunerPreset
-            if let idx = tunerPresets.firstIndex(where: { $0.id == cur }) {
-                selectTunerPreset(tunerPresets[(idx - 1 + tunerPresets.count) % tunerPresets.count].id)
-            } else {
-                selectTunerPreset(tunerPresets[tunerPresets.count - 1].id)
+            if let idx = presets.firstIndex(where: { $0.id == cur }) {
+                selectTunerPreset(presets[(idx - 1 + presets.count) % presets.count].id)
+            } else if let last = presets.last {
+                selectTunerPreset(last.id)
             }
         }
     }
@@ -429,7 +432,7 @@ final class MainViewModel {
                 tunerScanProgress = i
 
                 selectTunerPreset(i)
-                try? await Task.sleep(for: .milliseconds(600))
+                try? await Task.sleep(for: .milliseconds(800))
                 if Task.isCancelled { break }
 
                 let newFreq = avr.tunerFrequency
@@ -509,13 +512,26 @@ final class MainViewModel {
     private func send(_ command: String) {
         Task { [weak self] in
             guard let self else { return }
-            // Telnet 接続中なら Telnet を優先（スペース含むコマンドも正しく送信できる）
             do {
                 try await telnet.send(command)
             } catch {
                 // Telnet 未接続 or 失敗 → HTTP フォールバック
-                await client.send(command)
+                do {
+                    try await client.send(command)
+                } catch {
+                    print("[DenonLog] All communication failed for command: \(command)")
+                    showCommandError(String(localized: "通信に失敗しました。ネットワークを確認してください。"))
+                }
             }
+        }
+    }
+
+    private func showCommandError(_ msg: String) {
+        errorMessage = msg
+        // 5秒後にエラーを消す
+        Task {
+            try? await Task.sleep(for: .seconds(5))
+            if errorMessage == msg { errorMessage = nil }
         }
     }
 }

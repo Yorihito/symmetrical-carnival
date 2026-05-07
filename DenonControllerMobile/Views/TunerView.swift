@@ -219,28 +219,30 @@ struct TunerView: View {
                     }
                 }
 
-                Divider()
-                
-                Text("ローカライズ・デバッグ:", bundle: bundle)
-                    .font(.caption.weight(.bold))
-                    .foregroundStyle(.secondary)
-                
-                // 除外周波数
-                HStack(spacing: 8) {
-                    Text("除外周波数:", bundle: bundle)
-                        .font(.caption)
+                if debugMode {
+                    Divider()
+                    
+                    Text("ローカライズ・デバッグ:", bundle: bundle)
+                        .font(.caption.weight(.bold))
                         .foregroundStyle(.secondary)
-                    TextField(LS("例: 90.0, 85.0", bundle), text: $skipFreqText)
-                        .font(.caption.monospacedDigit())
-                        .textFieldStyle(.roundedBorder)
-                        .keyboardType(.decimalPad)
-                        .onSubmit { vm.setTunerSkipFrequencies(skipFreqText) }
-                        .onChange(of: skipFreqText) { vm.setTunerSkipFrequencies(skipFreqText) }
-                    Text("MHz")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                    
+                    // 除外周波数
+                    HStack(spacing: 8) {
+                        Text("除外周波数:", bundle: bundle)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        TextField(LS("例: 90.0, 85.0", bundle), text: $skipFreqText)
+                            .font(.caption.monospacedDigit())
+                            .textFieldStyle(.roundedBorder)
+                            .keyboardType(.decimalPad)
+                            .onSubmit { vm.setTunerSkipFrequencies(skipFreqText) }
+                            .onChange(of: skipFreqText) { vm.setTunerSkipFrequencies(skipFreqText) }
+                        Text("MHz")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    .onAppear { skipFreqText = vm.tunerSkipFrequencies }
                 }
-                .onAppear { skipFreqText = vm.tunerSkipFrequencies }
 
                 if vm.isScanningTuner {
                     VStack(alignment: .leading, spacing: 6) {
@@ -257,7 +259,7 @@ struct TunerView: View {
                             .font(.caption)
                             .foregroundStyle(.green)
                     } else {
-                        Text("\(shown) 件を表示中（\(total - shown) 件除外）", bundle: bundle)
+                        Text("\(shown) 件を取得（\(total - shown) 件の空き・重複を除外）", bundle: bundle)
                             .font(.caption)
                             .foregroundStyle(.green)
                     }

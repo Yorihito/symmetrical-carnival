@@ -37,6 +37,24 @@ struct ContentView: View {
                 }
                 .onAppear { autoConnect() }
         }
+        
+        // 共通エラー通知オーバーレイ
+        if let msg = vm.errorMessage {
+            VStack {
+                Text(msg)
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 10)
+                    .background(Color.red.opacity(0.9), in: Capsule())
+                    .shadow(radius: 4)
+                    .padding(.top, 50)   // ノッチ回避
+                Spacer()
+            }
+            .transition(.move(edge: .top).combined(with: .opacity))
+            .animation(.spring(), value: vm.errorMessage)
+            .zIndex(999)
+        }
     }
 
     private func autoConnect() {
