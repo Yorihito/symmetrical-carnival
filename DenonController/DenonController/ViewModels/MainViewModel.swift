@@ -64,8 +64,8 @@ final class MainViewModel {
                 guard let self else { break }
                 // ネットワークが完全に到達不能になった場合
                 if !self.pathMonitor.isReachable {
-                    if self.connectionStatus != .disconnected {
-                        print("[DenonLog] Network (WiFi) is lost. Forcing disconnect.")
+                    if self.connectionStatus == .connected {
+                        print("[DenonLog] Network is lost. Forcing disconnect.")
                         await self.disconnect()
                     }
                 }
