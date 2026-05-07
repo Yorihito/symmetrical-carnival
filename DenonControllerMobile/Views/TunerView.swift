@@ -229,7 +229,7 @@ struct TunerView: View {
                             Text("取得", bundle: bundle)
                         }
                         .buttonStyle(.borderedProminent)
-                        .disabled(!isEnabled)
+                        .disabled(!isEnabled || !isTunerMode)
                     }
                 }
 
