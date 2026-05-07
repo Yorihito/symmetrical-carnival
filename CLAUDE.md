@@ -174,15 +174,30 @@ In iOS views, always add `@Environment(\.localizedBundle) private var lBundle` a
 
 This project targets iOS 26+ and macOS 14+. When choosing SF Symbols, verify availability in SF Symbols app — some symbols only exist in newer OS versions or are platform-specific. Known unavailable on macOS 14: `tv.remote`, `satellite`. Safe alternatives: `dpad` (remote/navigation), `cable.connector`, `antenna.radiowaves.left.and.right.circle`, `opticaldisc`, `record.circle`.
 
-## Entitlements
+## Critical Requirements & Session Summary
 
-App Sandbox is **disabled** (required for BSD socket access). Network client entitlement is enabled. Bonjour service: `_denon-heos._tcp`.
+### Tuner & Scan Stability
+- **Default Skip Frequency**: MUST default to `"90.0"`. This excludes empty slots. Never remove this.
+- **P01 Fetch Guarantee**: If the target preset is already selected, the AVR may not report frequency. The app now selects a "dummy" preset (next available) before selecting the target to force a state change.
+- **Query Fallback**: During scan, if no response is received in 0.4s, the app sends explicit `TF?` (Frequency) and `TP?` (Preset) queries.
+- **Circular Navigation**: Preset Up/Down must loop (P56 <-> P01).
 
-## Tuner Specifics
+### Localization (Multi-language)
+- **Rule**: NO hardcoded Japanese/English in Views. Use `Text("Key", bundle: bundle)`.
+- **Verification**: Always check both English and Japanese modes. Key points: "Stations fetched", "Remaining slots", "Switch to TUNER".
 
-- **Default Skip Frequency**: The `tunerSkipFrequencies` must default to `"90.0"`. This is critical to exclude empty slots on many Denon/Marantz AVRs. Do NOT remove or change this default value unless explicitly requested by the user.
-- **Circular Navigation**: Tuner preset navigation (Up/Down) must be circular (e.g., P56 -> P01, P01 -> P56).
-- **Scan Logic**: Manual scan (Phase 2) must clear the current frequency and wait for a new response (with a query fallback `TF?`) to ensure P01 and other presets are correctly captured without reading stale data from previous slots.
+### macOS App Sandbox & Discovery
+- **Sandbox**: MUST be `true` for App Store submission. (Target: `DenonController.entitlements`)
+- **Discovery Strategy**:
+    - Prioritize numeric IP addresses over `.local` hostnames to avoid mDNS resolution timeouts on Mac.
+    - **Mac-specific**: Disable `IP_BOUND_IF` (interface binding) on macOS as it conflicts with Sandbox; use standard OS routing instead.
+    - **Timeout**: Use 5s timeout for device verification to allow for Sandbox/Network permission delays.
+- **Permissions**: If discovery fails silently, reset Local Network permissions via:
+  `tccutil reset LocalNetwork com.ytada.DenonController`
+
+### Project Identity
+- **Mac Bundle ID**: `com.ytada.DenonController`
+- **iOS Bundle ID**: `com.ytada.DenonControllerMobile`
 
 ## Multi-language Support (Localization)
 
