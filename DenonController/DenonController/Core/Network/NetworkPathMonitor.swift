@@ -12,10 +12,12 @@ final class NetworkPathMonitor: Sendable {
     
     init() {
         monitor.pathUpdateHandler = { [weak self] path in
+            let status = path.status
+            let isWiFi = path.usesInterfaceType(.wifi)
             Task { @MainActor in
-                self?.isReachable = (path.status == .satisfied)
-                self?.isWiFi = path.usesInterfaceType(.wifi)
-                print("[DenonLog] Network status changed: reachable=\(path.status == .satisfied), wifi=\(path.usesInterfaceType(.wifi))")
+                self?.isReachable = (status == .satisfied)
+                self?.isWiFi = isWiFi
+                print("[DenonLog] Network status changed: reachable=\(status == .satisfied), wifi=\(isWiFi)")
             }
         }
         monitor.start(queue: queue)

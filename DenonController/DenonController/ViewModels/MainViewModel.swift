@@ -1,4 +1,6 @@
 import SwiftUI
+import Network
+import Observation
 
 // MARK: - ConnectionStatus
 
