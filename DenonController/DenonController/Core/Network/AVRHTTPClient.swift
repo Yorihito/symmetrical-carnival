@@ -513,6 +513,10 @@ actor AVRHTTPClient {
         }
         defer { Darwin.close(fd) }
 
+        // ─── シグナル抑制（重要: クラッシュ防止） ───────────────────────
+        var nosigpipe = 1
+        setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, &nosigpipe, socklen_t(MemoryLayout<Int32>.size))
+
         // ─── インターフェース固定（マルチ NIC 対策）─────────────────────
         if var ifIdx = interfaceIndex(forTargetIP: targetIP), ifIdx > 0 {
             setsockopt(fd, IPPROTO_IP, IP_BOUND_IF,
@@ -520,7 +524,7 @@ actor AVRHTTPClient {
         }
 
         // ─── タイムアウト設定 ────────────────────────────────────────────
-        var tv = timeval(tv_sec: 5, tv_usec: 0)
+        var tv = timeval(tv_sec: 2, tv_usec: 0)
         setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &tv, socklen_t(MemoryLayout<timeval>.size))
         setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, &tv, socklen_t(MemoryLayout<timeval>.size))
 
@@ -605,13 +609,19 @@ actor AVRHTTPClient {
         let targetIP = addr.sin_addr.s_addr
 
         let fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)
-        guard fd >= 0 else { throw AVRError.connectionFailed("socket() 失敗") }
+        guard fd >= 0 else {
+            throw AVRError.connectionFailed("socket() 失敗 errno=\(errno)")
+        }
         defer { Darwin.close(fd) }
+
+        // ─── シグナル抑制（重要: クラッシュ防止） ───────────────────────
+        var nosigpipe = 1
+        setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, &nosigpipe, socklen_t(MemoryLayout<Int32>.size))
 
         if var ifIdx = interfaceIndex(forTargetIP: targetIP), ifIdx > 0 {
             setsockopt(fd, IPPROTO_IP, IP_BOUND_IF, &ifIdx, socklen_t(MemoryLayout<UInt32>.size))
         }
-        var tv = timeval(tv_sec: 5, tv_usec: 0)
+        var tv = timeval(tv_sec: 2, tv_usec: 0)
         setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &tv, socklen_t(MemoryLayout<timeval>.size))
         setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, &tv, socklen_t(MemoryLayout<timeval>.size))
 

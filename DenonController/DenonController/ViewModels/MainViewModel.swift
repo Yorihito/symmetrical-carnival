@@ -63,8 +63,10 @@ final class MainViewModel {
             while !Task.isCancelled {
                 guard let self else { break }
                 if !self.pathMonitor.isReachable {
-                    print("[DenonLog] Network is unreachable. Forcing disconnect.")
-                    await self.disconnect()
+                    if self.connectionStatus != .disconnected {
+                        print("[DenonLog] Network is unreachable. Forcing disconnect.")
+                        await self.disconnect()
+                    }
                 }
                 try? await Task.sleep(for: .seconds(1))
             }
