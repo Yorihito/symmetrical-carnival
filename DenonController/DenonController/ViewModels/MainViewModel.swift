@@ -425,7 +425,7 @@ final class MainViewModel {
             guard let self else { return }
 
             // ── Phase 1: XML 一括取得 ─────────────────────────────────────
-            if let xmlPresets = await client.fetchTunerPresetsFromXml(), !Task.isCancelled {
+            if let xmlPresets = await client.fetchTunerPresetsFromXml(), !xmlPresets.isEmpty, !Task.isCancelled {
                 tunerScanProgress = 56
                 tunerAllPresets = xmlPresets
                 saveTunerPresets()
@@ -447,15 +447,20 @@ final class MainViewModel {
 
                 selectTunerPreset(i)
                 
-                // 周波数が更新されるのを待つ（最大0.8秒）
-                // 登録済みなら 100-200ms で抜ける。空なら 800ms で次へ。
-                for _ in 0..<8 {
+                // 周波数が更新されるのを待つ（最大1秒）
+                for j in 0..<10 {
                     if !avr.tunerFrequency.isEmpty { break }
+                    
+                    // 0.4秒待っても来ない場合は、明示的に周波数を問い合わせる (TF?)
+                    if j == 4 {
+                        send("TF?")
+                    }
+                    
                     try? await Task.sleep(for: .milliseconds(100))
                     if Task.isCancelled { break }
                 }
                 
-                // 確定のため少しだけ待つ
+                // 確定のため少し待つ
                 try? await Task.sleep(for: .milliseconds(100))
                 if Task.isCancelled { break }
 
