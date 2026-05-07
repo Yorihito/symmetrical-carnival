@@ -44,6 +44,7 @@ targets:
       - path: DenonController/Resources/Localization
       - path: ../DenonControllerMobile
       - path: ../DenonControllerMobile/Resources/LaunchScreen.storyboard
+      - path: ../DenonControllerMobile/Resources/SplashIcon.png
     dependencies:
       - sdk: Network.framework
     resources:
