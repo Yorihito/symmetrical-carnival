@@ -31,11 +31,8 @@
 	<string>Copyright (c) 2026 Yorihito Tada. All rights reserved.</string>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>Control a Denon / Marantz AV receiver over the local network.</string>
-	<key>UILaunchScreen</key>
-	<dict>
-		<key>UIImageName</key>
-		<string>SplashIcon</string>
-	</dict>
+	<key>UILaunchStoryboardName</key>
+	<string>LaunchScreen</string>
 	<key>UIRequiresFullScreen</key>
 	<true/>
 	<key>UIStatusBarStyle</key>
