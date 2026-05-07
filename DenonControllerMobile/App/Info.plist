@@ -32,7 +32,10 @@
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>Control a Denon / Marantz AV receiver over the local network.</string>
 	<key>UILaunchScreen</key>
-	<dict/>
+	<dict>
+		<key>UIImageName</key>
+		<string>SplashIcon</string>
+	</dict>
 	<key>UIRequiresFullScreen</key>
 	<true/>
 	<key>UIStatusBarStyle</key>
