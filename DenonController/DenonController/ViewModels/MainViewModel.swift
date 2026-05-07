@@ -58,10 +58,10 @@ final class MainViewModel {
         }
         
         // ネットワーク監視の開始
-        pathMonitorTask = Task { [weak self] in
-            guard let self else { return }
+        self.pathMonitorTask = Task { [weak self] in
             // Observation で監視
             while !Task.isCancelled {
+                guard let self else { break }
                 if !self.pathMonitor.isReachable {
                     print("[DenonLog] Network is unreachable. Forcing disconnect.")
                     await self.disconnect()

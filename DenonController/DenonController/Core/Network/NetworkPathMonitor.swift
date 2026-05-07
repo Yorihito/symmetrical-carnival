@@ -3,7 +3,8 @@ import Network
 import Observation
 
 @Observable
-final class NetworkPathMonitor: Sendable {
+@MainActor
+final class NetworkPathMonitor {
     private let monitor = NWPathMonitor()
     private let queue = DispatchQueue(label: "com.cc.nyoyapoya.NetworkMonitor")
     

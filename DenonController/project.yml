@@ -43,6 +43,8 @@ targets:
       - path: DenonController/Views/Shared
       - path: DenonController/Resources/Localization
       - path: ../DenonControllerMobile
+    dependencies:
+      - sdk: Network.framework
     resources:
       - path: ../DenonControllerMobile/Assets.xcassets
     settings:
