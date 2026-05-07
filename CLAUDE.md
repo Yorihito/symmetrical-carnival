@@ -177,3 +177,15 @@ This project targets iOS 26+ and macOS 14+. When choosing SF Symbols, verify ava
 ## Entitlements
 
 App Sandbox is **disabled** (required for BSD socket access). Network client entitlement is enabled. Bonjour service: `_denon-heos._tcp`.
+
+## Tuner Specifics
+
+- **Default Skip Frequency**: The `tunerSkipFrequencies` must default to `"90.0"`. This is critical to exclude empty slots on many Denon/Marantz AVRs. Do NOT remove or change this default value unless explicitly requested by the user.
+- **Circular Navigation**: Tuner preset navigation (Up/Down) must be circular (e.g., P56 -> P01, P01 -> P56).
+- **Scan Logic**: Manual scan (Phase 2) must clear the current frequency and wait for a new response (with a query fallback `TF?`) to ensure P01 and other presets are correctly captured without reading stale data from previous slots.
+
+## Multi-language Support (Localization)
+
+- **Rule**: NEVER hardcode user-visible strings in Japanese (or English) within the view code. Always use localization keys.
+- **Implementation**: Use `Text("Key", bundle: bundle)` or `LS("Key", bundle)` to ensure strings are correctly looked up in the current language.
+- **Verification**: When adding a new UI element, verify that the key is added to both `en.lproj/Localizable.strings` and correctly mapped (even as a stub) in `ja.lproj/Localizable.strings`.

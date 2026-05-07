@@ -102,7 +102,8 @@
 "除外周波数:" = "Exclude Frequencies:";
 "例: 90.0, 85.0" = "e.g. 90.0, 85.0";
 "スロット %lld / 56 を確認中..." = "Checking slot %lld / 56...";
-"%lld 件のプリセットを取得しました。" = "Fetched %lld presets.";
+"%lld 件の放送局を取得済み" = "%lld stations fetched";
+"残り %lld スロットは空きまたは重複です" = "Remaining %lld slots are empty or duplicates";
 "%lld 件を表示中（%lld 件除外）" = "Showing %lld (%lld excluded)";
 "プリセット一覧" = "Preset List";
 "生データ確認" = "Raw Data";
