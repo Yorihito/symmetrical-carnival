@@ -45,32 +45,14 @@ final class MainViewModel {
     // MARK: - Private
     private let client = AVRHTTPClient()
     private let telnet = TelnetClient()
-    private let pathMonitor = NetworkPathMonitor() // ネットワーク監視
     private var updateTask: Task<Void, Never>?
     private var telnetListenTask: Task<Void, Never>?
-    private var pathMonitorTask: Task<Void, Never>?
 
     init() {
         // 前回フェッチしたプリセットを復元する
         if let data = UserDefaults.standard.data(forKey: "savedTunerPresets"),
            let saved = try? JSONDecoder().decode([TunerPreset].self, from: data) {
             tunerAllPresets = saved
-        }
-        
-        // ネットワーク監視の開始
-        self.pathMonitorTask = Task { [weak self] in
-            // Observation で監視
-            while !Task.isCancelled {
-                guard let self else { break }
-                // ネットワークが完全に到達不能になった場合
-                if !self.pathMonitor.isReachable {
-                    if self.connectionStatus == .connected {
-                        print("[DenonLog] Network is lost. Forcing disconnect.")
-                        await self.disconnect()
-                    }
-                }
-                try? await Task.sleep(for: .seconds(1))
-            }
         }
     }
     
@@ -288,8 +270,14 @@ final class MainViewModel {
 
     // MARK: - Volume
 
-    func volumeUp()   { send("MVUP") }
-    func volumeDown() { send("MVDOWN") }
+    func volumeUp() {
+        avr.volumeDB += 0.5
+        send("MVUP")
+    }
+    func volumeDown() {
+        avr.volumeDB -= 0.5
+        send("MVDOWN")
+    }
     func setVolume(_ db: Double) { 
         avr.volumeDB = db
         send(AVRState.volumeCommand(forDB: db)) 
