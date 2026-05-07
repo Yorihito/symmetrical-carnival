@@ -252,12 +252,12 @@ struct TunerView: View {
                             .foregroundStyle(.secondary)
                     }
                 } else if !vm.tunerAllPresets.isEmpty {
-                    let total = vm.tunerAllPresets.count
                     let shown = vm.tunerPresets.count
+                    let empty = vm.maxTunerSlots - shown
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("\(shown) 件の放送局を登録済み", bundle: bundle)
-                        if total > shown {
-                            Text("\(total - shown) 個の空きスロット（90.0MHz等）をスキップしました", bundle: bundle)
+                        Text("\(shown) 件の放送局を取得済み", bundle: bundle)
+                        if empty > 0 {
+                            Text("残り \(empty) スロットは空きまたは重複です", bundle: bundle)
                                 .font(.system(size: 10))
                         }
                     }

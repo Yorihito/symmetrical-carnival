@@ -367,6 +367,9 @@ final class MainViewModel {
 
     /// スキャン生データ（フィルタ前）
     var tunerAllPresets: [TunerPreset] = []
+    
+    /// 最大プリセット数
+    let maxTunerSlots = 56
 
     /// 除外する周波数（カンマ区切り MHz、例: "90.0" or "90.0, 85.0"）
     var tunerSkipFrequencies: String = UserDefaults.standard.string(forKey: "tunerSkipFrequencies") ?? "90.0"
