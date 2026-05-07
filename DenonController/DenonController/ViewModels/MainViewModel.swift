@@ -437,17 +437,21 @@ final class MainViewModel {
             }
 
             // ── Phase 2: Telnet ベーススキャン（フォールバック）───────────
-            // 既に P01 を選択している場合に応答が来ないのを防ぐため、一度 P56 を選んでリセットする
-            selectTunerPreset(maxTunerSlots)
-            try? await Task.sleep(for: .milliseconds(400))
-            if Task.isCancelled { return }
-
             var found: [TunerPreset] = []
             var seen = Set<String>()
 
             for i in 1...maxTunerSlots {
                 if Task.isCancelled { break }
                 tunerScanProgress = i
+
+                // 既にそのプリセットを選択している場合、アンプが応答を返さないことがあるため
+                // 別の番号を一度選んで状態を強制的に動かす
+                if avr.tunerPreset == i {
+                    let dummy = (i % maxTunerSlots) + 1
+                    selectTunerPreset(dummy)
+                    try? await Task.sleep(for: .milliseconds(300))
+                    if Task.isCancelled { break }
+                }
 
                 selectTunerPreset(i)
                 
