@@ -167,3 +167,8 @@
 "AVR に接続されていません" = "Not connected to AVR";
 "接続失敗" = "Connection Failed";
 "通信に失敗しました" = "Communication failed";
+
+"TCP 接続中 (%@)..." = "Connecting via TCP (%@)...";
+"デバイス確認中..." = "Verifying device...";
+"AVR から正常応答がありません (HTTP %lld)" = "No response from AVR (HTTP %lld)";
+"ポーリング開始..." = "Starting status polling...";

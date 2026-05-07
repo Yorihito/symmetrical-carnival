@@ -76,19 +76,19 @@ actor AVRHTTPClient {
         self.host = host
         self.port = port
 
-        onProgress?("TCP 接続中 (\(host))...")
+        onProgress?(String(localized: "TCP 接続中 (\(host))..."))
         let (data, status) = try await bsdGET(path: "/goform/Deviceinfo.xml",
                                               host: host, port: port)
 
-        onProgress?("デバイス確認中...")
+        onProgress?(String(localized: "デバイス確認中..."))
         guard status == 200 else {
-            throw AVRError.connectionFailed("AVR から正常応答がありません (HTTP \(status))")
+            throw AVRError.connectionFailed(String(localized: "AVR から正常応答がありません (HTTP \(status))"))
         }
 
         // デバイス情報を解析
         let info = parseDeviceInfo(data: data, host: host, port: port)
 
-        onProgress?("ポーリング開始...")
+        onProgress?(String(localized: "ポーリング開始..."))
         let stream = startPolling()
         return (info, stream)
     }

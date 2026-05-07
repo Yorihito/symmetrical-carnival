@@ -12,10 +12,10 @@ enum ConnectionStatus: Equatable, Sendable {
 
     var label: String {
         switch self {
-        case .disconnected: "未接続"
-        case .connecting:   "接続中..."
-        case .connected:    "接続済み"
-        case .error:        "エラー"
+        case .disconnected: String(localized: "未接続")
+        case .connecting:   String(localized: "接続中...")
+        case .connected:    String(localized: "接続済み")
+        case .error:        String(localized: "エラー")
         }
     }
 
@@ -87,7 +87,7 @@ final class MainViewModel {
         }
 
         connectionStatus = .connecting
-        connectingDetail = "デバイスを検索中..."
+        connectingDetail = String(localized: "デバイスを検索中...")
 
         let (found, _) = await MDNSScanner.scan()
         guard let device = found.first else {
