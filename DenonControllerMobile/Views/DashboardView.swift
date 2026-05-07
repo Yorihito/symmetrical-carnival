@@ -8,7 +8,7 @@ struct DashboardView: View {
     @State private var isDraggingVolume = false
     @State private var isPendingVolume  = false
     @State private var dragVolumeValue: Double = -30
-    @State private var lastInteractionTime = Date.distantPast
+    @State private var lastInteractionTime = Date.now
     @State private var hapticTrigger = 0
 
     private var displayDB: Double { (isDraggingVolume || isPendingVolume) ? dragVolumeValue : vm.avr.volumeDB }

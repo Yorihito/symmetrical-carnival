@@ -262,7 +262,8 @@ actor AVRHTTPClient {
         let now = Date()
         
         // 1. 状態変化、または最近（10秒以内）に操作があった場合は高速（1.5s）
-        if stateChanged || now.timeIntervalSince(lastActivityTime) < 10.0 {
+        let quietTime = max(0, now.timeIntervalSince(lastActivityTime))
+        if stateChanged || quietTime < 10.0 {
             if stateChanged { lastActivityTime = now }
             currentInterval = 1.5
             return currentInterval
@@ -277,7 +278,7 @@ actor AVRHTTPClient {
         // 3. 変化がない場合、徐々に間隔を広げる（1.5s -> 3s -> 6s ... 最大600s）
         currentInterval = min(600.0, currentInterval * 1.5)
         
-        print("[DenonLog] No activity. Next poll in \(Int(currentInterval))s")
+        print("[DenonLog] No activity. Next poll in \(String(format: "%.0f", currentInterval))s")
         return currentInterval
     }
 
