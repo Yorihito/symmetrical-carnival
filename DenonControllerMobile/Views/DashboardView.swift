@@ -38,15 +38,16 @@ struct DashboardView: View {
             let pending = isPendingVolume
             let quietTime = Date().timeIntervalSince(lastInteractionTime)
             
-            print("[DenonLog] DashboardView: Sync. dragging=\(dragging), quiet=\(String(format: "%.1f", quietTime))s, currentDB=\(vm.avr.volumeDB)")
+            print("[DenonLog] DashboardView: Sync. dragging=\(dragging), pending=\(pending), quiet=\(String(format: "%.1f", quietTime))s, currentDB=\(vm.avr.volumeDB)")
             
-            // 指を離した（pending）か、あるいは 0.5秒以上操作が沈黙しているなら強制同期
-            if pending || !dragging || quietTime > 0.5 {
-                if isPendingVolume || isDraggingVolume {
-                    print("[DenonLog] DashboardView: Force resetting flags due to silence/pending")
+            // 1. 指を離している（!dragging）かつ、
+            // 2. 確定待ち（pending）か、あるいは操作が完全に止まってから 1.0秒以上経過している場合
+            // のみ、アンプの値と同期させる。
+            if !dragging && (pending || quietTime > 1.0) {
+                if isPendingVolume {
+                    print("[DenonLog] DashboardView: Syncing after drag release")
                 }
                 isPendingVolume = false
-                isDraggingVolume = false
                 dragVolumeValue = vm.avr.volumeDB
             }
         }
@@ -282,8 +283,8 @@ private struct VolumeDisplay: View {
     let displayDB: Double
     
     var body: some View {
-        Text(String(format: "%.1f", displayDB) + " dB")
-            .font(.system(size: 52, weight: .bold, design: .rounded))
+        Text(String(format: "%.1f dB", displayDB))
+            .font(.system(size: 44, weight: .bold, design: .rounded))
             .monospacedDigit()
             .contentTransition(.numericText())
             .animation(.spring(duration: 0.15), value: displayDB)
