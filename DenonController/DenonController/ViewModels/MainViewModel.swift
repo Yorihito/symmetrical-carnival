@@ -43,14 +43,29 @@ final class MainViewModel {
     // MARK: - Private
     private let client = AVRHTTPClient()
     private let telnet = TelnetClient()
+    private let pathMonitor = NetworkPathMonitor() // ネットワーク監視
     private var updateTask: Task<Void, Never>?
     private var telnetListenTask: Task<Void, Never>?
+    private var pathMonitorTask: Task<Void, Never>?
 
     init() {
         // 前回フェッチしたプリセットを復元する
         if let data = UserDefaults.standard.data(forKey: "savedTunerPresets"),
            let saved = try? JSONDecoder().decode([TunerPreset].self, from: data) {
             tunerAllPresets = saved
+        }
+        
+        // ネットワーク監視の開始
+        pathMonitorTask = Task { [weak self] in
+            guard let self else { return }
+            // Observation で監視
+            while !Task.isCancelled {
+                if !self.pathMonitor.isReachable {
+                    print("[DenonLog] Network is unreachable. Forcing disconnect.")
+                    await self.disconnect()
+                }
+                try? await Task.sleep(for: .seconds(1))
+            }
         }
     }
     
