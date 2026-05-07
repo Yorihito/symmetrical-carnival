@@ -518,13 +518,15 @@ actor AVRHTTPClient {
         setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, &nosigpipe, socklen_t(MemoryLayout<Int32>.size))
 
         // ─── インターフェース固定（マルチ NIC 対策）─────────────────────
+        /*
         if var ifIdx = interfaceIndex(forTargetIP: targetIP), ifIdx > 0 {
             setsockopt(fd, IPPROTO_IP, IP_BOUND_IF,
                        &ifIdx, socklen_t(MemoryLayout<UInt32>.size))
         }
+        */
 
         // ─── タイムアウト設定 ────────────────────────────────────────────
-        var tv = timeval(tv_sec: 2, tv_usec: 0)
+        var tv = timeval(tv_sec: 5, tv_usec: 0)
         setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &tv, socklen_t(MemoryLayout<timeval>.size))
         setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, &tv, socklen_t(MemoryLayout<timeval>.size))
 
@@ -618,10 +620,12 @@ actor AVRHTTPClient {
         var nosigpipe = 1
         setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, &nosigpipe, socklen_t(MemoryLayout<Int32>.size))
 
+        /*
         if var ifIdx = interfaceIndex(forTargetIP: targetIP), ifIdx > 0 {
             setsockopt(fd, IPPROTO_IP, IP_BOUND_IF, &ifIdx, socklen_t(MemoryLayout<UInt32>.size))
         }
-        var tv = timeval(tv_sec: 2, tv_usec: 0)
+        */
+        var tv = timeval(tv_sec: 5, tv_usec: 0)
         setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &tv, socklen_t(MemoryLayout<timeval>.size))
         setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, &tv, socklen_t(MemoryLayout<timeval>.size))
 
