@@ -62,8 +62,8 @@ final class MainViewModel {
             // Observation で監視
             while !Task.isCancelled {
                 guard let self else { break }
-                // ローカルネットワーク（WiFi/Ethernet）がオフ、または到達不能になった場合
-                if !self.pathMonitor.isReachable || (!self.pathMonitor.isWiFi && !self.pathMonitor.isEthernet) {
+                // ネットワークが完全に到達不能になった場合
+                if !self.pathMonitor.isReachable {
                     if self.connectionStatus != .disconnected {
                         print("[DenonLog] Network (WiFi) is lost. Forcing disconnect.")
                         await self.disconnect()
