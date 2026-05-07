@@ -221,10 +221,6 @@ final class MainViewModel {
         avr.isConnected = false
         errorMessage = nil
         connectingDetail = ""
-        
-        Task {
-            await disconnect()
-        }
     }
 
     // MARK: - Telnet Listener
