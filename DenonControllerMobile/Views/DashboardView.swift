@@ -141,7 +141,8 @@ struct DashboardView: View {
                 isDragging: $isDraggingVolume,
                 isPending: $isPendingVolume,
                 dragValue: $dragVolumeValue,
-                lastTouch: $lastInteractionTime
+                lastTouch: $lastInteractionTime,
+                hapticTrigger: $hapticTrigger
             )
                 .padding(.horizontal, 20)
                 .padding(.vertical, 12)
@@ -301,6 +302,7 @@ private struct VolumeSlider: View {
     @Binding var isPending: Bool
     @Binding var dragValue: Double
     @Binding var lastTouch: Date
+    @Binding var hapticTrigger: Int
 
     private var displayDB: Double { (isDragging || isPending) ? dragValue : vm.avr.volumeDB }
 
@@ -309,6 +311,9 @@ private struct VolumeSlider: View {
             value: Binding(
                 get: { displayDB },
                 set: { v in 
+                    if v != dragValue {
+                        hapticTrigger += 1
+                    }
                     dragValue = v 
                     lastTouch = Date() // 操作時刻を更新
                 }
