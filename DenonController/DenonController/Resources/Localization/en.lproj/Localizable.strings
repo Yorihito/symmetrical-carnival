@@ -161,3 +161,9 @@
 "接続" = "Connect";
 "再接続" = "Reconnect";
 "例: 192.168.1.100" = "e.g. 192.168.1.100";
+
+/* Errors */
+"通信に失敗しました。ネットワークを確認してください。" = "Communication failed. Please check your network.";
+"AVR に接続されていません" = "Not connected to AVR";
+"接続失敗" = "Connection Failed";
+"通信に失敗しました" = "Communication failed";
