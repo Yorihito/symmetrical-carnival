@@ -330,10 +330,15 @@ actor AVRHTTPClient {
     // MARK: - Tuner Preset Fetch (XML one-shot)
 
     /// formTuner_TunerPresetXml.xml からプリセット一覧を一括取得する。
-    /// 未使用スロット（周波数 "0.00" / 空）は除外して返す。
-    /// 成功した場合は [TunerPreset]（空配列を含む）、XML が使えない場合は nil を返す。
     func fetchTunerPresetsFromXml() async -> [TunerPreset]? {
         guard !host.isEmpty else { return nil }
+        
+        // まず、より詳細な名前情報が得られる可能性がある AppCommand.xml を試す
+        if let appCommandPresets = await fetchTunerPresetsFromAppCommand() {
+            return appCommandPresets
+        }
+
+        // 従来の formTuner_TunerPresetXml.xml を試す
         guard let (data, status) = try? await bsdGET(
             path: "/goform/formTuner_TunerPresetXml.xml",
             host: host, port: port
@@ -383,10 +388,42 @@ actor AVRHTTPClient {
             }
         }
 
-        // XML は取得できたが解析できた場合のみ成功とみなす
-        // （空配列 = 全スロット未使用として扱う）
         guard xml.contains("Frequency") || xml.contains("frequency") else { return nil }
         return presets
+    }
+
+    /// AppCommand.xml を使用してプリセット情報を取得する。
+    /// 名前 (StationName) を含む詳細な情報が得られることが多い。
+    private func fetchTunerPresetsFromAppCommand() async -> [TunerPreset]? {
+        let body = "<?xml version=\"1.0\" encoding=\"utf-8\"?><tx><cmd id=\"1\">GetTunerPresetInfo</cmd></tx>"
+        guard let (data, status) = try? await bsdPOST(
+            path: "/goform/AppCommand.xml", host: host, port: port, body: body
+        ), status == 200, let xml = String(data: data, encoding: .utf8) else {
+            return nil
+        }
+
+        // AppCommand.xml のパース（<list> <item> <preset> <band> <freq> <name>...）
+        var presets: [TunerPreset] = []
+        var searchRange = xml.startIndex..<xml.endIndex
+        while let itemStart = xml.range(of: "<item>", range: searchRange) {
+            guard let itemEnd = xml.range(of: "</item>", range: itemStart.upperBound..<xml.endIndex) else { break }
+            let itemXml = String(xml[itemStart.lowerBound..<itemEnd.upperBound])
+            searchRange = itemEnd.upperBound..<xml.endIndex
+
+            let presetStr = simpleXML(in: itemXml, tag: "preset") ?? ""
+            guard let idx = Int(presetStr.trimmingCharacters(in: .whitespaces)) else { continue }
+
+            let freq = simpleXML(in: itemXml, tag: "freq") ?? ""
+            guard !freq.isEmpty && freq != "0.00" && freq != "0" else { continue }
+
+            let bandStr = simpleXML(in: itemXml, tag: "band") ?? "FM"
+            let name = simpleXML(in: itemXml, tag: "name") ?? ""
+
+            let band = TunerBand(rawValue: bandStr.uppercased()) ?? .fm
+            presets.append(TunerPreset(id: idx, band: band, frequency: freq, stationName: name))
+        }
+
+        return presets.isEmpty ? nil : presets
     }
 
     // MARK: - BSD Socket HTTP GET
