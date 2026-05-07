@@ -209,6 +209,7 @@ struct DashboardView: View {
                             isSelected: vm.avr.input == source,
                             isEnabled: vm.avr.isConnected && vm.avr.isPoweredOn
                         ) {
+                            hapticTrigger += 1
                             vm.setInput(source)
                         }
                     }
@@ -239,6 +240,7 @@ struct DashboardView: View {
                             isSelected: vm.avr.surroundMode == mode,
                             isEnabled: vm.avr.isConnected && vm.avr.isPoweredOn
                         ) {
+                            hapticTrigger += 1
                             vm.setSurroundMode(mode)
                         }
                     }
@@ -375,9 +377,6 @@ private struct InputChip: View {
         .buttonStyle(.plain)
         .disabled(!isEnabled)
         .opacity(isEnabled ? 1 : 0.4)
-        #if !targetEnvironment(simulator)
-        .sensoryFeedback(.selection, trigger: isSelected)
-        #endif
     }
 }
 
@@ -409,8 +408,5 @@ private struct SurroundChip: View {
         .buttonStyle(.plain)
         .disabled(!isEnabled)
         .opacity(isEnabled ? 1 : 0.4)
-        #if !targetEnvironment(simulator)
-        .sensoryFeedback(.selection, trigger: isSelected)
-        #endif
     }
 }

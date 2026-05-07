@@ -5,6 +5,7 @@ struct TunerView: View {
     @Environment(\.locale) private var locale
     @Environment(\.localizedBundle) private var bundle
     @AppStorage("debugMode") private var debugMode = false
+    @State private var hapticTrigger = 0
 
     var body: some View {
         ScrollView {
@@ -22,7 +23,7 @@ struct TunerView: View {
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
         }
-        
+        .sensoryFeedback(.impact(weight: .light), trigger: hapticTrigger)
         .navigationTitle(localizedNavTitle("チューナー", locale: locale))
         .navigationBarTitleDisplayMode(.large)
     }
@@ -103,6 +104,7 @@ struct TunerView: View {
                                 isSelected: vm.avr.tunerBand == band,
                                 isEnabled: isEnabled
                             ) {
+                                hapticTrigger += 1
                                 vm.setTunerBand(band)
                             }
                         }
@@ -121,6 +123,7 @@ struct TunerView: View {
                     HStack(spacing: 0) {
                         // 前へ
                         Button {
+                            hapticTrigger += 1
                             vm.tunerPresetDown()
                         } label: {
                             Image(systemName: "chevron.left")
@@ -141,6 +144,7 @@ struct TunerView: View {
 
                         // 次へ
                         Button {
+                            hapticTrigger += 1
                             vm.tunerPresetUp()
                         } label: {
                             Image(systemName: "chevron.right")
@@ -163,6 +167,7 @@ struct TunerView: View {
 
                     HStack(spacing: 12) {
                         Button {
+                            hapticTrigger += 1
                             vm.tunerFreqDown()
                         } label: {
                             Label("Down", systemImage: "minus")
@@ -174,6 +179,7 @@ struct TunerView: View {
                         .disabled(!isEnabled)
 
                         Button {
+                            hapticTrigger += 1
                             vm.tunerFreqUp()
                         } label: {
                             Label("Up", systemImage: "plus")
@@ -278,6 +284,7 @@ struct TunerView: View {
 
                 ForEach(vm.tunerPresets) { preset in
                     Button {
+                        hapticTrigger += 1
                         vm.selectTunerPreset(preset.id)
                     } label: {
                         HStack(spacing: 12) {
@@ -394,8 +401,5 @@ private struct TunerBandButton: View {
         .disabled(!isEnabled)
         .opacity(isEnabled ? 1 : 0.35)
         .animation(.spring(duration: 0.2), value: isSelected)
-        #if !targetEnvironment(simulator)
-        .sensoryFeedback(.selection, trigger: isSelected)
-        #endif
     }
 }

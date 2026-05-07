@@ -3,6 +3,7 @@ import SwiftUI
 struct InputView: View {
     @Environment(MainViewModel.self) private var vm
     @Environment(\.localizedBundle) private var bundle
+    @State private var hapticTrigger = 0
 
     var body: some View {
         ScrollView {
@@ -18,6 +19,7 @@ struct InputView: View {
                             isSelected: vm.avr.input == source,
                             isEnabled: vm.avr.isConnected && vm.avr.isPoweredOn
                         ) {
+                            hapticTrigger += 1
                             vm.setInput(source)
                         }
                     }
@@ -27,6 +29,7 @@ struct InputView: View {
         }
         .navigationTitle(Text("入力ソース", bundle: bundle))
         .navigationBarTitleDisplayMode(.inline)
+        .sensoryFeedback(.impact(weight: .light), trigger: hapticTrigger)
     }
 
     private var currentInputBanner: some View {
