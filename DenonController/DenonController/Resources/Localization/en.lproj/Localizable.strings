@@ -109,6 +109,7 @@
 "チューナー XML のレスポンスを表示します" = "Show raw XML response from tuner";
 "取得中..." = "Fetching...";
 "入力: TUNER\nを選択" = "Select\nTUNER Input";
+"Switch to TUNER" = "Switch to TUNER";
 
 /* Tab Bar */
 "ホーム" = "Home";

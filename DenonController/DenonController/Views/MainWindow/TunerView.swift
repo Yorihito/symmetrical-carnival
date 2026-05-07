@@ -78,7 +78,7 @@ struct TunerView: View {
                     VStack(spacing: 4) {
                         Image(systemName: "exclamationmark.triangle.fill")
                             .foregroundStyle(.orange)
-                        Text("TUNER に切り替える", bundle: bundle)
+                        Text("Switch to TUNER", bundle: bundle)
                             .font(.caption2.weight(.bold))
                             .foregroundStyle(.orange)
                     }
