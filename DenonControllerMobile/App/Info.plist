@@ -33,6 +33,8 @@
 	<string>Control a Denon / Marantz AV receiver over the local network.</string>
 	<key>UILaunchScreen</key>
 	<dict>
+		<key>UIColorName</key>
+		<string>LaunchBackground</string>
 		<key>UIImageName</key>
 		<string>SplashIcon</string>
 	</dict>
