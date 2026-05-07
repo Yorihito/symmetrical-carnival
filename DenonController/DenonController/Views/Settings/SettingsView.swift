@@ -2,7 +2,7 @@ import SwiftUI
 
 struct SettingsView: View {
     @AppStorage("defaultHost")  private var defaultHost = ""
-    @AppStorage("autoConnect")  private var autoConnect = false
+    @AppStorage("autoConnect")  private var autoConnect = true
     @AppStorage("showInDock")   private var showInDock = true
     @AppStorage("menuBarOnly")  private var menuBarOnly = false
     @AppStorage("appLanguage")  private var appLanguage = "system"
@@ -199,7 +199,7 @@ struct SettingsView: View {
 
         // 接続・アプリ設定
         defaultHost  = ""
-        autoConnect  = false
+        autoConnect  = true
         showInDock   = true
         menuBarOnly  = false
         appLanguage  = "system"

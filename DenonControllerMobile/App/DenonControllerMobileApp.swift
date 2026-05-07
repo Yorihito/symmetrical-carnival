@@ -5,6 +5,12 @@ struct DenonControllerMobileApp: App {
     @State private var vm = MainViewModel()
     @AppStorage("appLanguage") private var appLanguage = "system"
 
+    init() {
+        UserDefaults.standard.register(defaults: [
+            "autoConnect": true
+        ])
+    }
+
     private var appLocale: Locale {
         switch appLanguage {
         case "ja": Locale(identifier: "ja")
