@@ -204,24 +204,22 @@ struct TunerView: View {
                     }
                 }
 
-                if debugMode {
-                    // 除外周波数設定
-                    HStack(spacing: 8) {
-                        Text("除外周波数:", bundle: bundle)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                        TextField(LS("例: 90.0, 85.0", bundle), text: $skipFreqText)
-                            .font(.caption.monospacedDigit())
-                            .textFieldStyle(.roundedBorder)
-                            .frame(maxWidth: 160)
-                            .onSubmit { vm.setTunerSkipFrequencies(skipFreqText) }
-                            .onChange(of: skipFreqText) { vm.setTunerSkipFrequencies(skipFreqText) }
-                        Text("MHz")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                    .onAppear { skipFreqText = vm.tunerSkipFrequencies }
+                // 除外周波数設定（常時表示）
+                HStack(spacing: 8) {
+                    Text("除外周波数:", bundle: bundle)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    TextField(LS("例: 90.0, 85.0", bundle), text: $skipFreqText)
+                        .font(.caption.monospacedDigit())
+                        .textFieldStyle(.roundedBorder)
+                        .frame(maxWidth: 160)
+                        .onSubmit { vm.setTunerSkipFrequencies(skipFreqText) }
+                        .onChange(of: skipFreqText) { vm.setTunerSkipFrequencies(skipFreqText) }
+                    Text("MHz")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
+                .onAppear { skipFreqText = vm.tunerSkipFrequencies }
 
                 if vm.isScanningTuner {
                     VStack(alignment: .leading, spacing: 6) {
@@ -233,11 +231,11 @@ struct TunerView: View {
                 } else if !vm.tunerAllPresets.isEmpty {
                     let total = vm.tunerAllPresets.count
                     let shown = vm.tunerPresets.count
-                    Group {
-                        if total == shown {
-                            Text("\(shown) 件のプリセットを取得しました。", bundle: bundle)
-                        } else {
-                            Text("\(shown) 件を取得（\(total - shown) 件の空き・重複を除外）", bundle: bundle)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("\(shown) 件の放送局を登録済み", bundle: bundle)
+                        if total > shown {
+                            Text("\(total - shown) 個の空きスロット（90.0MHz等）をスキップしました", bundle: bundle)
+                                .font(.system(size: 10))
                         }
                     }
                     .font(.caption)
