@@ -189,3 +189,9 @@ App Sandbox is **disabled** (required for BSD socket access). Network client ent
 - **Rule**: NEVER hardcode user-visible strings in Japanese (or English) within the view code. Always use localization keys.
 - **Implementation**: Use `Text("Key", bundle: bundle)` or `LS("Key", bundle)` to ensure strings are correctly looked up in the current language.
 - **Verification**: When adding a new UI element, verify that the key is added to both `en.lproj/Localizable.strings` and correctly mapped (even as a stub) in `ja.lproj/Localizable.strings`.
+
+## Security & Sandbox
+
+- **Mandatory**: App Sandbox MUST be set to `true` in `DenonController.entitlements`. This is a non-negotiable requirement for App Store submission.
+- **Local Network**: To trigger the Local Network permission dialog on macOS, ensure `NSLocalNetworkUsageDescription` and `NSBonjourServices` are present in `Info.plist`.
+- **Socket Communication**: While BSD sockets work in Sandbox, avoid restricted socket options like `IP_BOUND_IF` if they cause failures. Prefer standard routing when possible.

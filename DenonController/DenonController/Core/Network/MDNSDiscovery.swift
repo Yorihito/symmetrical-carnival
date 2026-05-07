@@ -137,16 +137,16 @@ enum MDNSScanner {
         guard fd >= 0 else { return (nil, "Socket Error") }
         defer { Darwin.close(fd) }
 
+        #if os(iOS)
         if var ifIdx = interfaceIndex(forTargetIP: addr.sin_addr.s_addr), ifIdx > 0 {
-            // インターフェースバインドを試みるが、失敗しても続行する
+            // iOS 実機ではインターフェースバインドが必須
             if setsockopt(fd, IPPROTO_IP, IP_BOUND_IF, &ifIdx, socklen_t(MemoryLayout<UInt32>.size)) < 0 {
                 print("[DenonLog]   ! Interface bind failed (ifIdx: \(ifIdx))")
-            } else {
-                print("[DenonLog]   + Bound to interface index: \(ifIdx)")
             }
         }
+        #endif
 
-        var tv = timeval(tv_sec: 3, tv_usec: 0) // 3秒に延長
+        var tv = timeval(tv_sec: 5, tv_usec: 0) // Sandbox 下の初回解決を考慮し 5 秒に延長
         setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &tv, socklen_t(MemoryLayout<timeval>.size))
         setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, &tv, socklen_t(MemoryLayout<timeval>.size))
 
