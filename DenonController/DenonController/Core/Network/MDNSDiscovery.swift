@@ -289,12 +289,11 @@ extension NWDiscoveryScanner: NetServiceDelegate {
                 data.withUnsafeBytes { ptr in
                     guard let sockaddrPtr = ptr.bindMemory(to: sockaddr.self).baseAddress else { return }
                     if sockaddrPtr.pointee.sa_family == sa_family_t(AF_INET) {
-                        if getnameinfo(sockaddrPtr, socklen_t(data.count), &hostname, socklen_t(hostname.count), nil, 0, 2) == 0 {
+                        if getnameinfo(sockaddrPtr, socklen_t(data.count), &hostname, socklen_t(hostname.count), nil, 0, NI_NUMERICHOST) == 0 {
                             let ip = hostname.withUnsafeBufferPointer { String(cString: $0.baseAddress!) }
-                            // ホスト名 (.local) があればそれを、なければ IP を使う
-                            let host = sender.hostName ?? ip
-                            resolvedPairs[host] = (name: sender.name, port: sender.port)
-                            scanLog.append("  -> Resolved \(sender.name) -> \(host):\(sender.port)")
+                            // ホスト名 (.local) は不安定なことがあるため、常に IP アドレスを優先して解決済リストに入れる
+                            resolvedPairs[ip] = (name: sender.name, port: sender.port)
+                            scanLog.append("  -> Resolved \(sender.name) -> \(ip):\(sender.port)")
                         }
                     }
                 }
