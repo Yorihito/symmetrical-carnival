@@ -138,10 +138,15 @@ enum MDNSScanner {
         defer { Darwin.close(fd) }
 
         if var ifIdx = interfaceIndex(forTargetIP: addr.sin_addr.s_addr), ifIdx > 0 {
-            setsockopt(fd, IPPROTO_IP, IP_BOUND_IF, &ifIdx, socklen_t(MemoryLayout<UInt32>.size))
+            // インターフェースバインドを試みるが、失敗しても続行する
+            if setsockopt(fd, IPPROTO_IP, IP_BOUND_IF, &ifIdx, socklen_t(MemoryLayout<UInt32>.size)) < 0 {
+                print("[DenonLog]   ! Interface bind failed (ifIdx: \(ifIdx))")
+            } else {
+                print("[DenonLog]   + Bound to interface index: \(ifIdx)")
+            }
         }
 
-        var tv = timeval(tv_sec: 2, tv_usec: 0)
+        var tv = timeval(tv_sec: 3, tv_usec: 0) // 3秒に延長
         setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &tv, socklen_t(MemoryLayout<timeval>.size))
         setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, &tv, socklen_t(MemoryLayout<timeval>.size))
 
