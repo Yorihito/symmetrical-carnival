@@ -87,7 +87,7 @@ struct ContentView: View {
                 Image("SplashIcon")
                     .resizable()
                     .aspectRatio(contentMode: .fit)
-                    .frame(width: 250, height: 250)
+                    .frame(width: 200, height: 200)
                     .clipShape(RoundedRectangle(cornerRadius: 44, style: .continuous))
                     .shadow(color: Color.accentColor.opacity(0.3), radius: 20)
                 
