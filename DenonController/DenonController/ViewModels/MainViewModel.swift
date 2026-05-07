@@ -376,8 +376,8 @@ final class MainViewModel {
     let maxTunerSlots = 56
 
     /// 除外する周波数（カンマ区切り MHz、例: "90.0" or "90.0, 85.0"）
-    /// デフォルトは空（ユーザーが意図的に設定しない限りすべて表示）
-    var tunerSkipFrequencies: String = UserDefaults.standard.string(forKey: "tunerSkipFrequencies") ?? ""
+    /// デフォルトは "90.0"（空きスロットの代表値）
+    var tunerSkipFrequencies: String = UserDefaults.standard.string(forKey: "tunerSkipFrequencies") ?? "90.0"
 
     /// 除外周波数を適用し、重複を排除したプリセット一覧
     var tunerPresets: [TunerPreset] {
@@ -385,10 +385,13 @@ final class MainViewModel {
         var seen = Set<String>()
         return tunerAllPresets.filter { p in
             // 1. 除外周波数チェック
-            if let f = Double(p.frequency), skipSet.contains(f) { return false }
+            if let f = Double(p.frequency.trimmingCharacters(in: .whitespacesAndNewlines)) {
+                if skipSet.contains(f) { return false }
+            }
             
-            // 2. 重複チェック（周波数 + バンド）
-            let key = "\(p.band.rawValue)_\(p.frequency)"
+            // 2. 重複チェック（数値として正規化した周波数 + バンド）
+            let freqVal = Double(p.frequency.trimmingCharacters(in: .whitespacesAndNewlines)) ?? 0.0
+            let key = "\(p.band.rawValue)_\(freqVal)"
             if seen.contains(key) { return false }
             
             seen.insert(key)
@@ -404,7 +407,7 @@ final class MainViewModel {
 
     private func skipFreqSet(from raw: String) -> Set<Double> {
         Set(raw.components(separatedBy: ",").compactMap {
-            Double($0.trimmingCharacters(in: .whitespaces))
+            Double($0.trimmingCharacters(in: .whitespacesAndNewlines))
         })
     }
 
