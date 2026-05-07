@@ -154,6 +154,8 @@ struct DashboardView: View {
                 // −
                 VolumeStepButton(systemImage: "minus", label: "音量 −") {
                     hapticTrigger += 1
+                    isPendingVolume = false
+                    lastInteractionTime = Date()
                     vm.volumeDown()
                 }
                 .frame(maxWidth: .infinity)
@@ -163,6 +165,8 @@ struct DashboardView: View {
                 // Mute
                 Button {
                     hapticTrigger += 1
+                    isPendingVolume = false
+                    lastInteractionTime = Date()
                     vm.toggleMute()
                 } label: {
                     Image(systemName: vm.avr.isMuted ? "speaker.slash.fill" : "speaker.wave.2.fill")
@@ -177,6 +181,8 @@ struct DashboardView: View {
                 // +
                 VolumeStepButton(systemImage: "plus", label: "音量 +") {
                     hapticTrigger += 1
+                    isPendingVolume = false
+                    lastInteractionTime = Date()
                     vm.volumeUp()
                 }
                 .frame(maxWidth: .infinity)
