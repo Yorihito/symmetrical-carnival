@@ -311,8 +311,8 @@ private struct VolumeSlider: View {
             value: Binding(
                 get: { displayDB },
                 set: { v in 
-                    // 1.0dB 以上の変化、または最初の一歩の時だけ振動させる（負荷軽減）
-                    if abs(v - dragValue) >= 1.0 {
+                    // 0.5dB（最小ステップ）以上の変化があった時に振動
+                    if abs(v - dragValue) >= 0.5 {
                         hapticTrigger += 1
                     }
                     dragValue = v 
