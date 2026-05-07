@@ -312,6 +312,9 @@ private struct VolumeSlider: View {
             value: Binding(
                 get: { displayDB },
                 set: { v in 
+                    // 指が動いているなら、強制的に操作中とみなす（スナップバック防止）
+                    if !isDragging { isDragging = true }
+                    
                     // 0.5dB（最小ステップ）以上の変化があった時に振動
                     if abs(v - dragValue) >= 0.5 {
                         hapticTrigger += 1
@@ -324,14 +327,17 @@ private struct VolumeSlider: View {
             step: 0.5,
             onEditingChanged: { editing in
                 if editing {
-                    // ジェスチャー開始時のみ dragging を true に
+                    // ジェスチャー開始
+                    dragValue = vm.avr.volumeDB
                     isDragging = true
                     isPending = false
+                    lastTouch = Date()
                 } else {
-                    // ジェスチャー終了時、即座に dragging を false に
+                    // ジェスチャー終了
                     isDragging = false
                     isPending = true
                     vm.setVolume(dragValue)
+                    lastTouch = Date()
                 }
             }
         )
