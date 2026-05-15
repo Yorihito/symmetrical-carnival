@@ -90,7 +90,7 @@ struct ContentView: View {
                     .frame(width: 200, height: 200)
                     .shadow(color: Color.accentColor.opacity(0.3), radius: 20)
                 
-                Text("Denon Controller")
+                Text("AVR Controller")
                     .font(.system(size: 24, weight: .bold, design: .rounded))
                     .foregroundStyle(.white)
                     .tracking(1.0)
@@ -190,7 +190,7 @@ struct ContentView: View {
                     Image(systemName: item.systemImage)
                 }
             }
-            .navigationTitle("Denon Controller")
+            .navigationTitle("AVR Controller")
             .listStyle(.sidebar)
             .safeAreaInset(edge: .bottom) { connectionFooter }
         } detail: {
