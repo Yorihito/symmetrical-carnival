@@ -45,8 +45,15 @@ actor TelnetClient {
         }
 
         // マルチ NIC 対策: ターゲットと同じサブネットの IF に固定
-        if var ifIdx = Self.interfaceIndex(forTargetIP: addr.sin_addr.s_addr), ifIdx > 0 {
-            setsockopt(newFd, IPPROTO_IP, IP_BOUND_IF, &ifIdx, socklen_t(MemoryLayout<UInt32>.size))
+        if let ifIdx = Self.interfaceIndex(forTargetIP: addr.sin_addr.s_addr), ifIdx > 0 {
+            var boundIdx = ifIdx
+            setsockopt(newFd, IPPROTO_IP, IP_BOUND_IF, &boundIdx, socklen_t(MemoryLayout<UInt32>.size))
+        }
+
+        // シグナル抑制（重要: クラッシュ防止）
+        let nosigpipe = 1
+        withUnsafePointer(to: nosigpipe) { ptr in
+            _ = setsockopt(newFd, SOL_SOCKET, SO_NOSIGPIPE, ptr, socklen_t(MemoryLayout<Int32>.size))
         }
 
         // 接続タイムアウト 5 秒
@@ -55,9 +62,9 @@ actor TelnetClient {
 
         try await withCheckedThrowingContinuation { (cont: CheckedContinuation<Void, Error>) in
             DispatchQueue.global(qos: .userInitiated).async {
-                let r = withUnsafePointer(to: addr) {
-                    $0.withMemoryRebound(to: sockaddr.self, capacity: 1) {
-                        Darwin.connect(newFd, $0, socklen_t(MemoryLayout<sockaddr_in>.size))
+                let r = withUnsafePointer(to: addr) { ptr in
+                    ptr.withMemoryRebound(to: sockaddr.self, capacity: 1) { sockaddrPtr in
+                        Darwin.connect(newFd, sockaddrPtr, socklen_t(MemoryLayout<sockaddr_in>.size))
                     }
                 }
                 if r == 0 {
@@ -150,7 +157,7 @@ actor TelnetClient {
                     buffer = parts.last ?? ""
                     for line in parts.dropLast() {
                         let trimmed = line.trimmingCharacters(in: .whitespaces)
-                        if !trimmed.isEmpty { cont.yield(trimmed) }
+                        if !trimmed.isEmpty { _ = cont.yield(trimmed) }
                     }
                 } else if n == 0 {
                     break   // 接続終了
@@ -177,7 +184,11 @@ actor TelnetClient {
                   let nm = p.pointee.ifa_netmask else { continue }
             let ifAddr = sa.withMemoryRebound(to: sockaddr_in.self, capacity: 1) { $0.pointee.sin_addr.s_addr }
             let mask   = nm.withMemoryRebound(to: sockaddr_in.self, capacity: 1) { $0.pointee.sin_addr.s_addr }
-            if (ifAddr & mask) == (targetIP & mask) { return if_nametoindex(p.pointee.ifa_name) }
+            if (ifAddr & mask) == (targetIP & mask) {
+                if let ifName = p.pointee.ifa_name {
+                    return if_nametoindex(ifName)
+                }
+            }
         }
         return nil
     }

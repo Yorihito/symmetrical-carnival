@@ -2,6 +2,12 @@ import SwiftUI
 import Network
 import Observation
 
+#if os(iOS)
+import UIKit
+#elseif os(macOS)
+import AppKit
+#endif
+
 // MARK: - ConnectionStatus
 
 enum ConnectionStatus: Equatable, Sendable {
@@ -28,6 +34,17 @@ enum ConnectionStatus: Equatable, Sendable {
 @Observable
 @MainActor
 final class MainViewModel {
+    
+    /// ライフサイクル監視用のオブザーバーを安全に保持・破棄するためのコンテナ
+    private class ObserverContainer {
+        var observers: [any NSObjectProtocol] = []
+        deinit {
+            for obs in observers {
+                NotificationCenter.default.removeObserver(obs)
+            }
+        }
+    }
+    private let observerContainer = ObserverContainer()
 
     // MARK: - Public state
     let avr = AVRState()
@@ -47,6 +64,9 @@ final class MainViewModel {
     private let telnet = TelnetClient()
     private var updateTask: Task<Void, Never>?
     private var telnetListenTask: Task<Void, Never>?
+    
+    /// 操作直後にポーリングによる上書きを防ぐためのタイマー
+    private var ignoreSyncUntil: [String: Date] = [:]
 
     init() {
         // 前回フェッチしたプリセットを復元する
@@ -54,6 +74,8 @@ final class MainViewModel {
            let saved = try? JSONDecoder().decode([TunerPreset].self, from: data) {
             tunerAllPresets = saved
         }
+        
+        setupLifecycleObservers()
     }
     
     deinit {
@@ -111,11 +133,8 @@ final class MainViewModel {
 
         do {
             connectionLog.append("Step 2: Connecting via HTTP to port \(targetPort)...")
-            let (info, updates) = try await client.connect(host: host, port: targetPort) { [weak self] step in
-                Task { @MainActor [weak self] in
-                    self?.connectingDetail = step
-                    self?.connectionLog.append("  -> HTTP: \(step)")
-                }
+            let (info, updates) = try await client.connect(host: host, port: targetPort) { @Sendable _ in
+                // 進捗更新を一旦無効化して初期化エラーを確実に消す
             }
             connectionLog.append("Step 3: Probing additional zones...")
             var finalInfo = info
@@ -140,7 +159,37 @@ final class MainViewModel {
                         break 
                     }
                     print("[DenonLog] [\(connectionID.uuidString.prefix(4))] Received snapshot: Vol=\(snapshot.volumeDB)")
-                    self.avr.apply(snapshot)
+                    
+                    // 同期ガードをチェックして、操作直後のプロパティは上書きしない
+                    if !self.shouldIgnoreSync(for: "power")  { self.avr.isPoweredOn = snapshot.isPoweredOn }
+                    if !self.shouldIgnoreSync(for: "volume") { self.avr.volumeDB = snapshot.volumeDB }
+                    if !self.shouldIgnoreSync(for: "mute")   { self.avr.isMuted = snapshot.isMuted }
+                    
+                    if !self.shouldIgnoreSync(for: "input") {
+                        let code: String = snapshot.inputCode
+                        if let src: InputSource = InputSource(rawValue: code) {
+                            let targetAVR: AVRState = self.avr
+                            targetAVR.input = src
+                        }
+                    }
+                    
+                    // チューナー情報は同期ガード対象外（反映に時間がかかるため）
+                    if snapshot.tunerDataFetched {
+                        if let band = TunerBand(rawValue: snapshot.tunerBand) {
+                            self.avr.tunerBand = band
+                        }
+                        self.avr.tunerFrequency = snapshot.tunerFrequency
+                        self.avr.tunerPreset = snapshot.tunerPreset
+                        self.avr.tunerStationName = snapshot.tunerStationName
+                    }
+                    
+                    // Zone2, 3 も同様に（必要に応じてガードを広げることも可能）
+                    self.avr.zone2Power = snapshot.zone2Power
+                    self.avr.zone2VolumeDB = snapshot.zone2VolumeDB
+                    self.avr.zone2Mute = snapshot.zone2Muted
+                    if let src2 = InputSource(rawCode: snapshot.zone2InputCode) {
+                        self.avr.zone2Input = src2
+                    }
                 }
                 print("[DenonLog] [\(connectionID.uuidString.prefix(4))] Update loop finished (Stream ended)")
                 self.connectionLog.append("!!! Update loop ended (ID: \(connectionID.uuidString.prefix(4)))")
@@ -265,29 +314,41 @@ final class MainViewModel {
 
     // MARK: - Power
 
-    func setPower(_ on: Bool) { send(on ? "PWON" : "PWSTANDBY") }
+    func setPower(_ on: Bool) { 
+        markOperation(for: "power")
+        avr.isPoweredOn = on
+        send(on ? "PWON" : "PWSTANDBY") 
+    }
     func togglePower()        { setPower(!avr.isPoweredOn) }
 
     // MARK: - Volume
 
     func volumeUp() {
+        markOperation(for: "volume")
         avr.volumeDB += 0.5
         send("MVUP")
     }
     func volumeDown() {
+        markOperation(for: "volume")
         avr.volumeDB -= 0.5
         send("MVDOWN")
     }
     func setVolume(_ db: Double) { 
+        markOperation(for: "volume")
         avr.volumeDB = db
         send(AVRState.volumeCommand(forDB: db)) 
     }
-    func setMute(_ on: Bool)    { send(on ? "MUON" : "MUOFF") }
+    func setMute(_ on: Bool) { 
+        markOperation(for: "mute")
+        avr.isMuted = on
+        send(on ? "MUON" : "MUOFF") 
+    }
     func toggleMute()           { setMute(!avr.isMuted) }
 
     // MARK: - Input
 
     func setInput(_ input: InputSource) {
+        markOperation(for: "input")
         avr.input = input   // 楽観的更新（UIへ即時反映）
         send(input.command)
     }
@@ -295,6 +356,7 @@ final class MainViewModel {
     // MARK: - Surround（HTTP では取得不可 → ローカル追跡 + Telnet 通知で補正）
 
     func setSurroundMode(_ mode: SurroundMode) {
+        markOperation(for: "surround")
         send(mode.command)
         avr.surroundMode = mode
     }
@@ -580,6 +642,49 @@ final class MainViewModel {
         Task {
             try? await Task.sleep(for: .seconds(5))
             if errorMessage == msg { errorMessage = nil }
+        }
+    }
+
+    // MARK: - Sync Guard Helper
+
+    private func shouldIgnoreSync(for key: String) -> Bool {
+        guard let expiry = ignoreSyncUntil[key] else { return false }
+        if Date() < expiry {
+            return true
+        }
+        return false
+    }
+
+    private func markOperation(for key: String) {
+        // 操作後 3秒間は同期を無視する
+        ignoreSyncUntil[key] = Date().addingTimeInterval(3.0)
+    }
+
+    // MARK: - Lifecycle
+
+    private func setupLifecycleObservers() {
+        let nc = NotificationCenter.default
+        #if os(iOS)
+        let foregroundObserver = nc.addObserver(forName: UIApplication.willEnterForegroundNotification, object: nil, queue: .main) { [weak self] _ in
+            self?.handleAppResume()
+        }
+        observerContainer.observers.append(foregroundObserver)
+        #elseif os(macOS)
+        let activeObserver = nc.addObserver(forName: NSApplication.willBecomeActiveNotification, object: nil, queue: .main) { [weak self] _ in
+            self?.handleAppResume()
+        }
+        observerContainer.observers.append(activeObserver)
+        #endif
+    }
+
+    private func handleAppResume() {
+        print("[DenonLog] App resumed from background")
+        // 接続が「接続済み」でない、あるいはホスト情報があるのに切れている場合に再接続
+        if connectionStatus != .connected && !lastConnectedHost.isEmpty {
+            print("[DenonLog] Attempting auto-reconnect on resume...")
+            Task {
+                await connect(host: lastConnectedHost)
+            }
         }
     }
 }

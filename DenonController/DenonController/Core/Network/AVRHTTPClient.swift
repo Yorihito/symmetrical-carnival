@@ -253,7 +253,7 @@ actor AVRHTTPClient {
                       lastSnapshot?.inputCode != snap.inputCode
         
         lastSnapshot = snap
-        currentContinuation?.yield(snap)
+        _ = currentContinuation?.yield(snap)
         
         return (true, changed)
     }
@@ -518,13 +518,17 @@ actor AVRHTTPClient {
         defer { Darwin.close(fd) }
 
         // ─── シグナル抑制（重要: クラッシュ防止） ───────────────────────
-        var nosigpipe = 1
-        setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, &nosigpipe, socklen_t(MemoryLayout<Int32>.size))
+        let nosigpipe = 1
+        withUnsafePointer(to: nosigpipe) { ptr in
+            _ = setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, ptr, socklen_t(MemoryLayout<Int32>.size))
+        }
 
         // ─── タイムアウト設定 ────────────────────────────────────────────
-        var tv = timeval(tv_sec: 5, tv_usec: 0)
-        setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &tv, socklen_t(MemoryLayout<timeval>.size))
-        setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, &tv, socklen_t(MemoryLayout<timeval>.size))
+        let tv = timeval(tv_sec: 5, tv_usec: 0)
+        withUnsafePointer(to: tv) { ptr in
+            _ = setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, ptr, socklen_t(MemoryLayout<timeval>.size))
+            _ = setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, ptr, socklen_t(MemoryLayout<timeval>.size))
+        }
 
         // ─── 接続 ────────────────────────────────────────────────────────
         let connectStart = Date()
@@ -617,8 +621,10 @@ actor AVRHTTPClient {
         defer { Darwin.close(fd) }
 
         // ─── シグナル抑制（重要: クラッシュ防止） ───────────────────────
-        var nosigpipe = 1
-        setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, &nosigpipe, socklen_t(MemoryLayout<Int32>.size))
+        let nosigpipe = 1
+        withUnsafePointer(to: nosigpipe) { ptr in
+            _ = setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, ptr, socklen_t(MemoryLayout<Int32>.size))
+        }
 
         /*
         if var ifIdx = interfaceIndex(forTargetIP: targetIP), ifIdx > 0 {
@@ -626,8 +632,10 @@ actor AVRHTTPClient {
         }
         */
         var tv = timeval(tv_sec: 5, tv_usec: 0)
-        setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &tv, socklen_t(MemoryLayout<timeval>.size))
-        setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, &tv, socklen_t(MemoryLayout<timeval>.size))
+        withUnsafePointer(to: tv) { ptr in
+            _ = setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, ptr, socklen_t(MemoryLayout<timeval>.size))
+            _ = setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, ptr, socklen_t(MemoryLayout<timeval>.size))
+        }
 
         let connectRet = withUnsafePointer(to: addr) {
             $0.withMemoryRebound(to: sockaddr.self, capacity: 1) {

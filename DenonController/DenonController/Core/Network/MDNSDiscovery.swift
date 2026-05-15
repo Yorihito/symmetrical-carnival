@@ -146,11 +146,18 @@ enum MDNSScanner {
         }
         #endif
 
-        var tv = timeval(tv_sec: 5, tv_usec: 0) // Sandbox 下の初回解決を考慮し 5 秒に延長
-        setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &tv, socklen_t(MemoryLayout<timeval>.size))
-        setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, &tv, socklen_t(MemoryLayout<timeval>.size))
+        let tv = timeval(tv_sec: 5, tv_usec: 0)
+        withUnsafePointer(to: tv) { ptr in
+            _ = setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, ptr, socklen_t(MemoryLayout<timeval>.size))
+            _ = setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, ptr, socklen_t(MemoryLayout<timeval>.size))
+        }
 
-        guard Darwin.connect(fd, UnsafeRawPointer(UnsafeMutablePointer(&addr)).assumingMemoryBound(to: sockaddr.self), socklen_t(MemoryLayout<sockaddr_in>.size)) == 0 else {
+        let connectResult = withUnsafeMutablePointer(to: &addr) { sockaddrInPtr in
+            sockaddrInPtr.withMemoryRebound(to: sockaddr.self, capacity: 1) { sockaddrPtr in
+                Darwin.connect(fd, sockaddrPtr, socklen_t(MemoryLayout<sockaddr_in>.size))
+            }
+        }
+        guard connectResult == 0 else {
             return (nil, "Connect timeout")
         }
 
@@ -206,7 +213,9 @@ enum MDNSScanner {
                 let maskHBO = UInt32(bigEndian: mask)
                 if maskHBO > bestMask {
                     bestMask = maskHBO
-                    bestIdx = if_nametoindex(p.pointee.ifa_name)
+                    if let ifName = p.pointee.ifa_name {
+                        bestIdx = if_nametoindex(ifName)
+                    }
                 }
             }
         }
@@ -287,18 +296,24 @@ private class NWDiscoveryScanner: NSObject {
 
 extension NWDiscoveryScanner: NetServiceDelegate {
     nonisolated func netServiceDidResolveAddress(_ sender: NetService) {
-        MainActor.assumeIsolated {
-            guard let addresses = sender.addresses else { return }
+        let name = sender.name
+        let port = sender.port
+        let addresses = sender.addresses ?? []
+        
+        Task { @MainActor in
             for data in addresses {
                 var hostname = [CChar](repeating: 0, count: 1025)
                 data.withUnsafeBytes { ptr in
                     guard let sockaddrPtr = ptr.bindMemory(to: sockaddr.self).baseAddress else { return }
                     if sockaddrPtr.pointee.sa_family == sa_family_t(AF_INET) {
-                        if getnameinfo(sockaddrPtr, socklen_t(data.count), &hostname, socklen_t(hostname.count), nil, 0, NI_NUMERICHOST) == 0 {
-                            let ip = hostname.withUnsafeBufferPointer { String(cString: $0.baseAddress!) }
+                        let addrLen = socklen_t(data.count)
+                        if getnameinfo(sockaddrPtr, addrLen, &hostname, socklen_t(hostname.count), nil, 0, NI_NUMERICHOST) == 0 {
+                            let ip = hostname.withUnsafeBufferPointer { bufPtr in
+                                String(cString: bufPtr.baseAddress!)
+                            }
                             // ホスト名 (.local) は不安定なことがあるため、常に IP アドレスを優先して解決済リストに入れる
-                            resolvedPairs[ip] = (name: sender.name, port: sender.port)
-                            scanLog.append("  -> Resolved \(sender.name) -> \(ip):\(sender.port)")
+                            resolvedPairs[ip] = (name: name, port: port)
+                            scanLog.append("  -> Resolved \(name) -> \(ip):\(port)")
                         }
                     }
                 }
@@ -307,8 +322,9 @@ extension NWDiscoveryScanner: NetServiceDelegate {
     }
     
     nonisolated func netService(_ sender: NetService, didNotResolve errorDict: [String : NSNumber]) {
-        MainActor.assumeIsolated {
-            scanLog.append("Failed to resolve \(sender.name)")
+        let name = sender.name
+        Task { @MainActor in
+            scanLog.append("Failed to resolve \(name)")
         }
     }
 }

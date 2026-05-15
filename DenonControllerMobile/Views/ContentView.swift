@@ -164,7 +164,6 @@ struct ContentView: View {
     enum SidebarItem: String, CaseIterable, Hashable {
         case dashboard = "ダッシュボード"
         case tuner     = "チューナー"
-        case presets   = "プリセット"
         case zone      = "ゾーン"
         case remote    = "リモコン"
         case settings  = "設定"
@@ -173,7 +172,6 @@ struct ContentView: View {
             switch self {
             case .dashboard: "house.fill"
             case .tuner:     "radio.fill"
-            case .presets:   "star.fill"
             case .zone:      "speaker.2.fill"
             case .remote:    "dpad"
             case .settings:  "gear"
@@ -205,7 +203,6 @@ struct ContentView: View {
         switch item {
         case .dashboard: DashboardView(showConnection: $showConnection)
         case .tuner:     TunerView()
-        case .presets:   PresetView()
         case .zone:      ZoneView()
         case .remote:    RemoteView()
         case .settings:  SettingsView(showConnection: $showConnection)
