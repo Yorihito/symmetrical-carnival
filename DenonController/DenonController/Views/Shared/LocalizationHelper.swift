@@ -1,5 +1,15 @@
 import Foundation
 import SwiftUI
+
+extension Bundle {
+    /// マーケティングバージョン + ビルド番号（例: "1.0.5 (126)"）。設定画面のバージョン表示に使う。
+    var appVersionString: String {
+        let version = infoDictionary?["CFBundleShortVersionString"] as? String ?? ""
+        let build = infoDictionary?["CFBundleVersion"] as? String ?? ""
+        return "\(version) (\(build))"
+    }
+}
+
 /// SwiftUI の \.locale 環境値を使って正しい .lproj バンドルを取得し、
 /// NSLocalizedString で文字列を解決する。
 /// navigationTitle は macOS では AppKit 経由のため \.locale を無視するので、

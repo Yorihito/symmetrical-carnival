@@ -89,7 +89,7 @@
 		6EBA445EDC221C01FA9C6049 /* ConnectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionView.swift; sourceTree = "<group>"; };
 		71B63BF0A3338974C13AD96C /* VolumeControlView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VolumeControlView.swift; sourceTree = "<group>"; };
 		762AA34BEC612F45E4B9C052 /* RemoteView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteView.swift; sourceTree = "<group>"; };
-		7B3CE8991C907B6926608E9F /* AVR Controller.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "AVR Controller.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		7B3CE8991C907B6926608E9F /* DenonController.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DenonController.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		7C3EE3F5E05059A0B9CC8309 /* TunerPreset.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TunerPreset.swift; sourceTree = "<group>"; };
 		7F00BCCBB5642689C5E0B915 /* SurroundMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SurroundMode.swift; sourceTree = "<group>"; };
 		84B2E217523B349EC130FB92 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -106,7 +106,7 @@
 		C191CB6B2DD3759D5568EB40 /* ja */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ja; path = ja.lproj/Localizable.strings; sourceTree = "<group>"; };
 		D4BA24D1B24069C44CB42386 /* MainViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainViewModel.swift; sourceTree = "<group>"; };
 		D7F395F8FE0341BC628627D5 /* ZoneView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZoneView.swift; sourceTree = "<group>"; };
-		D9E63666C2D93B7D0561E5A9 /* AVR Controller.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "AVR Controller.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		D9E63666C2D93B7D0561E5A9 /* DenonControllerMobile.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = DenonControllerMobile.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E6C6A70CDC90F4B7352DEBB5 /* TunerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TunerView.swift; sourceTree = "<group>"; };
 		E8AAAE8AB7AA4238C35C99A6 /* PresetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresetView.swift; sourceTree = "<group>"; };
 		E9ECA17A4A0B3A093DB6F604 /* InputSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputSource.swift; sourceTree = "<group>"; };
@@ -325,8 +325,8 @@
 		DB58FE95C5508BF08A540D57 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				7B3CE8991C907B6926608E9F /* AVR Controller.app */,
-				D9E63666C2D93B7D0561E5A9 /* AVR Controller.app */,
+				7B3CE8991C907B6926608E9F /* DenonController.app */,
+				D9E63666C2D93B7D0561E5A9 /* DenonControllerMobile.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -370,6 +370,7 @@
 			buildPhases = (
 				CC14F9CA6C3AD269E70618F0 /* Sources */,
 				29FC58BA9550FC101053601A /* Resources */,
+				5F7465BA6BBAC356206768B9 /* Set build number from git */,
 			);
 			buildRules = (
 			);
@@ -379,7 +380,7 @@
 			packageProductDependencies = (
 			);
 			productName = DenonController;
-			productReference = 7B3CE8991C907B6926608E9F /* AVR Controller.app */;
+			productReference = 7B3CE8991C907B6926608E9F /* DenonController.app */;
 			productType = "com.apple.product-type.application";
 		};
 		7179CCBC77F3708CBF4C7675 /* DenonControllerMobile */ = {
@@ -389,6 +390,7 @@
 				A0257334D13D1F2042C9277D /* Sources */,
 				580A6A3C00CA8DFFDA49758A /* Resources */,
 				A10009804E51FC0BC74EFD69 /* Frameworks */,
+				822E373029A3A13B1327DAF2 /* Set build number from git */,
 			);
 			buildRules = (
 			);
@@ -398,7 +400,7 @@
 			packageProductDependencies = (
 			);
 			productName = DenonControllerMobile;
-			productReference = D9E63666C2D93B7D0561E5A9 /* AVR Controller.app */;
+			productReference = D9E63666C2D93B7D0561E5A9 /* DenonControllerMobile.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -411,9 +413,11 @@
 				LastUpgradeCheck = 1600;
 				TargetAttributes = {
 					3DE6F6C2534F8B7E76223265 = {
+						DevelopmentTeam = "";
 						ProvisioningStyle = Automatic;
 					};
 					7179CCBC77F3708CBF4C7675 = {
+						DevelopmentTeam = "";
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -459,6 +463,47 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		5F7465BA6BBAC356206768B9 /* Set build number from git */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Set build number from git";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "export PATH=\"/usr/bin:/usr/local/bin:/opt/homebrew/bin:$PATH\"\ncount=$(git -C \"$SRCROOT\" rev-list --count HEAD 2>/dev/null)\nif [ -z \"$count\" ]; then\n  echo \"warning: git unavailable; keeping CURRENT_PROJECT_VERSION\"; exit 0\nfi\nplist=\"${TARGET_BUILD_DIR}/${INFOPLIST_PATH}\"\n/usr/libexec/PlistBuddy -c \"Set :CFBundleVersion $count\" \"$plist\" 2>/dev/null \\\n  || /usr/libexec/PlistBuddy -c \"Add :CFBundleVersion string $count\" \"$plist\"\necho \"Set CFBundleVersion = $count (git commit count)\"\n";
+		};
+		822E373029A3A13B1327DAF2 /* Set build number from git */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Set build number from git";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "export PATH=\"/usr/bin:/usr/local/bin:/opt/homebrew/bin:$PATH\"\ncount=$(git -C \"$SRCROOT\" rev-list --count HEAD 2>/dev/null)\nif [ -z \"$count\" ]; then\n  echo \"warning: git unavailable; keeping CURRENT_PROJECT_VERSION\"; exit 0\nfi\nplist=\"${TARGET_BUILD_DIR}/${INFOPLIST_PATH}\"\n/usr/libexec/PlistBuddy -c \"Set :CFBundleVersion $count\" \"$plist\" 2>/dev/null \\\n  || /usr/libexec/PlistBuddy -c \"Add :CFBundleVersion string $count\" \"$plist\"\necho \"Set CFBundleVersion = $count (git commit count)\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		A0257334D13D1F2042C9277D /* Sources */ = {
@@ -547,9 +592,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = DenonController/DenonController.entitlements;
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = S6FET362VE;
 				INFOPLIST_FILE = DenonController/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -557,7 +600,7 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				PRODUCT_BUNDLE_IDENTIFIER = cc.nyoyapoya.denoncontroller;
-				PRODUCT_NAME = "AVR Controller";
+				PRODUCT_NAME = "Denon Controller";
 				SDKROOT = macosx;
 			};
 			name = Debug;
@@ -568,7 +611,6 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = ../DenonControllerMobile/App/DenonControllerMobile.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				DEVELOPMENT_TEAM = S6FET362VE;
 				INFOPLIST_FILE = ../DenonControllerMobile/App/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -576,7 +618,7 @@
 					"@executable_path/Frameworks",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = cc.nyoyapoya.denoncontroller;
-				PRODUCT_NAME = "AVR Controller";
+				PRODUCT_NAME = "Denon Controller";
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -587,9 +629,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = DenonController/DenonController.entitlements;
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = S6FET362VE;
 				INFOPLIST_FILE = DenonController/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -597,7 +637,7 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				PRODUCT_BUNDLE_IDENTIFIER = cc.nyoyapoya.denoncontroller;
-				PRODUCT_NAME = "AVR Controller";
+				PRODUCT_NAME = "Denon Controller";
 				SDKROOT = macosx;
 			};
 			name = Release;
@@ -638,13 +678,14 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 126;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = "";
 				ENABLE_HARDENED_RUNTIME = NO;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -655,6 +696,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.0.5;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -671,7 +713,6 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = ../DenonControllerMobile/App/DenonControllerMobile.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				DEVELOPMENT_TEAM = S6FET362VE;
 				INFOPLIST_FILE = ../DenonControllerMobile/App/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -679,7 +720,7 @@
 					"@executable_path/Frameworks",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = cc.nyoyapoya.denoncontroller;
-				PRODUCT_NAME = "AVR Controller";
+				PRODUCT_NAME = "Denon Controller";
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -721,13 +762,14 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 126;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = "";
 				ENABLE_HARDENED_RUNTIME = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -744,6 +786,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.0.5;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;

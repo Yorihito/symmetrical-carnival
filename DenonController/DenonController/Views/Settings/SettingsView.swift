@@ -126,7 +126,7 @@ struct SettingsView: View {
                     Text("アプリ", bundle: bundle)
                 }
                 LabeledContent {
-                    Text("1.0.2")
+                    Text(Bundle.main.appVersionString)
                 } label: {
                     Text("バージョン", bundle: bundle)
                 }

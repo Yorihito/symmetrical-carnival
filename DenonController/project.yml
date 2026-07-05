@@ -17,7 +17,16 @@ settings:
     SWIFT_STRICT_CONCURRENCY: targeted
     DEAD_CODE_STRIPPING: YES
     CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED: YES
-    ENABLE_USER_SCRIPT_SANDBOXING: YES
+    # Single source of truth for versions (Info.plist references these via $()).
+    # MARKETING_VERSION is bumped by hand per release. CURRENT_PROJECT_VERSION is a
+    # fallback; the real build number is set at build time from the git commit count
+    # (see the "Set build number from git" postBuildScript below).
+    MARKETING_VERSION: "1.0.5"
+    CURRENT_PROJECT_VERSION: "126"
+    # NOTE: kept OFF because the "Set build number from git" run script needs to read
+    # the repo (git rev-list); sandboxing denies that and the build number falls back
+    # to CURRENT_PROJECT_VERSION.
+    ENABLE_USER_SCRIPT_SANDBOXING: NO
 
 targets:
   DenonController:
@@ -33,6 +42,19 @@ targets:
         CODE_SIGN_ENTITLEMENTS: DenonController/DenonController.entitlements
         PRODUCT_NAME: "Denon Controller"
         MACOSX_DEPLOYMENT_TARGET: "14.0"
+    postBuildScripts:
+      - name: Set build number from git
+        script: |
+          export PATH="/usr/bin:/usr/local/bin:/opt/homebrew/bin:$PATH"
+          count=$(git -C "$SRCROOT" rev-list --count HEAD 2>/dev/null)
+          if [ -z "$count" ]; then
+            echo "warning: git unavailable; keeping CURRENT_PROJECT_VERSION"; exit 0
+          fi
+          plist="${TARGET_BUILD_DIR}/${INFOPLIST_PATH}"
+          /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $count" "$plist" 2>/dev/null \
+            || /usr/libexec/PlistBuddy -c "Add :CFBundleVersion string $count" "$plist"
+          echo "Set CFBundleVersion = $count (git commit count)"
+        basedOnDependencyAnalysis: false
 
   DenonControllerMobile:
     type: application
@@ -55,3 +77,16 @@ targets:
         PRODUCT_NAME: "Denon Controller"
         IPHONEOS_DEPLOYMENT_TARGET: "17.0"
         TARGETED_DEVICE_FAMILY: "1,2"
+    postBuildScripts:
+      - name: Set build number from git
+        script: |
+          export PATH="/usr/bin:/usr/local/bin:/opt/homebrew/bin:$PATH"
+          count=$(git -C "$SRCROOT" rev-list --count HEAD 2>/dev/null)
+          if [ -z "$count" ]; then
+            echo "warning: git unavailable; keeping CURRENT_PROJECT_VERSION"; exit 0
+          fi
+          plist="${TARGET_BUILD_DIR}/${INFOPLIST_PATH}"
+          /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $count" "$plist" 2>/dev/null \
+            || /usr/libexec/PlistBuddy -c "Add :CFBundleVersion string $count" "$plist"
+          echo "Set CFBundleVersion = $count (git commit count)"
+        basedOnDependencyAnalysis: false
