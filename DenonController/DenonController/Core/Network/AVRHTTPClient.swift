@@ -117,6 +117,11 @@ actor AVRHTTPClient {
             info.hasZone2 = n >= 1
         }
 
+        // MAC アドレス（IP が変わっても同一機体を識別するための安定 ID）
+        if let mac = simpleXML(in: xml, tag: "MacAddress"), !mac.isEmpty {
+            info.macAddress = DeviceInfo.normalizedMac(mac)
+        }
+
         // Zone 3 は XML に明示されないため、Zone3 ステータス XML が返るか試す
         // 同期的に確認するため Task.detached を使わず、フラグは後で更新
         return info

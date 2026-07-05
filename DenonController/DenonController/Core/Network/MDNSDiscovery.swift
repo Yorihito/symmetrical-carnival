@@ -10,6 +10,7 @@ struct DiscoveredDevice: Identifiable, Sendable {
     let name: String    // Deviceinfo.xml から取得したモデル名
     let host: String    // IPv4 アドレス
     let port: Int       // 接続用ポート (8080, 10101 等)
+    let macAddress: String  // DHCP で IP が変わっても同一機体か判定するための安定 ID（取得できない場合は空）
 }
 
 // MARK: - MDNSDiscovery
@@ -177,7 +178,8 @@ enum MDNSScanner {
               text.contains("200 OK") else { return (nil, "No XML API") }
 
         let name = xmlValue(text, "FriendlyName") ?? xmlValue(text, "ModelName") ?? nameHint
-        return (DiscoveredDevice(id: ip, name: name.isEmpty ? ip : name, host: ip, port: port), "OK")
+        let mac = xmlValue(text, "MacAddress").map { DeviceInfo.normalizedMac($0) } ?? ""
+        return (DiscoveredDevice(id: ip, name: name.isEmpty ? ip : name, host: ip, port: port, macAddress: mac), "OK")
     }
 
     nonisolated private static func xmlValue(_ text: String, _ tag: String) -> String? {

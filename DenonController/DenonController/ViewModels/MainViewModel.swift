@@ -68,6 +68,10 @@ final class MainViewModel {
     /// 操作直後にポーリングによる上書きを防ぐためのタイマー
     private var ignoreSyncUntil: [String: Date] = [:]
 
+    /// 自動 IP 復旧（DHCP でアドレスが変わった AVR を再検出する処理）の多重実行防止・throttle 用
+    private var isRehealing = false
+    private var lastRehealAttempt: Date?
+
     init() {
         // 前回フェッチしたプリセットを復元する
         if let data = UserDefaults.standard.data(forKey: "savedTunerPresets"),
@@ -111,7 +115,33 @@ final class MainViewModel {
         }
     }
 
-    func connect(host: String, port: Int? = nil) async {
+    /// DHCP でリース更新された AVR を、保存済みの MAC アドレスを手掛かりに LAN 上で再検出する。
+    /// 見つかった場合は `defaultHost` / `defaultPort` を新しい値に更新して返す。
+    /// 30秒に1回・多重実行なしに制限し、AVR が本当にオフラインのときに無限ループしないようにする。
+    private func attemptAutoReheal(failedHost: String) async -> (host: String, port: Int)? {
+        guard !isRehealing else { return nil }
+        let savedMac = UserDefaults.standard.string(forKey: "defaultMacAddress") ?? ""
+        guard !savedMac.isEmpty else { return nil }
+        if let last = lastRehealAttempt, Date().timeIntervalSince(last) < 30 { return nil }
+
+        isRehealing = true
+        lastRehealAttempt = Date()
+        defer { isRehealing = false }
+
+        connectionLog.append("Auto-heal: searching for AVR with MAC \(savedMac)...")
+        let (found, _) = await MDNSScanner.scan()
+        guard let match = found.first(where: { $0.macAddress == savedMac }), match.host != failedHost else {
+            connectionLog.append("Auto-heal: no matching AVR found on the network")
+            return nil
+        }
+
+        connectionLog.append("Auto-heal: found AVR at new address \(match.host) (was \(failedHost))")
+        UserDefaults.standard.set(match.host, forKey: "defaultHost")
+        UserDefaults.standard.set(match.port, forKey: "defaultPort")
+        return (match.host, match.port)
+    }
+
+    func connect(host: String, port: Int? = nil, isAutoHealRetry: Bool = false) async {
         let connectionID = UUID()
         currentConnectionID = connectionID
         
@@ -146,6 +176,11 @@ final class MainViewModel {
             avr.isConnected = true
             avr.deviceInfo  = finalInfo
             lastConnectedHost = host
+
+            // MAC アドレスを保存しておく（次回起動時に IP が変わっていても同一機体として再検出できるように）
+            if !finalInfo.macAddress.isEmpty {
+                UserDefaults.standard.set(finalInfo.macAddress, forKey: "defaultMacAddress")
+            }
 
             // HTTP ポーリング
             connectionLog.append("Step 5: Starting status update loop...")
@@ -220,6 +255,12 @@ final class MainViewModel {
             errorMessage = error.localizedDescription
             connectionStatus = .error(error.localizedDescription)
             avr.isConnected = false
+
+            // DHCP で AVR の IP が変わった可能性があるので、同じ MAC アドレスの機体を
+            // 再検索し、見つかれば新しい IP で 1 回だけ自動的に再接続する。
+            if !isAutoHealRetry, let match = await attemptAutoReheal(failedHost: host) {
+                await connect(host: match.host, port: match.port, isAutoHealRetry: true)
+            }
         }
     }
 
