@@ -1,7 +1,9 @@
 import SwiftUI
+import StoreKit
 
 struct ContentView: View {
     @Environment(MainViewModel.self) private var vm
+    @Environment(\.requestReview) private var requestReview
     @State private var showConnection = false
     @AppStorage("appLanguage") private var appLanguage = "system"
 
@@ -41,6 +43,11 @@ struct ContentView: View {
                     isSplashScreenActive = false
                 }
             }
+        }
+        .onChange(of: vm.connectionStatus) { _, status in
+            guard status == .connected, ReviewRequestManager.shouldRequest() else { return }
+            requestReview()
+            ReviewRequestManager.markRequested()
         }
     }
 

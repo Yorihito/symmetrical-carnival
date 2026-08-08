@@ -10,13 +10,17 @@
 		06F28E54E74061919B044C2B /* MainViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4BA24D1B24069C44CB42386 /* MainViewModel.swift */; };
 		0E82EDB2D74A532F3A20A260 /* DenonControllerMobileApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EC4A3F474DCD7D46A766271 /* DenonControllerMobileApp.swift */; };
 		0E8FADDEB53D2148312703A5 /* TunerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6C6A70CDC90F4B7352DEBB5 /* TunerView.swift */; };
+		104434D9D4A1680793747466 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 065D9658F557880E7A68B28F /* PrivacyInfo.xcprivacy */; };
 		1045CFDE17400F0C299B117A /* AVRHTTPClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CB324EA5D91A2660C953E1F /* AVRHTTPClient.swift */; };
 		1154BACFEC09434FDA7A9A21 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92DE52C6C47E8EE18C49EC97 /* SettingsView.swift */; };
 		1345E6D35DEE36AAAF7DD2D2 /* LocalizationHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67CDCF1D31DD391F01631CE2 /* LocalizationHelper.swift */; };
+		14F36167FA4F2BD39F9B1F75 /* ProblemReporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDF1FA1D97040B3C00675C2C /* ProblemReporter.swift */; };
 		1661486C7A095436F3B9CF79 /* Network.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1C21F089DD18EF96A1FB1D37 /* Network.framework */; };
 		18BC2655A7A945363CD3EF1A /* InputView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 371B2F4E3F7CEE3A934FE1DC /* InputView.swift */; };
 		1E31B61684414568011C77E0 /* DenonControllerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48CC524B97F708FFD31253DA /* DenonControllerApp.swift */; };
 		1E876FDB15C53E820184D209 /* InputSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9ECA17A4A0B3A093DB6F604 /* InputSource.swift */; };
+		2114C9A9C177E05A75B528C3 /* HelpSiteLinks.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCCBCF2FC5C91D12F8A8E660 /* HelpSiteLinks.swift */; };
+		21A872FC62BB883A5A35B2EA /* HelpSiteLinks.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCCBCF2FC5C91D12F8A8E660 /* HelpSiteLinks.swift */; };
 		26B71BAD242ABD7D8DE3DAA0 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0C15B761820435FAA607C12D /* Assets.xcassets */; };
 		27144C0796515B5833274C3C /* TunerPreset.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C3EE3F5E05059A0B9CC8309 /* TunerPreset.swift */; };
 		2968E1C0723210303AC19292 /* PresetStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0EAFCB048A23BD89077533F3 /* PresetStore.swift */; };
@@ -26,16 +30,21 @@
 		3E9CD6EF7FA601D09188C4D0 /* PresetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F74152998E3524849FCB09AD /* PresetView.swift */; };
 		44DBFAB90E3BE083C08D6F0B /* MainViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4BA24D1B24069C44CB42386 /* MainViewModel.swift */; };
 		4C169A94637BC5F05839DCF7 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87532AE642CC4C7933E62C61 /* DashboardView.swift */; };
+		51B370EAE04F8F1B50809307 /* ProblemReporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDF1FA1D97040B3C00675C2C /* ProblemReporter.swift */; };
 		53D6A9EA92F403A78ADAEE76 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DD48B21048CEB692DAB7C46 /* SettingsView.swift */; };
 		54CE9FA2CDE5781F438F6B9B /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBCC033BDB61A8099289FAA5 /* ContentView.swift */; };
 		586CC8A8C58A9B78BC42F4B5 /* MDNSDiscovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A00BF5F14989E8C48AE08AB /* MDNSDiscovery.swift */; };
 		61F7FA6951E721209C019D11 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 870C7384E8D60B2408318E96 /* Localizable.strings */; };
+		63A567AAD61F6146590757AA /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 065D9658F557880E7A68B28F /* PrivacyInfo.xcprivacy */; };
 		68E65267FE353572BC4B7CBC /* VolumeControlView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 71B63BF0A3338974C13AD96C /* VolumeControlView.swift */; };
 		6F526542ED1AAC5FBA5A125F /* TunerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B68F7EA22CF66FAEDFC81885 /* TunerView.swift */; };
 		7306032949F820C71B3DA11E /* InputNameStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 495D17163A2E55D86ADB4C94 /* InputNameStore.swift */; };
 		7ED5C56644A95B215D350E86 /* InputView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AEBFDA374E25758961C3B07 /* InputView.swift */; };
+		81E1AD15BD2DD6474C1DA18B /* ReviewRequestManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D7BEA9BAF2E1744356FF741 /* ReviewRequestManager.swift */; };
 		85C6BEFABD78D72516F662D4 /* Preset.swift in Sources */ = {isa = PBXBuildFile; fileRef = F76C8EA4E66F47B8F0207066 /* Preset.swift */; };
+		87BB00386EAF4C75067006A8 /* ReviewRequestManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D7BEA9BAF2E1744356FF741 /* ReviewRequestManager.swift */; };
 		87CB10DC1C014F5087070D0C /* MenuBarPopoverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20BE8F10BC0930A047050EF /* MenuBarPopoverView.swift */; };
+		88DC0722B8B20D65FA11A700 /* ProblemReportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63E026C54E7A9A9382069B71 /* ProblemReportView.swift */; };
 		8F11D1BDD33AFE005D2E57D4 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 870C7384E8D60B2408318E96 /* Localizable.strings */; };
 		95EFC25C1D4B6A1A0D3F6586 /* PresetStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0EAFCB048A23BD89077533F3 /* PresetStore.swift */; };
 		9D457112D11E0B3126B14B2A /* AVRHTTPClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CB324EA5D91A2660C953E1F /* AVRHTTPClient.swift */; };
@@ -57,6 +66,7 @@
 		D3615836D1796E560FAFCB1E /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C88FB0556735B17869D5A94 /* ContentView.swift */; };
 		D5B636D1118D2749307334E6 /* AVRState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DBDB1F2094291B09A369428 /* AVRState.swift */; };
 		DA56A1BF00A89DE4B12BECB2 /* DeviceInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 271AF613F454DB67A569A133 /* DeviceInfo.swift */; };
+		DF7700969F9383B5CDA18534 /* ProblemReportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63E026C54E7A9A9382069B71 /* ProblemReportView.swift */; };
 		E073BAB275455B3D6569E0CA /* TunerPreset.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C3EE3F5E05059A0B9CC8309 /* TunerPreset.swift */; };
 		E8223854D0A25620B23FFA87 /* ConnectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EBA445EDC221C01FA9C6049 /* ConnectionView.swift */; };
 		E99FF3946B1A1C2271CC67B8 /* AVRState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DBDB1F2094291B09A369428 /* AVRState.swift */; };
@@ -68,6 +78,7 @@
 
 /* Begin PBXFileReference section */
 		01525DCDCE780E88CC6F5771 /* DenonController.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = DenonController.entitlements; sourceTree = "<group>"; };
+		065D9658F557880E7A68B28F /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		0C15B761820435FAA607C12D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		0DBDB1F2094291B09A369428 /* AVRState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AVRState.swift; sourceTree = "<group>"; };
 		0DD48B21048CEB692DAB7C46 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
@@ -83,7 +94,9 @@
 		495D17163A2E55D86ADB4C94 /* InputNameStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputNameStore.swift; sourceTree = "<group>"; };
 		593531F756C20B22B1282906 /* SurroundView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SurroundView.swift; sourceTree = "<group>"; };
 		5CB324EA5D91A2660C953E1F /* AVRHTTPClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AVRHTTPClient.swift; sourceTree = "<group>"; };
+		5D7BEA9BAF2E1744356FF741 /* ReviewRequestManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewRequestManager.swift; sourceTree = "<group>"; };
 		607BCA4BB78DE0173CDB1D9E /* DenonControllerMobile.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = DenonControllerMobile.entitlements; sourceTree = "<group>"; };
+		63E026C54E7A9A9382069B71 /* ProblemReportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProblemReportView.swift; sourceTree = "<group>"; };
 		67CDCF1D31DD391F01631CE2 /* LocalizationHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalizationHelper.swift; sourceTree = "<group>"; };
 		6C3874D625282B482D38AE6A /* ConnectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionView.swift; sourceTree = "<group>"; };
 		6EBA445EDC221C01FA9C6049 /* ConnectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionView.swift; sourceTree = "<group>"; };
@@ -103,6 +116,8 @@
 		A2C97D129A06A4A87956F7FD /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		A2FEF8CF0CF7104302E3474B /* TelnetClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelnetClient.swift; sourceTree = "<group>"; };
 		B68F7EA22CF66FAEDFC81885 /* TunerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TunerView.swift; sourceTree = "<group>"; };
+		BCCBCF2FC5C91D12F8A8E660 /* HelpSiteLinks.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelpSiteLinks.swift; sourceTree = "<group>"; };
+		BDF1FA1D97040B3C00675C2C /* ProblemReporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProblemReporter.swift; sourceTree = "<group>"; };
 		C191CB6B2DD3759D5568EB40 /* ja */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ja; path = ja.lproj/Localizable.strings; sourceTree = "<group>"; };
 		D4BA24D1B24069C44CB42386 /* MainViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainViewModel.swift; sourceTree = "<group>"; };
 		D7F395F8FE0341BC628627D5 /* ZoneView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZoneView.swift; sourceTree = "<group>"; };
@@ -133,9 +148,12 @@
 		0351A643329882D2CDD6AE06 /* Core */ = {
 			isa = PBXGroup;
 			children = (
+				065D9658F557880E7A68B28F /* PrivacyInfo.xcprivacy */,
+				F1D7924C5AE3E63AFD79609C /* Diagnostics */,
 				11AB2D68EEAD131B7A0CD10D /* Models */,
 				D328F5083913C9E7A655C988 /* Network */,
 				530F24BF2749831DD2934F02 /* Persistence */,
+				8AD9861DAAEFD5FECAD9253A /* Review */,
 			);
 			path = Core;
 			sourceTree = "<group>";
@@ -230,6 +248,14 @@
 			path = Settings;
 			sourceTree = "<group>";
 		};
+		8AD9861DAAEFD5FECAD9253A /* Review */ = {
+			isa = PBXGroup;
+			children = (
+				5D7BEA9BAF2E1744356FF741 /* ReviewRequestManager.swift */,
+			);
+			path = Review;
+			sourceTree = "<group>";
+		};
 		99F56F07E45574CBF26A1EAB /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
@@ -264,6 +290,7 @@
 			isa = PBXGroup;
 			children = (
 				67CDCF1D31DD391F01631CE2 /* LocalizationHelper.swift */,
+				63E026C54E7A9A9382069B71 /* ProblemReportView.swift */,
 				71B63BF0A3338974C13AD96C /* VolumeControlView.swift */,
 			);
 			path = Shared;
@@ -361,6 +388,15 @@
 			path = DenonController;
 			sourceTree = "<group>";
 		};
+		F1D7924C5AE3E63AFD79609C /* Diagnostics */ = {
+			isa = PBXGroup;
+			children = (
+				BCCBCF2FC5C91D12F8A8E660 /* HelpSiteLinks.swift */,
+				BDF1FA1D97040B3C00675C2C /* ProblemReporter.swift */,
+			);
+			path = Diagnostics;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -450,6 +486,7 @@
 			files = (
 				26B71BAD242ABD7D8DE3DAA0 /* Assets.xcassets in Resources */,
 				8F11D1BDD33AFE005D2E57D4 /* Localizable.strings in Resources */,
+				63A567AAD61F6146590757AA /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -459,6 +496,7 @@
 			files = (
 				9EE83FAB03B55BBE25058DAC /* Assets.xcassets in Resources */,
 				61F7FA6951E721209C019D11 /* Localizable.strings in Resources */,
+				104434D9D4A1680793747466 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -518,6 +556,7 @@
 				9E35C74CEFDB4EE401BE7A53 /* DashboardView.swift in Sources */,
 				0E82EDB2D74A532F3A20A260 /* DenonControllerMobileApp.swift in Sources */,
 				C047CC739A755CDD5AE482E3 /* DeviceInfo.swift in Sources */,
+				21A872FC62BB883A5A35B2EA /* HelpSiteLinks.swift in Sources */,
 				2AAA0C216218E52C0AC77822 /* InputNameStore.swift in Sources */,
 				BFFA6C52F1C109A464B735D9 /* InputSource.swift in Sources */,
 				7ED5C56644A95B215D350E86 /* InputView.swift in Sources */,
@@ -527,7 +566,10 @@
 				D079330241F0CF45F84A6C49 /* Preset.swift in Sources */,
 				95EFC25C1D4B6A1A0D3F6586 /* PresetStore.swift in Sources */,
 				C73D769DF1CFD293E916453C /* PresetView.swift in Sources */,
+				DF7700969F9383B5CDA18534 /* ProblemReportView.swift in Sources */,
+				51B370EAE04F8F1B50809307 /* ProblemReporter.swift in Sources */,
 				BDBBEF07D4AD3C23AD19F0FE /* RemoteView.swift in Sources */,
+				81E1AD15BD2DD6474C1DA18B /* ReviewRequestManager.swift in Sources */,
 				53D6A9EA92F403A78ADAEE76 /* SettingsView.swift in Sources */,
 				B695A3D5A451FCF5E9F4A039 /* SurroundMode.swift in Sources */,
 				EE614F6A701643C3ACE29B46 /* TelnetClient.swift in Sources */,
@@ -550,6 +592,7 @@
 				4C169A94637BC5F05839DCF7 /* DashboardView.swift in Sources */,
 				1E31B61684414568011C77E0 /* DenonControllerApp.swift in Sources */,
 				DA56A1BF00A89DE4B12BECB2 /* DeviceInfo.swift in Sources */,
+				2114C9A9C177E05A75B528C3 /* HelpSiteLinks.swift in Sources */,
 				7306032949F820C71B3DA11E /* InputNameStore.swift in Sources */,
 				1E876FDB15C53E820184D209 /* InputSource.swift in Sources */,
 				18BC2655A7A945363CD3EF1A /* InputView.swift in Sources */,
@@ -560,7 +603,10 @@
 				85C6BEFABD78D72516F662D4 /* Preset.swift in Sources */,
 				2968E1C0723210303AC19292 /* PresetStore.swift in Sources */,
 				3E9CD6EF7FA601D09188C4D0 /* PresetView.swift in Sources */,
+				88DC0722B8B20D65FA11A700 /* ProblemReportView.swift in Sources */,
+				14F36167FA4F2BD39F9B1F75 /* ProblemReporter.swift in Sources */,
 				CC5B7138DE1DEE475F8FCAA0 /* RemoteView.swift in Sources */,
+				87BB00386EAF4C75067006A8 /* ReviewRequestManager.swift in Sources */,
 				1154BACFEC09434FDA7A9A21 /* SettingsView.swift in Sources */,
 				F85DA1958EAB9A9D07F93D5C /* SurroundMode.swift in Sources */,
 				CB761EBF6993D6F10238BE12 /* SurroundView.swift in Sources */,

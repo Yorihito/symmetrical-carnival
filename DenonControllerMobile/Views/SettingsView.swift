@@ -1,4 +1,5 @@
 import SwiftUI
+import StoreKit
 
 struct SettingsView: View {
     @AppStorage("defaultHost")  private var defaultHost  = ""
@@ -8,13 +9,16 @@ struct SettingsView: View {
     @Environment(MainViewModel.self) private var vm
     @Environment(\.locale) private var locale
     @Environment(\.localizedBundle) private var bundle
+    @Environment(\.requestReview) private var requestReview
     @Binding var showConnection: Bool
     @State private var showResetAlert = false
+    @State private var showProblemReport = false
 
     var body: some View {
         Form {
             connectionSection
             appSection
+            feedbackSection
             inputSourcesSection
             developerSection
             aboutSection
@@ -22,6 +26,12 @@ struct SettingsView: View {
         }
         .navigationTitle(localizedNavTitle("設定", locale: locale))
         .navigationBarTitleDisplayMode(.large)
+        .sheet(isPresented: $showProblemReport) {
+            ProblemReportView()
+                .environment(vm)
+                .environment(\.locale, locale)
+                .environment(\.localizedBundle, bundle)
+        }
         .alert(Text("すべての設定をリセット", bundle: bundle), isPresented: $showResetAlert) {
             Button(LS("リセット", bundle), role: .destructive) {
                 Task { await resetToDefaults() }
@@ -127,6 +137,52 @@ struct SettingsView: View {
                 Text("English", bundle: bundle).tag("en")
             } label: {
                 Text("表示言語", bundle: bundle)
+            }
+        }
+    }
+
+    // MARK: - Feedback
+
+    private var feedbackSection: some View {
+        Section(header: Text("ヘルプとフィードバック", bundle: bundle)) {
+            Link(destination: HelpSiteLinks.guide(locale: locale)) {
+                Label {
+                    Text("ユーザーガイド", bundle: bundle)
+                } icon: {
+                    Image(systemName: "questionmark.circle")
+                }
+            }
+
+            Button {
+                requestReview()
+            } label: {
+                Label {
+                    Text("レビューを書く", bundle: bundle)
+                } icon: {
+                    Image(systemName: "star")
+                }
+            }
+            .buttonStyle(.plain)
+            .foregroundStyle(.primary)
+
+            Button {
+                showProblemReport = true
+            } label: {
+                Label {
+                    Text("問題を報告", bundle: bundle)
+                } icon: {
+                    Image(systemName: "exclamationmark.bubble")
+                }
+            }
+            .buttonStyle(.plain)
+            .foregroundStyle(.primary)
+
+            Link(destination: HelpSiteLinks.privacyPolicy(locale: locale)) {
+                Label {
+                    Text("プライバシーポリシー", bundle: bundle)
+                } icon: {
+                    Image(systemName: "hand.raised")
+                }
             }
         }
     }

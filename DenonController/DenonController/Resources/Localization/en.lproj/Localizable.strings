@@ -172,3 +172,37 @@
 "デバイス確認中..." = "Verifying device...";
 "AVR から正常応答がありません (HTTP %lld)" = "No response from AVR (HTTP %lld)";
 "ポーリング開始..." = "Starting status polling...";
+
+/* Accessibility labels */
+"音量を下げる" = "Volume Down";
+"音量を上げる" = "Volume Up";
+"Zone 2 電源" = "Zone 2 Power";
+"Zone 3 電源" = "Zone 3 Power";
+"上" = "Up";
+"下" = "Down";
+"左" = "Left";
+"右" = "Right";
+"前のプリセット" = "Previous Preset";
+"次のプリセット" = "Next Preset";
+
+/* Settings - Help & Feedback */
+"ヘルプとフィードバック" = "Help & Feedback";
+"ユーザーガイド" = "User Guide";
+"レビューを書く" = "Write a Review";
+"問題を報告" = "Report a Problem";
+"プライバシーポリシー" = "Privacy Policy";
+
+/* Problem Report */
+"種類" = "Category";
+"バグ報告" = "Bug Report";
+"機能リクエスト" = "Feature Request";
+"その他" = "Other";
+"バグ報告や機能のリクエストを GitHub の Issue として送信します。" = "Sends a bug report or feature request as a GitHub Issue.";
+"タイトル" = "Title";
+"内容" = "Details";
+"診断情報を含める" = "Include Diagnostics";
+"アプリのバージョンや OS など（IP アドレスなどのネットワーク情報は含まれません）" = "App version, OS, etc. (network information such as IP addresses is not included)";
+"この内容は GitHub 上で公開されます。個人情報（メールアドレスなど）は書かないでください。送信前に内容を確認・編集できます。" = "This will be posted publicly on GitHub. Please don't include personal information (such as your email address). You can review and edit it before sending.";
+"GitHub で送信" = "Send via GitHub";
+"起きたこと:\n\n再現手順:\n\n期待した動作:\n" = "What happened:\n\nSteps to reproduce:\n\nExpected behavior:\n";
+"実現したいこと:\n\n背景・理由:\n" = "What you'd like:\n\nBackground / reason:\n";

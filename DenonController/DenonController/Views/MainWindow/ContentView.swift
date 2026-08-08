@@ -1,5 +1,6 @@
 import SwiftUI
 import AppKit
+import StoreKit
 
 /// viewDidMoveToWindow を使い、ウィンドウへの追加と同時（表示前）に callback を呼ぶ
 private final class WindowObserverView: NSView {
@@ -50,6 +51,7 @@ struct ContentView: View {
     @Environment(MainViewModel.self) private var vm
     @Environment(\.locale) private var locale
     @Environment(\.localizedBundle) private var bundle
+    @Environment(\.requestReview) private var requestReview
     @State private var selectedSection: NavSection? = .dashboard
     @State private var showingConnection = false
     @State private var columnVisibility: NavigationSplitViewVisibility = .all
@@ -108,6 +110,11 @@ struct ContentView: View {
             if auto && !host.isEmpty && !vm.connectionStatus.isConnected {
                 Task { await vm.connect(host: host) }
             }
+        }
+        .onChange(of: vm.connectionStatus) { _, status in
+            guard status == .connected, ReviewRequestManager.shouldRequest() else { return }
+            requestReview()
+            ReviewRequestManager.markRequested()
         }
     }
 

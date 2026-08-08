@@ -1,4 +1,5 @@
 import SwiftUI
+import StoreKit
 
 struct SettingsView: View {
     @AppStorage("defaultHost")  private var defaultHost = ""
@@ -10,7 +11,9 @@ struct SettingsView: View {
     @Environment(MainViewModel.self) private var vm
     @Environment(\.locale) private var locale
     @Environment(\.localizedBundle) private var bundle
+    @Environment(\.requestReview) private var requestReview
     @State private var showResetAlert = false
+    @State private var showProblemReport = false
 
     var body: some View {
         Form {
@@ -62,6 +65,48 @@ struct SettingsView: View {
                     Text("次回起動時から適用されます。メインウィンドウはメニューバーの「詳細を開く」から開けます。", bundle: bundle)
                         .font(.caption)
                         .foregroundStyle(.secondary)
+                }
+            }
+
+            Section(header: Text("ヘルプとフィードバック", bundle: bundle)) {
+                Link(destination: HelpSiteLinks.guide(locale: locale)) {
+                    Label {
+                        Text("ユーザーガイド", bundle: bundle)
+                    } icon: {
+                        Image(systemName: "questionmark.circle")
+                    }
+                }
+
+                Button {
+                    requestReview()
+                } label: {
+                    Label {
+                        Text("レビューを書く", bundle: bundle)
+                    } icon: {
+                        Image(systemName: "star")
+                    }
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(.primary)
+
+                Button {
+                    showProblemReport = true
+                } label: {
+                    Label {
+                        Text("問題を報告", bundle: bundle)
+                    } icon: {
+                        Image(systemName: "exclamationmark.bubble")
+                    }
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(.primary)
+
+                Link(destination: HelpSiteLinks.privacyPolicy(locale: locale)) {
+                    Label {
+                        Text("プライバシーポリシー", bundle: bundle)
+                    } icon: {
+                        Image(systemName: "hand.raised")
+                    }
                 }
             }
 
@@ -168,6 +213,12 @@ struct SettingsView: View {
         .frame(width: 480, height: 680)
         .onAppear { fixWindowTitle() }
         .onChange(of: locale) { fixWindowTitle() }
+        .sheet(isPresented: $showProblemReport) {
+            ProblemReportView()
+                .environment(vm)
+                .environment(\.locale, locale)
+                .environment(\.localizedBundle, bundle)
+        }
         .alert(Text("すべての設定をリセット", bundle: bundle), isPresented: $showResetAlert) {
             Button(LS("リセット", bundle), role: .destructive) { Task { await resetToDefaults() } }
             Button(LS("キャンセル", bundle), role: .cancel) { }

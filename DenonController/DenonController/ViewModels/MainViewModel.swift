@@ -176,6 +176,7 @@ final class MainViewModel {
             avr.isConnected = true
             avr.deviceInfo  = finalInfo
             lastConnectedHost = host
+            ReviewRequestManager.recordSuccess()
 
             // MAC アドレスを保存しておく（次回起動時に IP が変わっていても同一機体として再検出できるように）
             if !finalInfo.macAddress.isEmpty {
