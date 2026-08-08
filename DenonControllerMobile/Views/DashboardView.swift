@@ -101,6 +101,7 @@ struct DashboardView: View {
             }
             .buttonStyle(.plain)
             .disabled(!vm.avr.isConnected)
+            .accessibilityLabel(Text("電源"))
             #if !targetEnvironment(simulator)
             .sensoryFeedback(.impact, trigger: vm.avr.isPoweredOn)
             #endif

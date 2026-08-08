@@ -34,6 +34,7 @@ struct ZoneView: View {
                     .toggleStyle(.switch)
                     .labelsHidden()
                     .disabled(!vm.avr.isConnected)
+                    .accessibilityLabel(Text("Zone 2 電源", bundle: bundle))
                 }
 
                 if vm.avr.zone2Power {
@@ -75,6 +76,7 @@ struct ZoneView: View {
                     .toggleStyle(.switch)
                     .labelsHidden()
                     .disabled(!vm.avr.isConnected)
+                    .accessibilityLabel(Text("Zone 3 電源", bundle: bundle))
                 }
 
                 if vm.avr.zone3Power {
@@ -85,6 +87,7 @@ struct ZoneView: View {
                                 .font(.title)
                         }
                         .buttonStyle(.plain)
+                        .accessibilityLabel(Text("音量を下げる", bundle: bundle))
 
                         VStack(spacing: 2) {
                             Text("音量", bundle: bundle)
@@ -100,6 +103,7 @@ struct ZoneView: View {
                                 .font(.title)
                         }
                         .buttonStyle(.plain)
+                        .accessibilityLabel(Text("音量を上げる", bundle: bundle))
                     }
                 } else {
                     Text("Zone 3 はオフです", bundle: bundle)

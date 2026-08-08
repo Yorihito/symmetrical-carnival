@@ -77,6 +77,7 @@ struct MenuBarPopoverView: View {
             }
             .buttonStyle(.plain)
             .disabled(!vm.connectionStatus.isConnected)
+            .accessibilityLabel(Text("電源", bundle: bundle))
         }
         .padding(12)
     }
@@ -108,6 +109,7 @@ struct MenuBarPopoverView: View {
                     Image(systemName: "speaker.minus.fill")
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel(Text("音量を下げる", bundle: bundle))
 
                 Slider(
                     value: Binding(
@@ -139,6 +141,7 @@ struct MenuBarPopoverView: View {
                     Image(systemName: "speaker.plus.fill")
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel(Text("音量を上げる", bundle: bundle))
             }
 
             Button {
@@ -233,6 +236,7 @@ struct MenuBarPopoverView: View {
             .buttonStyle(.plain)
             .foregroundStyle(.secondary)
             .padding(.trailing, 4)
+            .accessibilityLabel(Text("設定", bundle: bundle))
 
             Button {
                 let delegate = AppDelegate.shared
@@ -295,6 +299,7 @@ struct MenuBarPopoverView: View {
                         .background(Color.secondary.opacity(0.1), in: RoundedRectangle(cornerRadius: 6))
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel(Text("前のプリセット", bundle: bundle))
 
                 // 中央: プリセット番号 + 周波数（局名がない場合）
                 VStack(spacing: 1) {
@@ -322,6 +327,7 @@ struct MenuBarPopoverView: View {
                         .background(Color.secondary.opacity(0.1), in: RoundedRectangle(cornerRadius: 6))
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel(Text("次のプリセット", bundle: bundle))
             }
         }
         .padding(12)

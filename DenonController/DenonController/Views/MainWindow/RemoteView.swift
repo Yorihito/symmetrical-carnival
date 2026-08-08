@@ -39,15 +39,15 @@ struct RemoteView: View {
     private var directionPad: some View {
         CardView {
             VStack(spacing: 8) {
-                RemoteButton(systemImage: "chevron.up") { vm.cursorUp() }
+                RemoteButton(systemImage: "chevron.up", accessibilityLabel: "上", bundle: bundle) { vm.cursorUp() }
 
                 HStack(spacing: 8) {
-                    RemoteButton(systemImage: "chevron.left")  { vm.cursorLeft() }
+                    RemoteButton(systemImage: "chevron.left", accessibilityLabel: "左", bundle: bundle)  { vm.cursorLeft() }
                     RemoteButton(label: "決定", systemImage: "return", bundle: bundle) { vm.cursorEnter() }
-                    RemoteButton(systemImage: "chevron.right") { vm.cursorRight() }
+                    RemoteButton(systemImage: "chevron.right", accessibilityLabel: "右", bundle: bundle) { vm.cursorRight() }
                 }
 
-                RemoteButton(systemImage: "chevron.down") { vm.cursorDown() }
+                RemoteButton(systemImage: "chevron.down", accessibilityLabel: "下", bundle: bundle) { vm.cursorDown() }
             }
             .disabled(!isEnabled)
             .opacity(isEnabled ? 1 : 0.4)
@@ -71,12 +71,14 @@ struct RemoteView: View {
 private struct RemoteButton: View {
     let label: String?
     let systemImage: String
+    let accessibilityLabel: String?
     let bundle: Bundle
     let action: () -> Void
 
-    init(label: String? = nil, systemImage: String, bundle: Bundle = .main, action: @escaping () -> Void) {
+    init(label: String? = nil, systemImage: String, accessibilityLabel: String? = nil, bundle: Bundle = .main, action: @escaping () -> Void) {
         self.label = label
         self.systemImage = systemImage
+        self.accessibilityLabel = accessibilityLabel
         self.bundle = bundle
         self.action = action
     }
@@ -102,5 +104,6 @@ private struct RemoteButton: View {
             )
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(Text(LocalizedStringKey(accessibilityLabel ?? label ?? systemImage), bundle: bundle))
     }
 }

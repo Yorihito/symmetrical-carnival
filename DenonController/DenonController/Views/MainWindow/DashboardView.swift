@@ -58,6 +58,7 @@ struct DashboardView: View {
             .labelsHidden()
             .controlSize(.small)
             .disabled(!vm.avr.isConnected)
+            .accessibilityLabel(Text("電源", bundle: bundle))
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 8)

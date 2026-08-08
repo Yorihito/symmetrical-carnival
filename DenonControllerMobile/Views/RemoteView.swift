@@ -55,13 +55,13 @@ struct RemoteView: View {
         CardView {
             VStack(spacing: 10) {
                 // ↑
-                RemoteActionButton(systemImage: "chevron.up", isEnabled: isEnabled) {
+                RemoteActionButton(systemImage: "chevron.up", accessibilityLabel: LS("上", lBundle), isEnabled: isEnabled) {
                     fire { vm.cursorUp() }
                 }
 
                 // ← 決定 →
                 HStack(spacing: 10) {
-                    RemoteActionButton(systemImage: "chevron.left", isEnabled: isEnabled) {
+                    RemoteActionButton(systemImage: "chevron.left", accessibilityLabel: LS("左", lBundle), isEnabled: isEnabled) {
                         fire { vm.cursorLeft() }
                     }
 
@@ -71,13 +71,13 @@ struct RemoteView: View {
                         isEnabled: isEnabled
                     ) { fire { vm.cursorEnter() } }
 
-                    RemoteActionButton(systemImage: "chevron.right", isEnabled: isEnabled) {
+                    RemoteActionButton(systemImage: "chevron.right", accessibilityLabel: LS("右", lBundle), isEnabled: isEnabled) {
                         fire { vm.cursorRight() }
                     }
                 }
 
                 // ↓
-                RemoteActionButton(systemImage: "chevron.down", isEnabled: isEnabled) {
+                RemoteActionButton(systemImage: "chevron.down", accessibilityLabel: LS("下", lBundle), isEnabled: isEnabled) {
                     fire { vm.cursorDown() }
                 }
             }
@@ -110,6 +110,7 @@ struct RemoteView: View {
 private struct RemoteActionButton: View {
     var label: String? = nil
     let systemImage: String
+    var accessibilityLabel: String? = nil
     let isEnabled: Bool
     let action: () -> Void
 
@@ -138,6 +139,7 @@ private struct RemoteActionButton: View {
         .buttonStyle(.plain)
         .disabled(!isEnabled)
         .opacity(isEnabled ? 1 : 0.4)
+        .accessibilityLabel(accessibilityLabel ?? label ?? systemImage)
         #if !targetEnvironment(simulator)
         .sensoryFeedback(.impact, trigger: hapticTrigger)
         #endif

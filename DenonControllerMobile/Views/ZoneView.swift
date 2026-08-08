@@ -44,6 +44,7 @@ struct ZoneView: View {
                     .toggleStyle(.switch)
                     .labelsHidden()
                     .disabled(!vm.avr.isConnected)
+                    .accessibilityLabel(Text("Zone 2 電源", bundle: bundle))
                     #if !targetEnvironment(simulator)
                     .sensoryFeedback(.impact, trigger: vm.avr.zone2Power)
                     #endif
@@ -85,6 +86,7 @@ struct ZoneView: View {
                     .toggleStyle(.switch)
                     .labelsHidden()
                     .disabled(!vm.avr.isConnected)
+                    .accessibilityLabel(Text("Zone 3 電源", bundle: bundle))
                     #if !targetEnvironment(simulator)
                     .sensoryFeedback(.impact, trigger: vm.avr.zone3Power)
                     #endif
@@ -135,6 +137,7 @@ private struct ZoneStepControl: View {
                 }
                 .buttonStyle(.plain)
                 .disabled(!isEnabled)
+                .accessibilityLabel(Text("音量を下げる", bundle: bundle))
 
                 VStack(spacing: 2) {
                     Text("Vol \(label)")
@@ -154,6 +157,7 @@ private struct ZoneStepControl: View {
                 }
                 .buttonStyle(.plain)
                 .disabled(!isEnabled)
+                .accessibilityLabel(Text("音量を上げる", bundle: bundle))
             }
 
             if supportsMute {

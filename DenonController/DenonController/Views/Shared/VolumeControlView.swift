@@ -64,6 +64,7 @@ struct VolumeControlView: View {
                 }
                 .buttonStyle(.plain)
                 .keyboardShortcut(.downArrow, modifiers: .command)
+                .accessibilityLabel(Text("音量を下げる", bundle: bundle))
 
                 Slider(
                     value: Binding(
@@ -100,6 +101,7 @@ struct VolumeControlView: View {
                 }
                 .buttonStyle(.plain)
                 .keyboardShortcut(.upArrow, modifiers: .command)
+                .accessibilityLabel(Text("音量を上げる", bundle: bundle))
             }
 
             // ミュートボタン
