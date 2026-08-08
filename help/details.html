@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>詳細ガイド - AVR Controller</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+    <header class="site">
+        <div class="title-row">
+            <h1>AVR Controller ヘルプ</h1>
+            <div class="lang-switch">
+                <a href="index.html">日本語</a>
+                <a href="en/details.html">English</a>
+            </div>
+        </div>
+        <nav class="tabs">
+            <a href="index.html">かんたんガイド</a>
+            <a href="details.html" class="current">詳細ガイド</a>
+            <a href="privacy.html">プライバシーポリシー</a>
+        </nav>
+    </header>
+
+    <h1 class="page-title">詳細ガイド</h1>
+    <p class="lede">対応機種、ネットワーク要件、トラブルシューティング、問題報告の方法について説明します。</p>
+
+    <h2>対応機種</h2>
+    <p>ネットワーク機能（HTTP API / ポート 8080）を備えた Denon / Marantz 製 AV レシーバーに対応しています。HEOS 対応モデルを推奨します。動作確認済み機種は Denon AVR-X3800H です。お使いの AVR がネットワーク制御に対応しているかは、取扱説明書や製品ページでご確認ください。</p>
+
+    <h2>ネットワーク要件</h2>
+    <div class="card">
+        <h3>同一ネットワーク</h3>
+        <p>AVR とアプリを実行する端末が、同じ Wi-Fi / LAN 上にある必要があります。ゲストネットワークやバンドステアリングで分離された Wi-Fi では検出できないことがあります。</p>
+    </div>
+    <div class="card">
+        <h3>使用ポート</h3>
+        <p>制御には HTTP（TCP 8080）、一部の状態通知には Telnet（TCP 23）を使用します。ルーターや AVR 側のファイアウォール設定でこれらのポートがブロックされていないことをご確認ください。</p>
+    </div>
+    <div class="card">
+        <h3>IP アドレスが変わった場合</h3>
+        <p>AVR の IP アドレスが DHCP で変わった場合でも、アプリは MAC アドレスをもとに再検出し、自動的に再接続を試みます。うまくいかない場合は「デバイスを検索」から手動で再接続してください。</p>
+    </div>
+
+    <h2>macOS 版について</h2>
+    <p>macOS 版はメニューバー常駐アプリです。メニューバーアイコンから素早く電源・音量・入力を操作でき、詳細な画面はメインウィンドウから開けます。「設定」で起動時にメニューバーのみで起動する（Dock アイコンなし）ことも可能です。</p>
+
+    <h2>iPad での利用</h2>
+    <p>iPad では左右分割のレイアウトに対応しており、Split View や Stage Manager を使いながら他のアプリと並べて操作できます。</p>
+
+    <h2>不具合報告・機能リクエスト</h2>
+    <p>アプリ内の「設定」→「問題を報告」から、種類（バグ報告 / 機能リクエスト / その他）を選んで送信できます。送信内容は GitHub 上で公開されるパブリックな Issue になりますので、メールアドレスなどの個人情報は書かないでください。詳しくは<a href="privacy.html">プライバシーポリシー</a>をご覧ください。</p>
+    <p>GitHub アカウントをお持ちの方は、直接 <a href="https://github.com/Yorihito/symmetrical-carnival/issues">Issues ページ</a>からも報告・リクエストいただけます。</p>
+
+    <footer class="site">
+        <p>© 2026 Yorihito Tada</p>
+    </footer>
+</div>
+</body>
+</html>

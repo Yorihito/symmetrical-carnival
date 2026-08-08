@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Details - AVR Controller</title>
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<div class="wrap">
+    <header class="site">
+        <div class="title-row">
+            <h1>AVR Controller Help</h1>
+            <div class="lang-switch">
+                <a href="../index.html">日本語</a>
+                <a href="details.html" class="current">English</a>
+            </div>
+        </div>
+        <nav class="tabs">
+            <a href="index.html">Quick Guide</a>
+            <a href="details.html" class="current">Details</a>
+            <a href="privacy.html">Privacy Policy</a>
+        </nav>
+    </header>
+
+    <h1 class="page-title">Details</h1>
+    <p class="lede">Supported models, network requirements, troubleshooting, and how to report issues.</p>
+
+    <h2>Supported Models</h2>
+    <p>Any network-enabled Denon / Marantz AV Receiver (HTTP API on port 8080) is supported; HEOS-ready models are recommended. Verified on the Denon AVR-X3800H. Check your receiver's manual or product page to confirm it supports network control.</p>
+
+    <h2>Network Requirements</h2>
+    <div class="card">
+        <h3>Same network</h3>
+        <p>Your AVR and the device running the app must be on the same Wi-Fi / LAN. Guest networks or band-steered SSIDs that isolate clients may prevent discovery.</p>
+    </div>
+    <div class="card">
+        <h3>Ports used</h3>
+        <p>Control uses HTTP (TCP 8080); some status notifications use Telnet (TCP 23). Make sure these ports aren't blocked by your router or receiver.</p>
+    </div>
+    <div class="card">
+        <h3>If the IP address changes</h3>
+        <p>If your AVR's IP address changes via DHCP, the app re-discovers it by MAC address and attempts to reconnect automatically. If that fails, use "Search for devices" to reconnect manually.</p>
+    </div>
+
+    <h2>About the macOS App</h2>
+    <p>The macOS app lives in your menu bar. Use the menu bar icon for quick power/volume/input control, or open the main window for the full interface. You can also configure it to launch as a menu-bar-only app (no Dock icon) in Settings.</p>
+
+    <h2>Using it on iPad</h2>
+    <p>The iPad layout supports a split view and works alongside Split View / Stage Manager for multitasking.</p>
+
+    <h2>Reporting Bugs & Feature Requests</h2>
+    <p>Use Settings → "Report a Problem" in the app, choose a category (Bug / Feature Request / Other), and send. This creates a public GitHub Issue, so please don't include personal information such as your email address in the body. See the <a href="privacy.html">Privacy Policy</a> for details.</p>
+    <p>If you have a GitHub account, you can also file reports directly on the <a href="https://github.com/Yorihito/symmetrical-carnival/issues">Issues page</a>.</p>
+
+    <footer class="site">
+        <p>© 2026 Yorihito Tada</p>
+    </footer>
+</div>
+</body>
+</html>
