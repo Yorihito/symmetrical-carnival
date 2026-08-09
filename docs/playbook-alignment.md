@@ -122,23 +122,36 @@ Phase 4  運用基盤（テレメトリ・CI）（任意・優先度低）
 
 Pro 導線は Phase 3 の意思決定後に追加するプレースホルダーとし、今は入れない。
 
-### 1-B. 問題報告・機能リクエスト機能（§3）— 実装済み
+### 1-B. 問題報告・機能リクエスト機能（§3・§5）— 実装済み（Worker プロキシ方式に更新）
 
-現状ユーザーの不具合報告手段が無かったため実装。**プレイブック §3/§5 が前提とする Cloudflare
-Worker プロキシ＋GitHub トークンは今回は作らず、`issues/new` の事前入力 URL をブラウザで開く
-フォールバック方式のみで実装した**（バックエンド運用コストを避けつつ、バグ報告と機能リクエストを
-GitHub Issue として受け取るという目的は満たせるため）。
+現状ユーザーの不具合報告手段が無かったため実装。**当初はバックエンド無しの `issues/new` 事前入力
+URL フォールバックのみで実装したが、後継アプリ（`Yorihito/upgraded-guacamole`）で確立済みの
+Cloudflare Worker プロキシ方式に合わせて書き換えた**（プレイブック §3・§5 が前提とするパターン）。
 
-- `Core/Diagnostics/ProblemReporter.swift`: `ProblemReportCategory`（bug/feature/other、GitHub の
-  既定ラベルに対応）と、診断情報（アプリ版・OS・機種・言語・接続中の AVR 機種名）を含めた
-  `issues/new` URL を組み立てる。**IP アドレス等のネットワーク情報は意図的に含めない**
-  （`defaultHost` はユーザーのローカル AVR アドレスであり、公開 Issue に載せるべきではないため）。
-- `Views/Shared/ProblemReportView.swift`: 種類選択・タイトル・本文（カテゴリ別テンプレート）・
-  診断情報を含めるトグル・「公開されます／個人情報を書かないで」の警告を表示し、GitHub をブラウザで開く。
+- `Core/Diagnostics/DiagnosticsLog.swift`（新規）: 直近 200 行の PII フリーなリングバッファ
+  （`NSLock` で保護、`@unchecked Sendable`）。`record(_:)` は IPv4/IPv6/MAC を正規表現で自動マスクする
+  バックストップを内蔵。`MainViewModel` の接続開始・成功・失敗・切断で `record(_:)` を呼ぶ
+  （失敗時は `error.localizedDescription` をそのまま渡すが、ホスト名を含み得るためこのマスクに依存）。
+- `Core/Diagnostics/ProblemReporter.swift`: `submit(_:)` がプロキシへ JSON POST（`{title, body,
+  category}`）し、`{url, number}` を受け取って Issue URL を返す。`Info.plist` の
+  `AVRReportEndpoint`（現状は空文字＝未設定）が空ならプロキシを使わず、`prefilledIssueURL` による
+  ブラウザフォールバックのみで動作する。診断情報には `DiagnosticsLog` の内容・アプリ版・OS・機種・
+  言語・接続中の AVR 機種名を含める。**IP アドレス等のネットワーク情報は構造上含めていない**。
+- `Views/Shared/ProblemReportView.swift`: 送信フェーズ（editing/submitting/posted/failed）を持ち、
+  失敗時は「ブラウザで報告（プレフィル）」「クリップボードにコピー」の代替導線を表示する。
+- `server/`（新規）: `worker.js`（`POST /report` のみ。カテゴリ→GitHub 標準ラベル
+  `bug`/`enhancement`/`question` の対応表、IP 直接非保存のソルト付きレート制限、グローバル上限、
+  ボディサイズ上限）、`wrangler.toml`、`README.md`（デプロイ手順）、`flake.nix`/`.envrc`
+  （§5 の教訓どおり nixpkgs の wrangler は使わず `npx wrangler` に統一）。
+  **参照実装にあった `/telemetry`・`/stats` は今回のスコープ外のため移植していない**（Phase 4 で
+  テレメトリを追加する際に検討）。
 - 送信先リポジトリは `https://github.com/Yorihito/symmetrical-carnival`（既存の公開リポジトリ）に
-  固定。ユーザー向けの報告先として適切かは要確認（§判断が必要な項目）。
-- 将来的にバックエンド経由の自動投稿（§5 のパターン）に切り替えたくなった場合も、
-  `ProblemReporter.issueURL` の呼び出し側を差し替えるだけで済む構成にしてある。
+  固定（ユーザー確認済み）。
+- **Worker は未デプロイ**。`server/README.md` の手順（`wrangler kv namespace create` →
+  `wrangler secret put GITHUB_TOKEN` / `RATE_SALT` → `wrangler deploy`）はユーザーの Cloudflare
+  アカウントでの実行が必要なため、エージェント側では完了できていない。デプロイ後、Worker URL +
+  `/report` を両 `Info.plist` の `AVRReportEndpoint` に設定すれば有効化される（未設定の間は
+  フォールバックのみで機能は完全に動作する）。
 
 ### 1-C. オンボーディング / What's New（§14）— 未実装（次回以降）
 
@@ -229,17 +242,22 @@ GitHub Issue として受け取るという目的は満たせるため）。
 
 1. **収益化の詳細（Phase 3）**: 投げ銭型の方向で進めてよいか。商品名・価格・設置場所（設定画面内が
    有力）を決める。
-2. **ヘルプサイトの公開**: `help/` と `.github/workflows/pages.yml` を push し、GitHub Pages を
-   有効化してよいか（リポジトリ設定の変更・公開ページが実際にインターネットに出る操作のため確認）。
-   有効化後は ASC の Support URL / Privacy Policy URL を新しい URL に更新する必要がある（手動作業）。
-3. **問題報告の送信先リポジトリ**: 現在は `Yorihito/symmetrical-carnival`（このリポジトリ）に固定。
-   アプリ名と異なる内部的なリポジトリ名がユーザーに見える点をどう考えるか（専用リポジトリを別途
-   作る／このままで良い、のいずれか）。
-4. **レビュー導線の App Store 直リンク**: 「レビューを書く」を App Store の商品ページへ直接飛ばす
+2. ~~ヘルプサイトの公開~~ → 解決済み。`help/` を push、GitHub Pages を有効化し、
+   `https://yorihito.github.io/symmetrical-carnival/` で公開中。**残タスク**: ASC の Support URL /
+   Privacy Policy URL をこの新しい URL に更新すること（エージェント側では実行できない手動作業）。
+3. ~~問題報告の送信先リポジトリ~~ → 解決済み。このリポジトリ（`Yorihito/symmetrical-carnival`）の
+   まま、Worker プロキシ経由で Issue を作成する方式に更新した（1-B 参照）。
+4. **Worker のデプロイ**: `server/` のコードは用意済みだが、`wrangler kv namespace create` /
+   `wrangler secret put GITHUB_TOKEN` / `RATE_SALT` / `wrangler deploy` はユーザーの Cloudflare
+   アカウントでの実行が必要（エージェントは代行不可）。デプロイ後、Worker URL + `/report` を
+   両 `Info.plist` の `AVRReportEndpoint` に設定すること。未デプロイの間はブラウザへの
+   プレフィル URL フォールバックのみで問題報告機能自体は動作する。
+5. **レビュー導線の App Store 直リンク**: 「レビューを書く」を App Store の商品ページへ直接飛ばす
    実装（`?action=write-review`）には、ASC 上の数値 App ID（iOS 版・Mac 版それぞれ）が必要。
    分かれば追加できる。
-5. **テレメトリ導入の要否（Phase 4）**: 見送り推奨だが、利用状況を知りたいニーズがあれば前倒しも可能。
-6. **アクセシビリティ対応の範囲**: 今回は主要操作（電源・音量・ミュート・Zone2/3電源・リモコン
+6. **テレメトリ導入の要否（Phase 4）**: 見送り推奨だが、利用状況を知りたいニーズがあれば前倒しも可能。
+   `server/worker.js` に `/telemetry` を追加する形で低コストに乗せられる（1-B 参照）。
+7. **アクセシビリティ対応の範囲**: 今回は主要操作（電源・音量・ミュート・Zone2/3電源・リモコン
    D-pad・メニューバー主要ボタン）のみ対応。残りの入力ソース選択・サラウンドモード選択・プリセット
    カード等への展開は Phase 1 以降に段階実施でよいか。
 
@@ -250,11 +268,12 @@ GitHub Issue として受け取るという目的は満たせるため）。
 - [x] **Phase 0**: `PrivacyInfo.xcprivacy`（両ターゲット）／`ITSAppUsesNonExemptEncryption: false`／
       審査ノート（実機デモ動画リンクのみ TODO）／主要操作の `accessibilityLabel`
 - [x] **Phase 1（コード面）**: 設定画面再構成（ガイド/プライバシー/問題報告/レビューのリンク追加）／
-      `ProblemReporter`+`ProblemReportView`（バックエンド無しの GitHub prefill 方式）／
-      `ReviewRequestManager`＋レビュー依頼導線／ヘルプサイト（`help/`）作成
-- [ ] **Phase 1（公開作業・要合意）**: `help/` と Pages ワークフローの push／GitHub Pages 有効化／
-      ASC の Support・Privacy URL 更新
-- [ ] **Phase 1（次回以降）**: オンボーディング＋What's New
+      `DiagnosticsLog`+`ProblemReporter`+`ProblemReportView`（Worker プロキシ＋フォールバック方式）／
+      `server/`（Worker・デプロイ手順一式、未デプロイ）／`ReviewRequestManager`＋レビュー依頼導線／
+      ヘルプサイト（`help/`）作成
+- [x] **Phase 1（公開作業）**: `help/` と Pages ワークフローの push／GitHub Pages 有効化
+- [ ] **Phase 1（残タスク）**: ASC の Support・Privacy URL 更新／Worker のデプロイ／
+      オンボーディング＋What's New（次回以降）
 - [ ] **Phase 2**: DEBUG デモモード＋`simctl` スクショ自動化／ASO 微調整／提出フロー運用確立
 - [ ] **Phase 3**（検討中）: 投げ銭型 IAP の詳細設計・実装
 - [ ] **Phase 4**（任意）: 単体テスト整備 → CI → （必要なら）テレメトリ
