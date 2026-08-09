@@ -14,6 +14,10 @@
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<!-- 問題報告プロキシ（server/）の URL。未設定ならプレフィルURLフォールバックのみで動作する。
+	     デプロイ後、Worker の URL + "/report" を設定すること（例: https://xxx.workers.dev/report）。 -->
+	<key>AVRReportEndpoint</key>
+	<string></string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>LSApplicationCategoryType</key>

@@ -206,3 +206,17 @@
 "GitHub で送信" = "Send via GitHub";
 "起きたこと:\n\n再現手順:\n\n期待した動作:\n" = "What happened:\n\nSteps to reproduce:\n\nExpected behavior:\n";
 "実現したいこと:\n\n背景・理由:\n" = "What you'd like:\n\nBackground / reason:\n";
+
+/* Problem Report - submission (Worker proxy + fallback) */
+"この内容は GitHub 上で公開されます。個人情報（メールアドレスなど）は書かないでください。" = "This will be posted publicly on GitHub. Please don't include personal information (such as your email address).";
+"送信中…" = "Sending…";
+"送信しました" = "Sent";
+"Issue を開く" = "Open Issue";
+"送信に失敗しました" = "Sending failed";
+"送信先に接続できない場合は、ブラウザで報告するかコピーしてください。" = "If the report can't reach the server, report it in your browser instead, or copy it.";
+"ブラウザで報告（プレフィル）" = "Report in Browser (Prefilled)";
+"コピーしました" = "Copied";
+"クリップボードにコピー" = "Copy to Clipboard";
+"送信先が設定されていません。" = "No report server is configured.";
+"送信に失敗しました。" = "Sending failed.";
+"送信に失敗しました（応答が不正）。" = "Sending failed (invalid response).";

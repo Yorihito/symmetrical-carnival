@@ -160,6 +160,7 @@ final class MainViewModel {
         connectionStatus = .connecting
         connectingDetail = ""
         errorMessage = nil
+        DiagnosticsLog.shared.record("connect: start")
 
         do {
             connectionLog.append("Step 2: Connecting via HTTP to port \(targetPort)...")
@@ -177,6 +178,7 @@ final class MainViewModel {
             avr.deviceInfo  = finalInfo
             lastConnectedHost = host
             ReviewRequestManager.recordSuccess()
+            DiagnosticsLog.shared.record("connect: success (\(finalInfo.modelName))")
 
             // MAC アドレスを保存しておく（次回起動時に IP が変わっていても同一機体として再検出できるように）
             if !finalInfo.macAddress.isEmpty {
@@ -256,6 +258,9 @@ final class MainViewModel {
             errorMessage = error.localizedDescription
             connectionStatus = .error(error.localizedDescription)
             avr.isConnected = false
+            // record() redacts IPs/MACs as a backstop, but error.localizedDescription
+            // can otherwise echo the host we just tried to reach.
+            DiagnosticsLog.shared.record("connect: failed - \(error.localizedDescription)")
 
             // DHCP で AVR の IP が変わった可能性があるので、同じ MAC アドレスの機体を
             // 再検索し、見つかれば新しい IP で 1 回だけ自動的に再接続する。
@@ -290,6 +295,9 @@ final class MainViewModel {
 
     private func handleDisconnect() {
         print("[DenonLog] handleDisconnect() called")
+        if connectionStatus.isConnected {
+            DiagnosticsLog.shared.record("disconnect")
+        }
         connectionStatus = .disconnected
         avr.isConnected = false
         errorMessage = nil
