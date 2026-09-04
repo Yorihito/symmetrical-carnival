@@ -1,7 +1,9 @@
 # リポジトリ調査結果（現状スナップショット）
 
-調査日: 2026-09-04  
-対象ブランチ: `main`  
+調査日: 2026-09-04
+
+対象ブランチ: `main`
+
 対象コミット: `1ab02ab` (`Update design doc: problem report now uses the Worker proxy pattern`)
 
 ## 1. 概要
