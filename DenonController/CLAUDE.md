@@ -24,7 +24,7 @@ No test targets exist. Validation is manual against a physical Denon AVR-X3800H.
 
 macOS menu bar + windowed app for controlling Denon/Marantz AV receivers over LAN. Pure Swift/SwiftUI, no external dependencies.
 
-**Stack:** Swift 6.0, macOS 14.0+, SwiftUI with `@Observable`, strict concurrency (targeted)
+**Stack:** Swift 6.0, macOS 14.0+ / iOS 17.0+, SwiftUI with `@Observable`, strict concurrency (targeted)
 
 ### Data Flow
 
@@ -40,7 +40,7 @@ Views (@Environment) → MainViewModel (@Observable, @MainActor)
 
 ### Key Design Decisions
 
-- **BSD sockets over URLSession/NWConnection**: Apple's network stack performs internet reachability checks that fail on local-only WiFi. Raw sockets with `IP_BOUND_IF` interface binding bypass this.
+- **BSD sockets over URLSession/NWConnection**: Apple's network stack performs internet reachability checks that fail on local-only WiFi. Raw sockets avoid that behavior. `IP_BOUND_IF` is used on iOS only; macOS relies on standard routing for App Sandbox compatibility.
 - **`AppDelegate.shared` over `NSApp.delegate as? AppDelegate`**: The SwiftUI `@NSApplicationDelegateAdaptor` wraps the delegate such that the cast can silently return nil. A `nonisolated(unsafe) static weak var shared` set in `init()` is the reliable access pattern.
 - **Window suppression via `alpha=0`**: In menuBarOnly mode, the WindowGroup window is hidden with `alphaValue=0` + `ignoresMouseEvents=true` instead of `orderOut`/`close`, which conflicts with SwiftUI's scene management. Restored via "Open Details" button.
 - **Activation policy switching**: `.accessory` on launch (no Dock icon), `.regular` when showing window, `.accessory` again on window close.
@@ -73,4 +73,4 @@ Status polling parses XML from `/goform/formMainZone_MainZoneXmlStatusLite.xml`.
 
 ## Entitlements
 
-App Sandbox is **disabled** (required for BSD socket access). Network client entitlement is enabled. Bonjour service: `_denon-heos._tcp`.
+The macOS App Sandbox is **enabled**, with outbound network access enabled. Bonjour services are declared in `Info.plist` (`_denon-heos._tcp`, `_heos-audio._tcp`, and `_http._tcp`). Do not disable the sandbox; BSD socket code must remain compatible with it.

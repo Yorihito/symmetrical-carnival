@@ -45,9 +45,6 @@ symmetrical-carnival/
 │   │   └── Views/
 │   │       ├── Shared/            # Shared with iOS: LocalizationHelper, VolumeControlView, CardView
 │   │       └── MainWindow/        # macOS-only views
-│   └── DenonControllerMobile/     # iOS/iPadOS app sources (separate directory)
-│       ├── App/
-│       └── Views/                 # iOS-specific views
 └── DenonControllerMobile/         # iOS asset catalog and app entry point
     ├── App/
     ├── Assets.xcassets/
@@ -67,7 +64,7 @@ macOS-only code (AppKit imports, NSApp, AppDelegate, window management) lives ex
 
 Denon/Marantz AVR controller for macOS (menu bar + windowed) and iOS/iPadOS. Pure Swift/SwiftUI, no external dependencies.
 
-**Stack:** Swift 6.0, macOS 14.0+ / iOS 26.0+, SwiftUI with `@Observable`, strict concurrency (targeted)
+**Stack:** Swift 6.0, macOS 14.0+ / iOS 17.0+, SwiftUI with `@Observable`, strict concurrency (targeted)
 
 ### Data Flow
 
@@ -76,6 +73,8 @@ Views (@Environment) → MainViewModel (@Observable, @MainActor)
                          ├─ AVRHTTPClient (BSD sockets, port 8080)
                          │    ├─ Polling: XML status every 1.5s via AsyncStream
                          │    └─ Commands: /goform/formiPhoneAppDirect.xml?CMD
+                         ├─ TelnetClient (port 23, optional live updates)
+                         ├─ MDNSDiscovery / MDNSScanner (Bonjour discovery)
                          ├─ AVRState (observable state container)
                          ├─ PresetStore (UserDefaults persistence)
                          └─ InputNameStore (custom input naming)
@@ -83,7 +82,7 @@ Views (@Environment) → MainViewModel (@Observable, @MainActor)
 
 ### Key Design Decisions
 
-- **BSD sockets over URLSession/NWConnection**: Apple's network stack performs internet reachability checks that fail on local-only WiFi. Raw sockets with `IP_BOUND_IF` interface binding bypass this.
+- **BSD sockets over URLSession/NWConnection**: Apple's network stack performs internet reachability checks that fail on local-only WiFi. Raw sockets avoid that behavior. `IP_BOUND_IF` is applied on iOS when a matching interface is found and is intentionally not applied on macOS.
 - **`AppDelegate.shared` over `NSApp.delegate as? AppDelegate`** (macOS): The SwiftUI `@NSApplicationDelegateAdaptor` wraps the delegate such that the cast can silently return nil. A `nonisolated(unsafe) static weak var shared` set in `init()` is the reliable access pattern.
 - **Window suppression via `alpha=0`** (macOS): In menuBarOnly mode, the WindowGroup window is hidden with `alphaValue=0` + `ignoresMouseEvents=true` instead of `orderOut`/`close`, which conflicts with SwiftUI's scene management.
 - **Surround mode spaces**: `SurroundMode.rawValue` contains spaces (e.g. `"PURE DIRECT"`) but the AVR command requires spaces removed. Use `.command` (not `.rawValue`) when sending. `rawValue` is preserved for Codable compatibility.
@@ -101,58 +100,11 @@ Commands are plain strings sent via HTTP GET to port 8080:
 Status polling parses XML from `/goform/formMainZone_MainZoneXmlStatusLite.xml`.
 Tuner presets are fetched from `/goform/formTuner_TunerPresetXml.xml` (XML bulk fetch, falls back to Telnet scan).
 
-## OSD Navigation (Remote Control) Implementation
+## OSD Navigation (Remote Control)
 
-**Target:** macOS only (`DenonController/Views/MainWindow/RemoteView.swift`)
-
-**Files to change:**
-
-| File | Change |
-|------|--------|
-| `DenonController/ViewModels/MainViewModel.swift` | Add `// MARK: - OSD Navigation` section with 9 methods after the Zone 3 block |
-| `DenonController/Views/MainWindow/ContentView.swift` | Add `case remote = "リモコン"` to `NavSection`; add `.remote: RemoteView()` to detail switch |
-| `DenonController/Views/MainWindow/RemoteView.swift` | New file — macOS-only remote control UI (direction pad + function buttons) |
-| `DenonController/en.lproj/Localizable.strings` | Add English translations for all new UI strings |
-
-**ViewModel methods to add** (`MainViewModel.swift`, after `zone3VolumeDown()`):
-```swift
-// MARK: - OSD Navigation
-func cursorUp()     { send("MNCUP") }
-func cursorDown()   { send("MNCDN") }
-func cursorLeft()   { send("MNCLT") }
-func cursorRight()  { send("MNCRT") }
-func cursorEnter()  { send("MNENT") }
-func back()         { send("MNRTN") }
-func infoButton()   { send("MNINF") }
-func optionButton() { send("MNOPT") }
-func setupMenu()    { send("MNMEN") }
-```
-
-**UI layout** (`RemoteView.swift`):
-```
-┌─────────────────────────────┐
-│  [情報]   [オプション] [設定] │  ← CardView: function buttons
-│                             │
-│          [ ↑ ]             │
-│      [←] [決定] [→]        │  ← CardView: direction pad (3×3 grid)
-│          [ ↓ ]             │
-│                             │
-│           [戻る]            │  ← CardView: back button
-└─────────────────────────────┘
-```
-
-Reuse `CardView` (defined in `DashboardView.swift`, accessible within the same module).
-`NavSection.remote` uses SF Symbol `tv.remote` (available on macOS 14+).
-
-**Localization strings to add** (`en.lproj/Localizable.strings`):
-```
-"リモコン" = "Remote";
-"情報" = "Info";
-"オプション" = "Options";
-"設定メニュー" = "Setup";
-"決定" = "Enter";
-"戻る" = "Back";
-```
+OSD navigation is implemented on both macOS and iOS/iPadOS. Commands are
+exposed by `MainViewModel`, while each platform has its own `RemoteView`.
+Keep command behavior shared and platform layout code separate.
 
 ## Localization
 
@@ -172,7 +124,7 @@ In iOS views, always add `@Environment(\.localizedBundle) private var lBundle` a
 
 ## SF Symbols
 
-This project targets iOS 26+ and macOS 14+. When choosing SF Symbols, verify availability in SF Symbols app — some symbols only exist in newer OS versions or are platform-specific. Known unavailable on macOS 14: `tv.remote`, `satellite`. Safe alternatives: `dpad` (remote/navigation), `cable.connector`, `antenna.radiowaves.left.and.right.circle`, `opticaldisc`, `record.circle`.
+This project targets iOS 17+ and macOS 14+. When choosing SF Symbols, verify availability against both deployment targets—some symbols only exist in newer OS versions or are platform-specific. Known unavailable on macOS 14: `tv.remote`, `satellite`. Safe alternatives: `dpad` (remote/navigation), `cable.connector`, `antenna.radiowaves.left.and.right.circle`, `opticaldisc`, `record.circle`.
 
 ## Critical Requirements & Session Summary
 
@@ -187,7 +139,7 @@ This project targets iOS 26+ and macOS 14+. When choosing SF Symbols, verify ava
 - **Verification**: Always check both English and Japanese modes. Key points: "Stations fetched", "Remaining slots", "Switch to TUNER".
 
 ### macOS App Sandbox & Discovery
-- **Sandbox**: MUST be `true` for App Store submission. (Target: `DenonController.entitlements`)
+- **Sandbox**: MUST remain `true` for App Store submission. The macOS entitlement currently enables App Sandbox and outbound network access.
 - **Discovery Strategy**:
     - Prioritize numeric IP addresses over `.local` hostnames to avoid mDNS resolution timeouts on Mac.
     - **Mac-specific**: Disable `IP_BOUND_IF` (interface binding) on macOS as it conflicts with Sandbox; use standard OS routing instead.
@@ -207,6 +159,6 @@ This project targets iOS 26+ and macOS 14+. When choosing SF Symbols, verify ava
 
 ## Security & Sandbox
 
-- **Mandatory**: App Sandbox MUST be set to `true` in `DenonController.entitlements`. This is a non-negotiable requirement for App Store submission.
+- **Mandatory**: App Sandbox MUST remain `true` in `DenonController.entitlements` for App Store submission.
 - **Local Network**: To trigger the Local Network permission dialog on macOS, ensure `NSLocalNetworkUsageDescription` and `NSBonjourServices` are present in `Info.plist`.
 - **Socket Communication**: While BSD sockets work in Sandbox, avoid restricted socket options like `IP_BOUND_IF` if they cause failures. Prefer standard routing when possible.

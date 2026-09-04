@@ -3,7 +3,24 @@
 **対象機種:** Denon AVR-X3800H  
 **プラットフォーム:** macOS 14 (Sonoma) 以上  
 **アーキテクチャ:** SwiftUI + Swift Concurrency  
-**最終更新:** 2026-04-12
+**最終更新:** 2026-09-04
+
+> この文書は初期要件に、2026-09-04時点の実装状況を追記したものである。詳細な現行構成と
+> 運用状態は [`docs/repository-overview.md`](docs/repository-overview.md) を参照すること。
+
+## 0. 現在の実装状況
+
+| 領域 | 状況 | 補足 |
+|---|---|---|
+| macOSアプリ | 実装済み | 通常ウィンドウ＋メニューバー常駐、macOS 14以上 |
+| iOS / iPadOSアプリ | 実装済み | iPhoneタブUI＋iPad split view、iOS 17以上 |
+| 接続・検出 | 実装済み | Bonjour/mDNS、手動IP、DHCP変更時のMACアドレス照合による再検出 |
+| 基本・拡張操作 | 実装済み | Main Zone、Zone 2/3、入力、サラウンド、チューナー、OSD、プリセット |
+| HEOS再生情報・制御 | 未実装 | mDNSではHEOSサービスも探索するが、HEOS CLIクライアントは未実装 |
+| ローカライズ | 実装済み | 日本語・英語、アプリ内切り替え |
+| ヘルプサイト | 実装・公開済み | GitHub Pages、日本語・英語 |
+| 問題報告 | 一部運用待ち | UIとWorkerコードは実装済み。Worker未設定時はGitHub画面へフォールバック |
+| 自動テスト・アプリCI | 未実装 | テストターゲットなし。現状は手動検証 |
 
 ---
 
@@ -21,8 +38,8 @@ Denon AVR-X3800H をネットワーク経由でフル制御できる、洗練さ
 | プロトコル | 用途 | ポート |
 |------------|------|--------|
 | Telnet (TCP) | コマンド送受信（リアルタイム制御） | 23 |
-| HTTP REST API | 状態取得・一部制御 | 80 |
-| HEOS Protocol (TCP) | ストリーミング情報・HEOS制御 | 1255 |
+| HTTP API | 状態取得・制御 | 8080（検出時は通知ポート、8080、80の順に確認） |
+| HEOS Protocol (TCP) | ストリーミング情報・HEOS制御（将来候補・未実装） | 1255 |
 | mDNS / Bonjour | 自動デバイス検出 | — |
 
 ### アーキテクチャ方針
@@ -267,75 +284,66 @@ Denon AVR-X3800H をネットワーク経由でフル制御できる、洗練さ
 
 ---
 
-## 6. 開発ロードマップ
+## 6. 開発ロードマップ／実績
 
 ### Phase 1 — MVP（コア制御）
-- [ ] TCP 接続 + Telnet コマンドエンジン
-- [ ] mDNS 自動検出
-- [ ] 電源 / 音量 / ミュート / 入力切替
-- [ ] メインウィンドウ基本UI
-- [ ] メニューバーアイコン + ポップオーバー
+- [x] HTTP接続・コマンド送信・状態ポーリング
+- [x] 補助的なTelnet接続と通知受信
+- [x] mDNS自動検出と手動IP接続
+- [x] 電源 / 音量 / ミュート / 入力切替
+- [x] メインウィンドウ基本UI
+- [x] メニューバーアイコン＋ポップオーバー
 
 ### Phase 2 — 拡張制御
-- [ ] サラウンドモード選択
-- [ ] Zone 2/3 制御
-- [ ] チューナー制御
-- [ ] プリセット機能
-- [ ] キーボードショートカット
+- [x] サラウンドモード選択
+- [x] Zone 2/3 制御
+- [x] チューナー制御とプリセット走査
+- [x] アプリ内プリセット機能
+- [x] OSDリモコン
+- [x] 音量・ミュートのキーボードショートカット
+- [ ] 当初定義した電源・数字キー・再生操作を含む全ショートカット
 
 ### Phase 3 — HEOS / 仕上げ
 - [ ] HEOS プロトコル統合（再生情報・アートワーク）
 - [ ] ストリーミング再生制御
 - [ ] オーディオ詳細設定パネル
-- [ ] OSD メニュー操作
+- [x] OSD メニュー操作
 - [ ] 設定エクスポート / インポート
+
+### 配布・運用（初期ロードマップ策定後に追加）
+
+- [x] iOS / iPadOSアプリ
+- [x] 日英ローカライズ
+- [x] プライバシーマニフェストと輸出コンプライアンス設定
+- [x] 日英ヘルプ／プライバシーサイトとGitHub Pages公開
+- [x] 問題報告UI、診断ログ、GitHub Issueフォールバック
+- [x] 問題報告用Cloudflare Workerコード
+- [ ] Cloudflare Workerの本番デプロイとアプリへのエンドポイント設定
+- [ ] 自動テストとアプリ本体のCI
 
 ---
 
-## 7. ファイル構成（予定）
+## 7. 現在のファイル構成
 
-```
-DenonController/
-├── App/
-│   ├── DenonControllerApp.swift      # エントリポイント
-│   └── AppDelegate.swift             # メニューバー管理
-├── Core/
-│   ├── Network/
-│   │   ├── TelnetClient.swift        # TCP接続・コマンド送受信
-│   │   ├── HEOSClient.swift          # HEOSプロトコル
-│   │   └── MDNSDiscovery.swift       # Bonjour自動検出
-│   ├── Commands/
-│   │   ├── PowerCommands.swift
-│   │   ├── VolumeCommands.swift
-│   │   ├── InputCommands.swift
-│   │   ├── SurroundCommands.swift
-│   │   └── TunerCommands.swift
-│   └── Models/
-│       ├── AVRState.swift            # AVRの現在状態モデル
-│       ├── Preset.swift
-│       └── AVRProfile.swift
-├── ViewModels/
-│   ├── MainViewModel.swift
-│   ├── VolumeViewModel.swift
-│   └── HEOSViewModel.swift
-├── Views/
-│   ├── MainWindow/
-│   │   ├── ContentView.swift
-│   │   ├── SidebarView.swift
-│   │   └── Tabs/
-│   │       ├── InputTabView.swift
-│   │       ├── SurroundTabView.swift
-│   │       ├── TunerTabView.swift
-│   │       ├── HEOSTabView.swift
-│   │       ├── ZoneTabView.swift
-│   │       └── PresetTabView.swift
-│   ├── MenuBar/
-│   │   ├── MenuBarController.swift
-│   │   └── MenuBarPopoverView.swift
-│   └── Settings/
-│       └── SettingsView.swift
-└── Resources/
-    └── Assets.xcassets
+```text
+symmetrical-carnival/
+├── DenonController/
+│   ├── project.yml                    # XcodeGen定義（両ターゲット）
+│   ├── DenonController/
+│   │   ├── App/                       # macOSエントリポイント
+│   │   ├── Core/
+│   │   │   ├── Diagnostics/           # 診断ログ、問題報告、ヘルプURL
+│   │   │   ├── Models/                # AVRState、入力、サラウンド等
+│   │   │   ├── Network/               # HTTP、Telnet、mDNS
+│   │   │   ├── Persistence/           # プリセット、入力名
+│   │   │   └── Review/                # レビュー依頼判定
+│   │   ├── ViewModels/                # 共有MainViewModel
+│   │   └── Views/                     # macOS固有UIと共有UI
+│   └── DenonController.xcodeproj/
+├── DenonControllerMobile/             # iOS/iPadOS固有UI・アセット
+├── help/                              # 日英ヘルプサイト
+├── server/                            # 問題報告用Cloudflare Worker
+└── docs/                              # 設計・App Store・現状資料
 ```
 
 ---

@@ -1,54 +1,124 @@
-# Denon Controller
+# AVR Controller
 
-**Stop searching for the remote. Control your Denon/Marantz system with the fastest, most responsive app ever made.**
+AVR Controller is a native macOS, iOS, and iPadOS remote for network-enabled
+Denon and Marantz AV receivers. It is designed for fast local-network control,
+with a full app on every platform and quick access from the macOS menu bar.
 
-Denon Controller is a premium, lightweight, and ultra-responsive remote control application for Denon and Marantz AV Receivers (AVR). Built with a focus on user experience and speed, it eliminates the lag and complexity of traditional apps, giving you instant command over your home theater.
+The primary development and validation device is a Denon AVR-X3800H. Other
+models that expose compatible Denon HTTP/Telnet commands may work, but behavior
+can vary by model and firmware.
 
-## 📱 User Experience
+## Features
 
-- **Lightning-Fast Response:** Experience zero-friction control. Whether you're adjusting volume or switching inputs, the receiver responds instantly.
-- **Tactile Feedback:** Feel every interaction. On iOS, we use the Taptic Engine to provide satisfying haptic confirmation for button presses and volume adjustments.
-- **Modern Design:** A clean, focused interface that looks beautiful on any device and stays out of your way while you enjoy your media.
+- Main Zone power, volume, mute, input, and surround-mode control
+- Zone 2 and Zone 3 control when supported by the receiver
+- FM/AM tuner control and preset scanning
+- On-screen menu navigation (direction pad, Enter, Back, Info, Options, Setup)
+- User presets for input, volume, and surround mode
+- Bonjour/mDNS discovery and manual IP address entry
+- Automatic rediscovery when a receiver's DHCP address changes
+- macOS menu bar controls and a full control window
+- iPhone tab-based UI and iPad split-view UI
+- Japanese and English UI
+- In-app help, privacy information, problem reporting, and review requests
 
-## 🚀 Platform Support
+## Architecture
 
-- **iOS & iPadOS:** A native mobile experience designed for one-handed use on iPhone and full productivity with Split View/Stage Manager on iPad.
-- **macOS Menu Bar:** Control your audio system without leaving your current app. A dedicated macOS client lives in your Menu Bar for instant access to power, volume, and input controls.
+The apps are written in Swift 6 using SwiftUI, Observation, and Swift
+Concurrency. There are no third-party package dependencies.
 
-## 🛠 Key Features
+```text
+SwiftUI Views
+    ↓
+MainViewModel (@Observable, @MainActor)
+    ├── AVRHTTPClient   HTTP commands and XML status polling
+    ├── TelnetClient   real-time AVR notifications
+    ├── MDNSDiscovery  Bonjour device discovery
+    ├── AVRState       observable receiver state
+    └── UserDefaults-backed preset and input-name stores
+```
 
-- **Power & Volume:** Effortless management of main and secondary zones.
-- **Multi-Zone Support:** Full control over Zone 2 and Zone 3 power and volume levels.
-- **Input & Surround:** Quick-switch between HDMI, Phono, Bluetooth, and more, or change your Surround Mode on the fly.
-- **Tuner Management:** Manage FM/AM frequencies and bulk-fetch presets directly from your AVR.
-- **Auto-Discovery:** Automatically finds your AVR on the network using mDNS (Bonjour) technology.
+HTTP communication uses BSD sockets directly. This avoids internet-reachability
+behavior that can interfere with local-only Wi-Fi and multi-interface setups.
+The default HTTP API port is 8080; Telnet notifications use port 23.
 
-## 💻 Technology Stack
+See [docs/repository-overview.md](docs/repository-overview.md) for a detailed
+snapshot of the repository and its current operational state.
 
-- **Swift 6 / SwiftUI:** Leveraging the latest language features and declarative UI framework.
-- **Observation Framework:** Modern state management for reactive UI updates.
-- **Denon HTTP API:** High-speed communication via the network-enabled HTTP API (Port 8080).
-- **mDNS/Bonjour:** Seamless device discovery without needing to remember IP addresses.
+## Requirements
 
-## 🏗 Setup & Installation
+- Xcode 16 or later
+- XcodeGen
+- macOS 14.0 or later for the Mac app
+- iOS/iPadOS 17.0 or later for the mobile app
+- A compatible Denon or Marantz AVR on the same local network
 
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/ytada/symmetrical-carnival.git
-   ```
-2. **Open the project:**
-   Open `DenonController/DenonController.xcodeproj` in Xcode 15 or later.
-3. **Select your target:**
-   - Choose `DenonController` for the macOS Menu Bar app.
-   - Choose `DenonControllerMobile` for the iOS/iPadOS app.
-4. **Build and Run:**
-   Ensure your device is on the same Wi-Fi network as your AVR.
+## Build
 
-## ⚖️ Compatibility
+Generate the Xcode project after adding or removing Swift source files:
 
-Requires a network-enabled Denon or Marantz AV Receiver that supports the HTTP API (Port 8080). 
-*Compatible with most HEOS-ready models, including the AVR-X3800H and similar series.*
+```bash
+cd DenonController
+xcodegen generate
+cd ..
+```
 
----
+Build the macOS app:
 
-**Copyright (c) 2026 Yorihito Tada. All rights reserved.**
+```bash
+export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
+xcodebuild -project ./DenonController/DenonController.xcodeproj \
+  -scheme DenonController \
+  -destination 'platform=macOS,arch=arm64' build
+```
+
+Build the iOS app:
+
+```bash
+xcodebuild -project ./DenonController/DenonController.xcodeproj \
+  -scheme DenonControllerMobile \
+  -destination 'generic/platform=iOS' build
+```
+
+There are currently no automated test targets. UI-only changes can be checked
+in a simulator; receiver integration requires a physical compatible AVR.
+
+## Repository Layout
+
+```text
+DenonController/          XcodeGen project, macOS app, and shared Swift code
+DenonControllerMobile/    iOS/iPadOS-specific app code and assets
+help/                     Japanese and English GitHub Pages help site
+server/                   Cloudflare Worker for GitHub problem reports
+docs/                     Architecture, launch, and App Store documentation
+```
+
+The mobile target shares `Core`, `ViewModels`, `Views/Shared`, and localization
+resources from the macOS source tree. `DenonController/project.yml` is the
+source of truth for target membership and deployment settings.
+
+## Help and Privacy
+
+- Help: <https://yorihito.github.io/symmetrical-carnival/>
+- English help: <https://yorihito.github.io/symmetrical-carnival/en/>
+- Privacy policy: <https://yorihito.github.io/symmetrical-carnival/privacy.html>
+
+Problem reports can be submitted from Settings. When the report proxy is not
+configured, the app falls back to opening a prefilled public GitHub Issue.
+Do not include information you do not want published publicly.
+
+The Worker deployment procedure is documented in
+[server/README.md](server/README.md).
+
+## Documentation
+
+- [Current repository overview](docs/repository-overview.md)
+- [Product requirements and implementation status](REQUIREMENTS.md)
+- [App launch/playbook alignment](docs/playbook-alignment.md)
+- [App Review notes](docs/AppStore/ReviewNotes.md)
+- [macOS App Store metadata](docs/AppStore/Metadata_Mac.md)
+- [iOS App Store metadata](docs/AppStore/Metadata_iOS.md)
+
+## License
+
+Copyright © 2026 Yorihito Tada. Licensed under the [MIT License](LICENSE).
