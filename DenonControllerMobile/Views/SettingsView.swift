@@ -5,6 +5,7 @@ struct SettingsView: View {
     @AppStorage("defaultHost")  private var defaultHost  = ""
     @AppStorage("autoConnect")  private var autoConnect  = true
     @AppStorage("appLanguage")  private var appLanguage  = "system"
+    @AppStorage("volumeControlStyle") private var volumeControlStyle = "slider"
     @AppStorage("debugMode")    private var debugMode    = false
     @Environment(MainViewModel.self) private var vm
     @Environment(\.locale) private var locale
@@ -138,6 +139,17 @@ struct SettingsView: View {
             } label: {
                 Text("表示言語", bundle: bundle)
             }
+
+            Picker(selection: $volumeControlStyle) {
+                Text("スライダー", bundle: bundle).tag("slider")
+                Text("ダイアル", bundle: bundle).tag("dial")
+            } label: {
+                Text("音量コントロール", bundle: bundle)
+            }
+
+            Text("メインゾーンの音量操作をいつでも切り替えられます。", bundle: bundle)
+                .font(.caption)
+                .foregroundStyle(.secondary)
         }
     }
 
@@ -307,6 +319,7 @@ struct SettingsView: View {
         defaultHost  = ""
         autoConnect  = true
         appLanguage  = "system"
+        volumeControlStyle = "slider"
         debugMode    = false
 
         // 入力ソース名・非表示設定

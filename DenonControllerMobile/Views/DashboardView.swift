@@ -4,6 +4,7 @@ struct DashboardView: View {
     @Environment(MainViewModel.self) private var vm
     @Environment(\.localizedBundle) private var bundle
     @Binding var showConnection: Bool
+    @AppStorage("volumeControlStyle") private var volumeControlStyle = "slider"
 
     @State private var isDraggingVolume = false
     @State private var isPendingVolume  = false
@@ -137,15 +138,37 @@ struct DashboardView: View {
             .frame(maxWidth: .infinity)
             .padding(.top, 20)
 
-            // スライダー
-            VolumeSlider(
-                vm: vm,
-                isDragging: $isDraggingVolume,
-                isPending: $isPendingVolume,
-                dragValue: $dragVolumeValue,
-                lastTouch: $lastInteractionTime,
-                hapticTrigger: $hapticTrigger
-            )
+            // スライダー／ダイアル（設定で切り替え）
+            Group {
+                if volumeControlStyle == "dial" {
+                    VolumeDialControl(
+                        value: displayDB,
+                        isMuted: vm.avr.isMuted,
+                        diameter: 184
+                    ) { newValue, editing in
+                        if editing && !isDraggingVolume {
+                            isPendingVolume = false
+                        }
+                        dragVolumeValue = newValue
+                        isDraggingVolume = editing
+                        lastInteractionTime = Date()
+                        if !editing {
+                            isPendingVolume = true
+                            vm.setVolume(newValue)
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
+                } else {
+                    VolumeSlider(
+                        vm: vm,
+                        isDragging: $isDraggingVolume,
+                        isPending: $isPendingVolume,
+                        dragValue: $dragVolumeValue,
+                        lastTouch: $lastInteractionTime,
+                        hapticTrigger: $hapticTrigger
+                    )
+                }
+            }
                 .padding(.horizontal, 20)
                 .padding(.vertical, 12)
                 .disabled(!isOn)

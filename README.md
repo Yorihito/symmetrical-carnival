@@ -11,6 +11,7 @@ can vary by model and firmware.
 ## Features
 
 - Main Zone power, volume, mute, input, and surround-mode control
+- Switchable volume UI: the familiar slider or an app-icon-inspired tactile dial
 - Zone 2 and Zone 3 control when supported by the receiver
 - FM/AM tuner control and preset scanning
 - On-screen menu navigation (direction pad, Enter, Back, Info, Options, Setup)

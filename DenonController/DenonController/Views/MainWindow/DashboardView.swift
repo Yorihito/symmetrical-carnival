@@ -91,7 +91,8 @@ struct DashboardView: View {
                     onVolumeChange: { vm.setVolume($0) },
                     onMuteToggle: { vm.toggleMute() },
                     onVolumeUp: { vm.volumeUp() },
-                    onVolumeDown: { vm.volumeDown() }
+                    onVolumeDown: { vm.volumeDown() },
+                    allowsDial: true
                 )
                 .disabled(!vm.avr.isConnected || !vm.avr.isPoweredOn)
             }
