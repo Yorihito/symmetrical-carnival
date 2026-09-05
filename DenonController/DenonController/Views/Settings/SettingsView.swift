@@ -7,6 +7,7 @@ struct SettingsView: View {
     @AppStorage("showInDock")   private var showInDock = true
     @AppStorage("menuBarOnly")  private var menuBarOnly = false
     @AppStorage("appLanguage")  private var appLanguage = "system"
+    @AppStorage("volumeControlStyle") private var volumeControlStyle = "slider"
     @AppStorage("debugMode")    private var debugMode = false
     @Environment(MainViewModel.self) private var vm
     @Environment(\.locale) private var locale
@@ -49,6 +50,17 @@ struct SettingsView: View {
                 } label: {
                     Text("表示言語", bundle: bundle)
                 }
+
+                Picker(selection: $volumeControlStyle) {
+                    Text("スライダー", bundle: bundle).tag("slider")
+                    Text("ダイアル", bundle: bundle).tag("dial")
+                } label: {
+                    Text("音量コントロール", bundle: bundle)
+                }
+
+                Text("メインゾーンの音量操作をいつでも切り替えられます。", bundle: bundle)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
 
                 Toggle(isOn: $showInDock) {
                     Text("Dock にアイコンを表示", bundle: bundle)
@@ -254,6 +266,7 @@ struct SettingsView: View {
         showInDock   = true
         menuBarOnly  = false
         appLanguage  = "system"
+        volumeControlStyle = "slider"
         debugMode    = false
 
         // 入力ソース名・非表示設定

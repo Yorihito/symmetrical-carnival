@@ -55,6 +55,7 @@
 
 /* VolumeControlView / MenuBarPopoverView */
 "ミュート中" = "Muted";
+"音量ダイアル" = "Volume Dial";
 
 /* ConnectionView */
 "Denon / Marantz AVR  —  HTTP API (ポート 8080)" = "Denon / Marantz AVR";
@@ -77,6 +78,10 @@
 "デバイスを検索" = "Search Devices";
 "アプリ" = "App";
 "表示言語" = "Language";
+"音量コントロール" = "Volume Control";
+"スライダー" = "Slider";
+"ダイアル" = "Dial";
+"メインゾーンの音量操作をいつでも切り替えられます。" = "Switch the Main Zone volume control at any time.";
 "システム設定に従う" = "Follow System Setting";
 "日本語" = "Japanese";
 "English" = "English";
@@ -191,6 +196,12 @@
 "レビューを書く" = "Write a Review";
 "問題を報告" = "Report a Problem";
 "プライバシーポリシー" = "Privacy Policy";
+
+/* Volume dial introduction */
+"新しい音量ダイアル" = "New Volume Dial";
+"ダイアルを試す" = "Try the Dial";
+"スライダーを使い続ける" = "Keep Using the Slider";
+"アプリアイコンのようなダイアルを回して、音量を細かく調整できるようになりました。設定からいつでも切り替えられます。" = "Turn a dial inspired by the app icon for precise volume control. You can switch styles at any time in Settings.";
 
 /* Problem Report */
 "種類" = "Category";

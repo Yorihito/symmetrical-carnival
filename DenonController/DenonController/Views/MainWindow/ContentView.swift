@@ -52,8 +52,11 @@ struct ContentView: View {
     @Environment(\.locale) private var locale
     @Environment(\.localizedBundle) private var bundle
     @Environment(\.requestReview) private var requestReview
+    @AppStorage("volumeControlStyle") private var volumeControlStyle = "slider"
+    @AppStorage("hasShownVolumeDialIntroductionV1") private var hasShownVolumeDialIntroduction = false
     @State private var selectedSection: NavSection? = .dashboard
     @State private var showingConnection = false
+    @State private var showingVolumeDialIntroduction = false
     @State private var columnVisibility: NavigationSplitViewVisibility = .all
 
     var body: some View {
@@ -112,9 +115,26 @@ struct ContentView: View {
             }
         }
         .onChange(of: vm.connectionStatus) { _, status in
-            guard status == .connected, ReviewRequestManager.shouldRequest() else { return }
+            guard status == .connected else { return }
+            if !hasShownVolumeDialIntroduction {
+                showingVolumeDialIntroduction = true
+                return
+            }
+            guard ReviewRequestManager.shouldRequest() else { return }
             requestReview()
             ReviewRequestManager.markRequested()
+        }
+        .alert(Text("新しい音量ダイアル", bundle: bundle), isPresented: $showingVolumeDialIntroduction) {
+            Button(LS("ダイアルを試す", bundle)) {
+                volumeControlStyle = "dial"
+                hasShownVolumeDialIntroduction = true
+            }
+            Button(LS("スライダーを使い続ける", bundle), role: .cancel) {
+                volumeControlStyle = "slider"
+                hasShownVolumeDialIntroduction = true
+            }
+        } message: {
+            Text("アプリアイコンのようなダイアルを回して、音量を細かく調整できるようになりました。設定からいつでも切り替えられます。", bundle: bundle)
         }
     }
 

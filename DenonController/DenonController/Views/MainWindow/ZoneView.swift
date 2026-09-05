@@ -49,7 +49,8 @@ struct ZoneView: View {
                         onVolumeChange: { _ in },   // Zone 2 はステップ制御のみ
                         onMuteToggle: { vm.setZone2Mute(!vm.avr.zone2Mute) },
                         onVolumeUp: { vm.zone2VolumeUp() },
-                        onVolumeDown: { vm.zone2VolumeDown() }
+                        onVolumeDown: { vm.zone2VolumeDown() },
+                        allowsDial: false
                     )
                 } else {
                     Text("Zone 2 はオフです", bundle: bundle)

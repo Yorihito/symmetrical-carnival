@@ -6,6 +6,9 @@ struct ContentView: View {
     @Environment(\.requestReview) private var requestReview
     @State private var showConnection = false
     @AppStorage("appLanguage") private var appLanguage = "system"
+    @AppStorage("volumeControlStyle") private var volumeControlStyle = "slider"
+    @AppStorage("hasShownVolumeDialIntroductionV1") private var hasShownVolumeDialIntroduction = false
+    @State private var showingVolumeDialIntroduction = false
 
     private var appLocale: Locale {
         switch appLanguage {
@@ -45,9 +48,30 @@ struct ContentView: View {
             }
         }
         .onChange(of: vm.connectionStatus) { _, status in
-            guard status == .connected, ReviewRequestManager.shouldRequest() else { return }
+            guard status == .connected else { return }
+            if !hasShownVolumeDialIntroduction {
+                let delay = isSplashScreenActive ? 1.7 : 0.2
+                DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+                    guard !hasShownVolumeDialIntroduction else { return }
+                    showingVolumeDialIntroduction = true
+                }
+                return
+            }
+            guard ReviewRequestManager.shouldRequest() else { return }
             requestReview()
             ReviewRequestManager.markRequested()
+        }
+        .alert(Text("新しい音量ダイアル", bundle: lBundle), isPresented: $showingVolumeDialIntroduction) {
+            Button(LS("ダイアルを試す", lBundle)) {
+                volumeControlStyle = "dial"
+                hasShownVolumeDialIntroduction = true
+            }
+            Button(LS("スライダーを使い続ける", lBundle), role: .cancel) {
+                volumeControlStyle = "slider"
+                hasShownVolumeDialIntroduction = true
+            }
+        } message: {
+            Text("アプリアイコンのようなダイアルを回して、音量を細かく調整できるようになりました。設定からいつでも切り替えられます。", bundle: lBundle)
         }
     }
 

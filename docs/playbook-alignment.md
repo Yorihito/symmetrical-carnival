@@ -1,26 +1,24 @@
 # 設計ドキュメント: app-launch-playbook 準拠によるアプリの底上げ
 
-## 実装状況（2026-08-09 時点）
+## 実装状況（2026-09-04 時点）
 
 Phase 0 と Phase 1 の主要部分を実装済み。詳細は各セクションのステータス表記を参照。
 
 - **Phase 0**: 完了。`PrivacyInfo.xcprivacy`（両ターゲット）、`ITSAppUsesNonExemptEncryption`、
   審査ノート（`docs/AppStore/ReviewNotes.md`。実機デモ動画リンクのみ TODO）、主要操作への
   `accessibilityLabel` 付与（電源・音量・ミュート・Zone2/3電源・リモコンD-pad・メニューバー主要ボタン）。
-- **Phase 1**: ヘルプサイト（`help/` 配下に index/details/privacy を ja/en で作成、GitHub Actions で
-  Pages 公開する構成を用意。**Pages の有効化とリポジトリへの push はユーザー確認待ち**）、
-  問題報告・機能リクエスト機能（`ProblemReporter`/`ProblemReportView`。バックエンド無しで GitHub
-  `issues/new` の事前入力 URL を開くフォールバック方式のみで実装。診断情報から IP アドレス等の
-  ネットワーク情報は意図的に除外）、レビュー依頼機能（`ReviewRequestManager` による接続成功3回・
-  初回成功から2日経過後の自動プロンプト、および設定画面からの手動「レビューを書く」導線）を追加。
-  オンボーディング/What's New は今回のスコープ外（次回以降）。
-- **Phase 3（収益化）**: ユーザーと相談中。既存無料機能の有料化はしない方針で合意。**投げ銭型
-  （非消耗型 IAP 1点、機能ゲートなし）が候補**として浮上。フリーミアムより実装コストが低く、
-  既存ユーザーへの影響もゼロなため有力だが、詳細設計は未着手。
+- **Phase 1**: ヘルプサイトは `help/` 配下に index/details/privacy を ja/en で作成し、GitHub Pagesで
+  公開済み。問題報告・機能リクエストは `ProblemReporter` / `ProblemReportView` とCloudflare Worker
+  コードまで実装済み。Workerは未デプロイで、現時点ではGitHub `issues/new` の事前入力URLを開く
+  フォールバックが動作する。レビュー依頼機能と、音量ダイアルの1回限りの紹介も実装済み。
+  包括的なオンボーディング / What's New は未実装。
+- **Phase 3（収益化）**: ユーザーと相談中。既存無料機能の有料化はしない方針で合意。まずは
+  **任意の開発支援 IAP（機能ゲートなし）**が候補。繰り返し支援なら消耗型、恒久的なSupporter特典を
+  付けるなら非消耗型が適する。詳細設計と商品選択は未着手。
 
 ## 背景・目的
 
-`DenonController` / `DenonControllerMobile` は iOS ダウンロード数が 800 を超え、順調に伸びている。
+`DenonController` / `DenonControllerMobile` は iOS ダウンロード数が 1,000 を超え、順調に伸びている。
 一方で本アプリは「基本機能（AVR 制御ロジック）」の完成度を優先して作られており、その後に作った
 アプリ群で確立した [`app-launch-playbook`](https://github.com/Yorihito/app-launch-playbook/blob/main/ios/PLAYBOOK.md)
 （個人開発 iOS アプリの「基本機能の外側」＝配布・信頼性・収益化・審査対策のテンプレ）の内容を
@@ -29,7 +27,7 @@ Phase 0 と Phase 1 の主要部分を実装済み。詳細は各セクション
 本ドキュメントは、プレイブックの各章を本リポジトリの現状と突き合わせ、何を・なぜ・どの順番で
 変更するかを設計するもの。プレイブック §9「設計ドキュメントを残す」の作法に従い `docs/` 配下に置く。
 
-**方針**: 800+ の既存ユーザーがいる無料アプリであることを踏まえ、「壊さず・剥がさず」を大前提にする。
+**方針**: 1,000+ の既存ユーザーがいる無料アプリであることを踏まえ、「壊さず・剥がさず」を大前提にする。
 プレイブックは新規アプリのローンチ手順としても書かれているため、**既に公開済みで前提が崩れる項目
 （デバイスファミリー等）は適用しない**。同様に収益化のような不可逆・ユーザー影響の大きい変更は
 「設計止まり」とし、実装は別途合意のうえで着手する。
@@ -43,21 +41,21 @@ Phase 0 と Phase 1 の主要部分を実装済み。詳細は各セクション
 | 章 | 内容 | 現状 | 根拠 |
 |---|---|---|---|
 | §0 収益モデル/対象 | 方針決定 | 未決定（無料のみで運用中） | IAP 関連コード・`*.storekit` なし |
-| §1 ヘルプサイト | 静的サイト＋言語切替 | **不明・要確認** | `privacy.html` は一度コミットされたが現リポジトリには存在しない（削除済み or 別リポ運用） |
-| §2 プライバシーポリシー | 必須 | **要確認**（上と同じ理由） | 同上 |
-| §3 問題報告 | GitHub Issue 連携 | 未実装 | `DiagnosticsLog`/`ProblemReporter` 該当コードなし |
+| §1 ヘルプサイト | 静的サイト＋言語切替 | **実装・公開済み** | `help/`、`.github/workflows/pages.yml` |
+| §2 プライバシーポリシー | 必須 | **実装・公開済み** | `help/privacy.html`、`help/en/privacy.html` |
+| §3 問題報告 | GitHub Issue 連携 | **実装済み・Worker運用待ち** | `DiagnosticsLog`、`ProblemReporter`、`ProblemReportView` |
 | §4 テレメトリ | opt-in 既定オフ | 未実装 | 該当コードなし |
-| §5 バックエンド (Worker) | 問題報告/テレメトリの受け口 | 未実装 | `server/` ディレクトリなし |
+| §5 バックエンド (Worker) | 問題報告/テレメトリの受け口 | **問題報告のみ実装、未デプロイ** | `server/worker.js`、`server/README.md` |
 | §6 収益化（フリーミアム） | StoreKit 2 | 未実装 | `StoreManager` 等なし |
 | §7 スクショ自動生成 | DEBUG デモモード | 未実装 | `-uiDemo` 起動引数なし |
 | §8 メタデータ/コンプラ | 各種 | **部分実装**（詳細は下） | — |
 | §9 ビルド運用 | XcodeGen/CLI/テスト常時緑 | **実装済み**（テストは未整備） | `project.yml` 完備、テストターゲットなし |
-| §13 設定画面標準項目 | ガイド/言語/Pro/問題報告等 | **部分実装** | `SettingsView.swift`（両ターゲット）に接続/言語/入力ソース/開発者/バージョン/リセットは有、ガイド・Pro・プライバシー導線・問題報告は無 |
+| §13 設定画面標準項目 | ガイド/言語/Pro/問題報告等 | **Pro以外は主要項目を実装済み** | 両ターゲットの `SettingsView.swift` |
 | §14 オンボーディング/What's New | 初回導線 | 未実装 | 該当コードなし |
 | §15 権限 usage 文言/プライミング | ローカルネットワーク | **usage 文言は実装済み**、プライミング画面は無 | `NSLocalNetworkUsageDescription` あり |
-| §16 PrivacyInfo.xcprivacy | 必須級 | **未実装（リスクあり）** | `find . -iname "*.xcprivacy"` 該当なし。`UserDefaults` は 11 ファイルで使用中＝ required reason API 対象 |
+| §16 PrivacyInfo.xcprivacy | 必須級 | **実装済み** | `Core/PrivacyInfo.xcprivacy`（両ターゲットで共有） |
 | §17 ローカライズ基盤 | 全文言ローカライズ | **実装済み・模範的** | `LocalizationHelper.swift` 等、CLAUDE.md にも設計思想が明文化済み |
-| §18 アクセシビリティ | VoiceOver/Dynamic Type | **未着手** | `accessibilityLabel` の使用箇所が**リポジトリ全体で 0 件**。アイコンのみのボタン（`systemImage:`）は 68 箇所 |
+| §18 アクセシビリティ | VoiceOver/Dynamic Type | **主要操作に実装済み、継続改善** | 電源・音量・ミュート・Zone 2/3・D-pad等に `accessibilityLabel` を付与 |
 | §19.1 起動画面2段 | ランチスクリーン+スプラッシュ | **実装済み（iOS）** | `UILaunchScreen`（`LaunchBackground`/`SplashIcon`）設定済み |
 | §22 セキュリティ/ATS | シークレット管理・ATS | 該当なし（LAN 内 HTTP のみ、外部秘密鍵は不使用） | 問題なし |
 | §24 TestFlight | 実機ベータ | 運用実態は不明（プロセスとして文書化されていない） | — |
@@ -68,7 +66,7 @@ Phase 0 と Phase 1 の主要部分を実装済み。詳細は各セクション
 
 - ✅ アプリアイコン 1024×1024: iOS/macOS 双方に存在
 - ✅ バージョニング: `git rev-list --count HEAD` によるビルド番号自動採番（`project.yml` に実装済み、プレイブックと同一パターン）
-- ❌ `ITSAppUsesNonExemptEncryption`: `Info.plist`（iOS/macOS 両方）に未設定 → 提出のたびに暗号化質問に手動回答している状態
+- ✅ `ITSAppUsesNonExemptEncryption`: iOS/macOS双方の `Info.plist` に `false` を設定済み
 - ⚠️ `TARGETED_DEVICE_FAMILY`: `"1,2"`（ユニバーサル）。プレイブック §0/§8 は「iPhone 専用が最短」を推奨するが、**本アプリは既に iPad 最適化を掲げて公開済み**（README・Metadata_iOS.md に Split View/Stage Manager 訴求あり）。この項目は新規ローンチ向けの助言であり **本アプリには適用しない**。
 - ⚠️ 外部ハードウェア依存の審査対策（§8 の実例注記）: 本アプリは「同一 LAN 上の実機 AVR」が前提の Denon/Marantz 専用アプリで、プレイブックが名指しする失敗パターン（TV REMOTE for B, Guideline 2.1, 2026-07-02）と**構造が同一**。現在の Review Notes に実機デモ動画リンクが用意されているかは不明 → 要確認・是正。
 
@@ -98,11 +96,11 @@ Phase 4  運用基盤（テレメトリ・CI）（任意・優先度低）
 
 | 項目 | 変更内容 | 対象ファイル |
 |---|---|---|
-| プライバシーマニフェスト | `PrivacyInfo.xcprivacy` を両ターゲットに追加。`NSPrivacyAccessedAPICategoryUserDefaults` + reason `CA92.1` を宣言（`PresetStore`/`InputNameStore` 等 11 ファイルが `UserDefaults` を使用） | 新規: `DenonController/DenonController/PrivacyInfo.xcprivacy`, `DenonControllerMobile/PrivacyInfo.xcprivacy`（`project.yml` の `sources` に追加、XcodeGen で自動バンドル） |
+| プライバシーマニフェスト | `NSPrivacyAccessedAPICategoryUserDefaults` + reason `CA92.1` を宣言済み | `DenonController/DenonController/Core/PrivacyInfo.xcprivacy`（共有ソースとして両ターゲットに同梱） |
 | 輸出コンプラ申告の自動化 | `ITSAppUsesNonExemptEncryption` = `false` を追加（標準 TLS のみ・独自暗号なし） | `DenonController/DenonController/Info.plist`, `DenonControllerMobile/App/Info.plist` |
 | 審査ノート整備 | 「同一 LAN 上に対応 AVR が必要。無い場合は検出画面で止まるのが仕様」を明記し、実機（iPhone/iPad）+実機 AVR の動作デモ動画（限定公開）へのリンクを追加。プレイブック §8 の実例（TV REMOTE for B, Guideline 2.1）を踏まえた予防措置 | `docs/AppStore/` に `ReviewNotes.md` を新設、次回提出時に ASC の App Review 情報欄へ転記 |
-| サポート/プライバシー URL の生存確認 | `privacy.html` が本リポジトリから既に削除されている（別リポ運用の可能性）。ASC に登録中の Support URL / Privacy Policy URL が現在も 200 で応答するか確認。死んでいれば §1/§2 に沿ってヘルプサイトを再構築 | 確認のみ（結果次第で Phase 1 に着手） |
-| アクセシビリティの最小ライン | まず主要操作（電源/音量/ミュート/入力切替/リモコン方向パッド）のアイコンのみボタンに `accessibilityLabel` を付与。現状 68 箇所中 0 件対応 | `Views/MainWindow/*.swift`, `Views/Shared/*.swift`, `DenonControllerMobile/Views/*.swift` |
+| サポート/プライバシー URL | 日英ヘルプサイトを再構築し、GitHub Pagesで公開済み | `help/`、`.github/workflows/pages.yml` |
+| アクセシビリティの最小ライン | 主要操作（電源/音量/ミュート/Zone 2/3電源/リモコン方向パッド等）に `accessibilityLabel` を付与済み | `Views/MainWindow/*.swift`、`Views/Shared/*.swift`、`DenonControllerMobile/Views/*.swift` |
 
 ---
 
@@ -158,7 +156,7 @@ Cloudflare Worker プロキシ方式に合わせて書き換えた**（プレイ
 今回のスコープからは外した。差別化機能（Zone2/3・OSD リモコン・チューナープリセット）を
 1〜数枚で見せる初回フローと、`CFBundleShortVersionString` 起点の What's New は次フェーズで着手する。
 
-### 1-D. ヘルプサイトの再確認/再構築（§1・§2）— 実装済み（公開は未実施）
+### 1-D. ヘルプサイトの再確認/再構築（§1・§2）— 実装・公開済み
 
 現況確認の結果、`privacy.md`（GitHub の生の blob 表示）が Support/Privacy URL として使われていた
 ことが判明。プレイブック標準（静的 HTML・ja/en・index/details/privacy・タブナビ）に合わせて
@@ -172,8 +170,8 @@ Cloudflare Worker プロキシ方式に合わせて書き換えた**（プレイ
   手間を避けるため）。
 - アプリ側は `Core/Diagnostics/HelpSiteLinks.swift` で `https://yorihito.github.io/symmetrical-carnival/`
   を起点に、端末言語に応じて `/` か `/en/` を出し分けるリンクを生成し、設定画面から参照。
-- **Pages の有効化（リポジトリ設定変更）と `help/`・ワークフローの push は未実施**。公開はユーザーの
-  明示的な合意を得てから行う（§判断が必要な項目）。
+- Pagesは有効化済みで、`https://yorihito.github.io/symmetrical-carnival/` から公開されている。
+  残る外部作業はApp Store ConnectのSupport URL / Privacy Policy URL確認である。
 
 ### 1-E. レビュー依頼機能（§6 の一部）— 実装済み
 
@@ -206,22 +204,24 @@ Cloudflare Worker プロキシ方式に合わせて書き換えた**（プレイ
 ## Phase 3: 収益化（要判断・検討中）
 
 プレイブック §6 はフリーミアム（無料+買い切り Pro）を個人アプリの定石として推奨しているが、
-**本アプリは既に無料で 800+ ダウンロードを獲得し、Zone2/3・OSD リモコン・チューナープリセット等の
+**本アプリは既に無料で 1,000+ ダウンロードを獲得し、Zone2/3・OSD リモコン・チューナープリセット等の
 主要機能を無料開放済み**。この状態から機能を有料化すると既存ユーザーの信頼を損ね、低評価レビューの
 リスクが高いため、既存機能の有料化はしない方針で合意済み。
 
-**検討中の方向性: 投げ銭型（非消耗型 IAP 1点、機能ゲートなし）**。「開発者を応援」のような単一の
-非消耗型 IAP を設定へのボタンとして置くだけで、購入有無で機能や UI を分岐させるロジックが不要になる
-（`isPro` 判定・ペイウォール・トライアル管理が丸ごと不要）。実装コストが最小で、既存ユーザーへの
-影響もゼロという利点がある一方、フリーミアムに比べ収益は小さくなりがちというトレードオフがある。
+**推奨する第一段階: 任意の開発支援 IAP（機能ゲートなし）**。Appleの現行ガイドラインは、開発者への
+tipをIAPで提供することを認めている。繰り返し購入できる純粋な支援は消耗型、購入済みバッジや追加
+アイコンなど恒久的な特典を付ける「Supporter」は非消耗型として設計する。まずは設定画面に控えめに
+置き、既存機能や今回の音量ダイアルを有料化しない。既存ユーザーへの影響と実装コストを抑えられる一方、
+フリーミアムに比べ収益は小さくなりがちというトレードオフがある。継続的なサービスをまだ提供して
+いない現状では、自動更新サブスクリプションは採用しない。
 
 フリーミアム自体を完全に捨てるわけではなく、**今後追加する新規の差別化機能（例: マルチルーム操作の
 シーン/マクロ機能、ウィジェット、複数 AVR プロファイル管理など）が生まれた時点で改めて Pro 化を
 検討する**余地は残す。StoreKit 2 基盤（`StoreManager`/トライアル/`Products.storekit`/プロモコード）
 は §6 のパターンをそのまま踏襲できる。
 
-→ **ユーザー確認事項**: 投げ銭型で進めてよいか（商品名・価格帯・設置場所）。詳細設計は合意後に
-着手する。
+→ **ユーザー確認事項**: 「繰り返し支援できる消耗型」と「1回買い切りSupporter」のどちらを最初に
+出すか、および商品名・価格帯・設置場所。詳細設計は合意後に着手する。
 
 ---
 
@@ -240,8 +240,8 @@ Cloudflare Worker プロキシ方式に合わせて書き換えた**（プレイ
 
 ## 判断が必要な項目（実装着手前にユーザーに確認）
 
-1. **収益化の詳細（Phase 3）**: 投げ銭型の方向で進めてよいか。商品名・価格・設置場所（設定画面内が
-   有力）を決める。
+1. **収益化の詳細（Phase 3）**: 任意の開発支援IAPについて、消耗型／非消耗型、商品名、価格、設置場所
+   （設定画面内が有力）を決める。
 2. ~~ヘルプサイトの公開~~ → 解決済み。`help/` を push、GitHub Pages を有効化し、
    `https://yorihito.github.io/symmetrical-carnival/` で公開中。**残タスク**: ASC の Support URL /
    Privacy Policy URL をこの新しい URL に更新すること（エージェント側では実行できない手動作業）。
