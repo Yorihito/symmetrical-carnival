@@ -2,7 +2,17 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Release Status (Important)
+
+- **macOS app is frozen (decided 2026-09-06).** The macOS target (`DenonController` scheme) will not be released, so do not build, verify, or actively develop it. Only the iOS/iPadOS app (`DenonControllerMobile` scheme) is being released.
+- Do not run the macOS build as part of validation. Building the iOS target is sufficient.
+- macOS-only code (`DenonController/App/`, `DenonController/Views/MainWindow/`, `DenonController/Views/Settings/`) stays in the repository as-is. Do not delete it, but there is no need to keep it updated when features are added to iOS.
+- Shared code (`Core/`, `ViewModels/`, `Views/Shared/`) is compiled into the iOS target, so changes there must keep the iOS build green. Breaking the macOS build is acceptable but should be mentioned in the commit or PR description.
+- App Store work (review notes, privacy policy, screenshots) applies to iOS only.
+
 ## Build Commands
+
+Only the iOS target needs to be built. The macOS commands are kept for reference only (see Release Status above).
 
 ```bash
 # 1. Generate Xcode project from project.yml (required after adding/removing files)
@@ -11,11 +21,7 @@ cd DenonController && xcodegen generate
 # 2. Set Developer Directory (Required if xcodebuild fails due to CommandLineTools)
 export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
 
-# 3. Build macOS app (from project root)
-xcodebuild -project ./DenonController/DenonController.xcodeproj \
-  -scheme DenonController -destination 'platform=macOS,arch=arm64' build
-
-# 4. Build iOS app (from project root)
+# 3. Build iOS app (from project root)
 xcodebuild -project ./DenonController/DenonController.xcodeproj \
   -scheme DenonControllerMobile -destination 'generic/platform=iOS' build
 
@@ -23,9 +29,18 @@ xcodebuild -project ./DenonController/DenonController.xcodeproj \
 xcodebuild -project ./DenonController/DenonController.xcodeproj \
   -scheme DenonControllerMobile -configuration Debug \
   -destination 'platform=iOS Simulator,name=iPhone 17' build
+
+# If the generic iOS build fails on code signing, compile-check without signing:
+xcodebuild -project ./DenonController/DenonController.xcodeproj \
+  -scheme DenonControllerMobile -configuration Debug \
+  -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO build
+
+# (Reference only — macOS is frozen, do not run as part of validation)
+# xcodebuild -project ./DenonController/DenonController.xcodeproj \
+#   -scheme DenonController -destination 'platform=macOS,arch=arm64' build
 ```
 
-No test targets exist. Validation is manual against a physical Denon AVR-X3800H (or the simulator for UI-only changes).
+No test targets exist. Validation is manual against a physical Denon AVR-X3800H (or the iOS simulator for UI-only changes).
 
 **Important:** After creating or deleting `.swift` files in either target, always run `xcodegen generate` from the `DenonController/` directory before building.
 
@@ -62,7 +77,7 @@ macOS-only code (AppKit imports, NSApp, AppDelegate, window management) lives ex
 
 ## Architecture
 
-Denon/Marantz AVR controller for macOS (menu bar + windowed) and iOS/iPadOS. Pure Swift/SwiftUI, no external dependencies.
+Denon/Marantz AVR controller for iOS/iPadOS (released) and macOS (menu bar + windowed; frozen, not released). Pure Swift/SwiftUI, no external dependencies.
 
 **Stack:** Swift 6.0, macOS 14.0+ / iOS 17.0+, SwiftUI with `@Observable`, strict concurrency (targeted)
 
@@ -139,6 +154,7 @@ This project targets iOS 17+ and macOS 14+. When choosing SF Symbols, verify ava
 - **Verification**: Always check both English and Japanese modes. Key points: "Stations fetched", "Remaining slots", "Switch to TUNER".
 
 ### macOS App Sandbox & Discovery
+(The macOS app is frozen; this section is kept for reference and applies only if macOS work is ever resumed.)
 - **Sandbox**: MUST remain `true` for App Store submission. The macOS entitlement currently enables App Sandbox and outbound network access.
 - **Discovery Strategy**:
     - Prioritize numeric IP addresses over `.local` hostnames to avoid mDNS resolution timeouts on Mac.

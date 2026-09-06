@@ -1,8 +1,12 @@
 # AVR Controller
 
-AVR Controller is a native macOS, iOS, and iPadOS remote for network-enabled
-Denon and Marantz AV receivers. It is designed for fast local-network control,
-with a full app on every platform and quick access from the macOS menu bar.
+AVR Controller is a native iOS and iPadOS remote for network-enabled Denon and
+Marantz AV receivers. It is designed for fast local-network control.
+
+> **Release status:** Only the iOS/iPadOS app is being released. The macOS app
+> (menu bar + window) in this repository is frozen as of 2026-09-06: it is not
+> released, not built as part of validation, and not actively developed. Its
+> source is kept in place because the shared code lives alongside it.
 
 The primary development and validation device is a Denon AVR-X3800H. Other
 models that expose compatible Denon HTTP/Telnet commands may work, but behavior
@@ -50,8 +54,8 @@ snapshot of the repository and its current operational state.
 
 - Xcode 16 or later
 - XcodeGen
-- macOS 14.0 or later for the Mac app
 - iOS/iPadOS 17.0 or later for the mobile app
+- (macOS 14.0 or later for the frozen Mac app, reference only)
 - A compatible Denon or Marantz AVR on the same local network
 
 ## Build
@@ -64,21 +68,23 @@ xcodegen generate
 cd ..
 ```
 
-Build the macOS app:
+Build the iOS app:
 
 ```bash
 export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
 xcodebuild -project ./DenonController/DenonController.xcodeproj \
-  -scheme DenonController \
-  -destination 'platform=macOS,arch=arm64' build
-```
-
-Build the iOS app:
-
-```bash
-xcodebuild -project ./DenonController/DenonController.xcodeproj \
   -scheme DenonControllerMobile \
   -destination 'generic/platform=iOS' build
+```
+
+The macOS target (`DenonController` scheme) is frozen and does not need to be
+built. The command is kept here only for reference:
+
+```bash
+# Reference only — macOS app is frozen
+xcodebuild -project ./DenonController/DenonController.xcodeproj \
+  -scheme DenonController \
+  -destination 'platform=macOS,arch=arm64' build
 ```
 
 There are currently no automated test targets. UI-only changes can be checked

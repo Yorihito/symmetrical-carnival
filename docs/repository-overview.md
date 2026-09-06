@@ -13,9 +13,16 @@
 
 主な成果物は次の3つである。
 
-1. macOS アプリ（通常ウィンドウおよびメニューバー常駐）
-2. iOS / iPadOS アプリ
+1. iOS / iPadOS アプリ（リリース対象）
+2. macOS アプリ（通常ウィンドウおよびメニューバー常駐。**凍結中、リリース対象外**）
 3. ヘルプサイトおよび問題報告用 Cloudflare Worker
+
+> **macOS アプリの凍結について（2026-09-06 決定）**
+> macOS 版はリリースしない方針となり、現時点で開発を凍結している。ビルド・動作確認・機能追加の
+> 対象外とし、検証は iOS ターゲット（`DenonControllerMobile`）のみで行う。macOS 固有コード
+> （`DenonController/App/`、`Views/MainWindow/`、`Views/Settings/`）は共有コードと同居しているため
+> 削除せずそのまま残すが、iOS への機能追加時に追随させる必要はない。App Store 関連の作業
+> （審査メモ、プライバシーポリシー、スクリーンショット）も iOS のみを対象とする。
 
 アプリは Swift 6 / SwiftUI で実装され、外部パッケージには依存していない。実装とドキュメント上の
 主な確認対象機種は Denon AVR-X3800H である。
@@ -146,8 +153,9 @@ UI操作時は `AVRState` を先に更新する楽観的更新を行い、その
 
 ## 7. プラットフォーム別UI
 
-### macOS
+### macOS（凍結中）
 
+リリース対象外であり、開発を凍結している。以下は参考情報である。
 通常のメインウィンドウと `MenuBarExtra` の両方を提供する。メニューバー専用モードでは SwiftUI の
 ウィンドウ管理と衝突しないよう、ウィンドウを閉じるのではなく透明化して操作対象から外す実装を採用して
 いる。また、Dock表示の有無に応じてアプリの activation policy を切り替える。
@@ -216,18 +224,29 @@ cd DenonController
 xcodegen generate
 ```
 
-リポジトリルートからの基本的なビルドコマンドは次のとおりである。
+ビルド対象は iOS ターゲットのみである（macOS は凍結中のためビルド不要）。リポジトリルートからの
+基本的なビルドコマンドは次のとおりである。
 
 ```bash
 export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
 
 xcodebuild -project ./DenonController/DenonController.xcodeproj \
-  -scheme DenonController \
-  -destination 'platform=macOS,arch=arm64' build
-
-xcodebuild -project ./DenonController/DenonController.xcodeproj \
   -scheme DenonControllerMobile \
   -destination 'generic/platform=iOS' build
+
+# 署名チーム未設定で上記が失敗する場合は、シミュレータ向けにコンパイル確認する
+xcodebuild -project ./DenonController/DenonController.xcodeproj \
+  -scheme DenonControllerMobile -configuration Debug \
+  -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO build
+```
+
+macOS ターゲット（`DenonController` scheme）のビルドコマンドは参考として残す。
+
+```bash
+# 参考のみ。macOS 版は凍結中のため検証には使わない
+xcodebuild -project ./DenonController/DenonController.xcodeproj \
+  -scheme DenonController \
+  -destination 'platform=macOS,arch=arm64' build
 ```
 
 テストターゲットとアプリ本体のビルドCIは存在しない。現在のGitHub Actionsはヘルプサイトの
