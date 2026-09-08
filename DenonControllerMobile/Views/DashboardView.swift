@@ -25,15 +25,22 @@ struct DashboardView: View {
                 Divider()
                 deviceHeader
                 Divider()
-                volumeSection
-                Divider()
-                inputSection
-                Divider()
-                surroundSection
-                // ダイアル表示時は、入力ソース・サラウンドモードの下にダイアルを配置
                 if volumeControlStyle == "dial" {
+                    // ダイアル表示: 入力ソース → サラウンドモード → 音量数値／ボタン行 → ダイアル
+                    inputSection
+                    Divider()
+                    surroundSection
+                    Divider()
+                    volumeSection
                     Divider()
                     volumeDialSection
+                } else {
+                    // スライダー表示: 音量セクション → 入力ソース → サラウンドモード
+                    volumeSection
+                    Divider()
+                    inputSection
+                    Divider()
+                    surroundSection
                 }
             }
         }
