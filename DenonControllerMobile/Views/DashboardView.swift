@@ -5,6 +5,8 @@ struct DashboardView: View {
     @Environment(\.localizedBundle) private var bundle
     @Binding var showConnection: Bool
     @AppStorage("volumeControlStyle") private var volumeControlStyle = "slider"
+    @AppStorage(DashboardLayout.sliderKey) private var sliderOrderRaw = DashboardLayout.sliderDefaultRaw
+    @AppStorage(DashboardLayout.dialKey)   private var dialOrderRaw   = DashboardLayout.dialDefaultRaw
 
     @State private var isDraggingVolume = false
     @State private var isPendingVolume  = false
@@ -24,23 +26,10 @@ struct DashboardView: View {
                     .frame(maxWidth: .infinity)
                 Divider()
                 deviceHeader
-                Divider()
-                if volumeControlStyle == "dial" {
-                    // ダイアル表示: 入力ソース → サラウンドモード → 音量数値／ボタン行 → ダイアル
-                    inputSection
+                // 並び順は設定の「ダッシュボードの並び順」で入れ替えられる
+                ForEach(orderedSections) { section in
                     Divider()
-                    surroundSection
-                    Divider()
-                    volumeSection
-                    Divider()
-                    volumeDialSection
-                } else {
-                    // スライダー表示: 音量セクション → 入力ソース → サラウンドモード
-                    volumeSection
-                    Divider()
-                    inputSection
-                    Divider()
-                    surroundSection
+                    sectionView(for: section)
                 }
             }
         }
@@ -63,6 +52,24 @@ struct DashboardView: View {
                 isPendingVolume = false
                 dragVolumeValue = vm.avr.volumeDB
             }
+        }
+    }
+
+    // MARK: - セクションの並び順
+
+    private var isDialStyle: Bool { volumeControlStyle == "dial" }
+
+    private var orderedSections: [DashboardSection] {
+        DashboardLayout.decode(isDialStyle ? dialOrderRaw : sliderOrderRaw, isDial: isDialStyle)
+    }
+
+    @ViewBuilder
+    private func sectionView(for section: DashboardSection) -> some View {
+        switch section {
+        case .volume:   volumeSection
+        case .dial:     volumeDialSection
+        case .input:    inputSection
+        case .surround: surroundSection
         }
     }
 

@@ -197,6 +197,13 @@
 "問題を報告" = "Report a Problem";
 "プライバシーポリシー" = "Privacy Policy";
 
+/* Dashboard section order */
+"ダッシュボードの並び順" = "Dashboard Order";
+"表示順" = "Display Order";
+"並び順をリセット" = "Reset";
+"スライダー表示のときの並び順です。ドラッグして入れ替えられます。" = "Order used with the slider. Drag to rearrange.";
+"ダイアル表示のときの並び順です。ドラッグして入れ替えられます。" = "Order used with the dial. Drag to rearrange.";
+
 /* Volume dial introduction */
 "新しい音量ダイアル" = "New Volume Dial";
 "ダイアルを試す" = "Try the Dial";
