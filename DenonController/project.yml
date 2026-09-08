@@ -21,7 +21,7 @@ settings:
     # MARKETING_VERSION is bumped by hand per release. CURRENT_PROJECT_VERSION is a
     # fallback; the real build number is set at build time from the git commit count
     # (see the "Set build number from git" postBuildScript below).
-    MARKETING_VERSION: "1.0.5"
+    MARKETING_VERSION: "1.1.0"
     CURRENT_PROJECT_VERSION: "126"
     # NOTE: kept OFF because the "Set build number from git" run script needs to read
     # the repo (git rev-list); sandboxing denies that and the build number falls back

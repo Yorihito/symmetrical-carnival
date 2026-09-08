@@ -150,6 +150,14 @@ struct SettingsView: View {
             Text("メインゾーンの音量操作をいつでも切り替えられます。", bundle: bundle)
                 .font(.caption)
                 .foregroundStyle(.secondary)
+
+            NavigationLink {
+                DashboardOrderView()
+                    .environment(\.locale, locale)
+                    .environment(\.localizedBundle, bundle)
+            } label: {
+                Text("ダッシュボードの並び順", bundle: bundle)
+            }
         }
     }
 
@@ -321,6 +329,9 @@ struct SettingsView: View {
         appLanguage  = "system"
         volumeControlStyle = "slider"
         debugMode    = false
+
+        // ダッシュボードの並び順
+        DashboardLayout.resetToDefaults()
 
         // 入力ソース名・非表示設定
         UserDefaults.standard.removeObject(forKey: "customInputNames")
