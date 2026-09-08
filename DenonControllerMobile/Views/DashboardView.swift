@@ -30,6 +30,11 @@ struct DashboardView: View {
                 inputSection
                 Divider()
                 surroundSection
+                // ダイアル表示時は、入力ソース・サラウンドモードの下にダイアルを配置
+                if volumeControlStyle == "dial" {
+                    Divider()
+                    volumeDialSection
+                }
             }
         }
         .sensoryFeedback(.impact(weight: .light), trigger: hapticTrigger)
@@ -138,40 +143,20 @@ struct DashboardView: View {
             .frame(maxWidth: .infinity)
             .padding(.top, 20)
 
-            // スライダー／ダイアル（設定で切り替え）
-            Group {
-                if volumeControlStyle == "dial" {
-                    VolumeDialControl(
-                        value: displayDB,
-                        isMuted: vm.avr.isMuted,
-                        diameter: 184
-                    ) { newValue, editing in
-                        if editing && !isDraggingVolume {
-                            isPendingVolume = false
-                        }
-                        dragVolumeValue = newValue
-                        isDraggingVolume = editing
-                        lastInteractionTime = Date()
-                        if !editing {
-                            isPendingVolume = true
-                            vm.setVolume(newValue)
-                        }
-                    }
-                    .frame(maxWidth: .infinity)
-                } else {
-                    VolumeSlider(
-                        vm: vm,
-                        isDragging: $isDraggingVolume,
-                        isPending: $isPendingVolume,
-                        dragValue: $dragVolumeValue,
-                        lastTouch: $lastInteractionTime,
-                        hapticTrigger: $hapticTrigger
-                    )
-                }
-            }
+            // スライダー（ダイアル表示時はページ下部の volumeDialSection に配置）
+            if volumeControlStyle != "dial" {
+                VolumeSlider(
+                    vm: vm,
+                    isDragging: $isDraggingVolume,
+                    isPending: $isPendingVolume,
+                    dragValue: $dragVolumeValue,
+                    lastTouch: $lastInteractionTime,
+                    hapticTrigger: $hapticTrigger
+                )
                 .padding(.horizontal, 20)
                 .padding(.vertical, 12)
                 .disabled(!isOn)
+            }
 
             // ボタン行: [−] [Mute] [+]
             HStack(spacing: 0) {
@@ -219,6 +204,34 @@ struct DashboardView: View {
             .opacity(isOn ? 1 : 0.35)
             .padding(.bottom, 8)
         }
+    }
+
+    // MARK: - 音量ダイアルセクション（ダイアル表示時のみ、サラウンドモードの下）
+
+    private var volumeDialSection: some View {
+        let isOn = vm.avr.isConnected && vm.avr.isPoweredOn
+
+        return VolumeDialControl(
+            value: displayDB,
+            isMuted: vm.avr.isMuted,
+            diameter: 184
+        ) { newValue, editing in
+            if editing && !isDraggingVolume {
+                isPendingVolume = false
+            }
+            dragVolumeValue = newValue
+            isDraggingVolume = editing
+            lastInteractionTime = Date()
+            if !editing {
+                isPendingVolume = true
+                vm.setVolume(newValue)
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.horizontal, 20)
+        .padding(.vertical, 20)
+        .disabled(!isOn)
+        .opacity(isOn ? 1 : 0.35)
     }
 
     // MARK: - 入力ソースセクション
