@@ -37,9 +37,14 @@ struct ContentView: View {
             if let msg = vm.errorMessage {
                 errorOverlay(msg: msg)
                     .zIndex(3)
+            } else if let key = vm.transientNoticeKey {
+                // 自動再接続などの一時的なお知らせ（エラー表示があるときはそちらを優先）
+                noticeOverlay(key: key)
+                    .zIndex(3)
             }
         }
         .animation(.spring(), value: vm.errorMessage)
+        .animation(.spring(), value: vm.transientNoticeKey)
         .onAppear {
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
                 withAnimation(.easeOut(duration: 0.5)) {
@@ -144,11 +149,31 @@ struct ContentView: View {
         .transition(.move(edge: .top).combined(with: .opacity))
     }
 
+    private func noticeOverlay(key: String) -> some View {
+        VStack {
+            Label {
+                Text(LocalizedStringKey(key), bundle: lBundle)
+            } icon: {
+                Image(systemName: "checkmark.circle.fill")
+            }
+            .font(.subheadline.weight(.medium))
+            .foregroundStyle(.white)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 10)
+            .background(Color.green.opacity(0.9), in: Capsule())
+            .shadow(radius: 4)
+            .padding(.top, 50)
+            Spacer()
+        }
+        .transition(.move(edge: .top).combined(with: .opacity))
+    }
+
     private func autoConnect() {
         let host = UserDefaults.standard.string(forKey: "defaultHost") ?? ""
         let auto = UserDefaults.standard.bool(forKey: "autoConnect")
         if auto && !host.isEmpty && !vm.connectionStatus.isConnected {
-            Task { await vm.connect(host: host) }
+            // 保存済みアドレスで失敗したら MAC による再検出・スキャンまで行う connectAutomatic() を使う
+            Task { await vm.connectAutomatic() }
         }
     }
 

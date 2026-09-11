@@ -71,6 +71,12 @@ final class MainViewModel {
     /// 自動 IP 復旧（DHCP でアドレスが変わった AVR を再検出する処理）の多重実行防止・throttle 用
     private var isRehealing = false
     private var lastRehealAttempt: Date?
+    /// 切断検知・アプリ復帰時の自動復旧（recoverConnection）の多重実行防止
+    private var isRecovering = false
+
+    /// 自動再接続でアドレスが変わったことなどを一時的に知らせる通知（ローカライズキー）。数秒で消える。
+    var transientNoticeKey: String?
+    private var noticeToken = UUID()
 
     init() {
         // 前回フェッチしたプリセットを復元する
@@ -100,8 +106,13 @@ final class MainViewModel {
         connectionStatus = .connecting
         connectingDetail = String(localized: "デバイスを検索中...")
 
+        // 保存済みの MAC と一致する機体を優先する。なければ AVR が 1 台だけ見つかったときに限って接続する
+        // （複数台ある環境で別の AVR に勝手につながないため）
         let (found, _) = await MDNSScanner.scan()
-        guard let device = found.first else {
+        let savedMac = DeviceInfo.normalizedMac(UserDefaults.standard.string(forKey: "defaultMacAddress") ?? "")
+        let macMatch = savedMac.isEmpty ? nil : found.first(where: { $0.macAddress == savedMac })
+        guard let device = macMatch ?? (found.count == 1 ? found.first : nil) else {
+            DiagnosticsLog.shared.record("autoConnect: fallback scan found \(found.count) AVR(s), none selected")
             connectionStatus = .disconnected
             connectingDetail = ""
             return
@@ -117,12 +128,19 @@ final class MainViewModel {
 
     /// DHCP でリース更新された AVR を、保存済みの MAC アドレスを手掛かりに LAN 上で再検出する。
     /// 見つかった場合は `defaultHost` / `defaultPort` を新しい値に更新して返す。
+    /// 同じアドレスで見つかった場合も返す（復帰直後に Wi-Fi が戻る前の失敗だった可能性があるため）。
     /// 30秒に1回・多重実行なしに制限し、AVR が本当にオフラインのときに無限ループしないようにする。
     private func attemptAutoReheal(failedHost: String) async -> (host: String, port: Int)? {
         guard !isRehealing else { return nil }
-        let savedMac = UserDefaults.standard.string(forKey: "defaultMacAddress") ?? ""
-        guard !savedMac.isEmpty else { return nil }
-        if let last = lastRehealAttempt, Date().timeIntervalSince(last) < 30 { return nil }
+        let savedMac = DeviceInfo.normalizedMac(UserDefaults.standard.string(forKey: "defaultMacAddress") ?? "")
+        guard !savedMac.isEmpty else {
+            DiagnosticsLog.shared.record("reheal: skipped (no saved MAC)")
+            return nil
+        }
+        if let last = lastRehealAttempt, Date().timeIntervalSince(last) < 30 {
+            DiagnosticsLog.shared.record("reheal: skipped (throttled)")
+            return nil
+        }
 
         isRehealing = true
         lastRehealAttempt = Date()
@@ -130,18 +148,39 @@ final class MainViewModel {
 
         connectionLog.append("Auto-heal: searching for AVR with MAC \(savedMac)...")
         let (found, _) = await MDNSScanner.scan()
-        guard let match = found.first(where: { $0.macAddress == savedMac }), match.host != failedHost else {
+        let withMac = found.filter { !$0.macAddress.isEmpty }.count
+        DiagnosticsLog.shared.record("reheal: scan found \(found.count) AVR(s), \(withMac) with MAC")
+        guard let match = found.first(where: { $0.macAddress == savedMac }) else {
             connectionLog.append("Auto-heal: no matching AVR found on the network")
+            DiagnosticsLog.shared.record("reheal: no matching AVR")
             return nil
         }
 
-        connectionLog.append("Auto-heal: found AVR at new address \(match.host) (was \(failedHost))")
+        let moved = match.host != failedHost
+        connectionLog.append("Auto-heal: found AVR at \(match.host) (was \(failedHost))")
+        DiagnosticsLog.shared.record(moved ? "reheal: found at a new address" : "reheal: found at the same address")
         UserDefaults.standard.set(match.host, forKey: "defaultHost")
         UserDefaults.standard.set(match.port, forKey: "defaultPort")
         return (match.host, match.port)
     }
 
-    func connect(host: String, port: Int? = nil, isAutoHealRetry: Bool = false) async {
+    /// reheal で見つかったアドレスへ 1 回だけ再接続する（再接続時は reheal しないのでループしない）。
+    /// アドレスが実際に変わっていたら通知を出す（参照: upgraded-guacamole 9876d15）。
+    /// - Returns: 再接続に成功したら true
+    @discardableResult
+    private func rehealAndReconnect(failedHost: String) async -> Bool {
+        guard let match = await attemptAutoReheal(failedHost: failedHost) else { return false }
+        let healLog = connectionLog
+        await connect(host: match.host, port: match.port, allowReheal: false)
+        connectionLog = healLog + connectionLog   // 再接続でリセットされる reheal のログを残す
+        guard connectionStatus.isConnected else { return false }
+        if match.host != failedHost {
+            showNotice("AVR のアドレスが変わったため自動で再接続しました。")
+        }
+        return true
+    }
+
+    func connect(host: String, port: Int? = nil, allowReheal: Bool = true) async {
         let connectionID = UUID()
         currentConnectionID = connectionID
         
@@ -183,6 +222,8 @@ final class MainViewModel {
             // MAC アドレスを保存しておく（次回起動時に IP が変わっていても同一機体として再検出できるように）
             if !finalInfo.macAddress.isEmpty {
                 UserDefaults.standard.set(finalInfo.macAddress, forKey: "defaultMacAddress")
+            } else {
+                DiagnosticsLog.shared.record("connect: AVR reported no MAC address; auto-reheal unavailable")
             }
 
             // HTTP ポーリング
@@ -233,6 +274,13 @@ final class MainViewModel {
                 self.connectionLog.append("!!! Update loop ended (ID: \(connectionID.uuidString.prefix(4)))")
                 if self.currentConnectionID == connectionID {
                     self.handleDisconnect()
+                    // キャンセルではなくストリームが閉じた = ポーリングが連続で失敗した。
+                    // IP が変わった可能性があるので自動復旧に回す（ユーザー操作による切断では走らない）。
+                    // updateTask は再接続時にキャンセルされるため、復旧は別タスクで行う。
+                    if !Task.isCancelled {
+                        DiagnosticsLog.shared.record("poll: AVR unreachable, recovering")
+                        Task { [weak self] in await self?.recoverConnection(.poll) }
+                    }
                 }
             }
 
@@ -264,8 +312,8 @@ final class MainViewModel {
 
             // DHCP で AVR の IP が変わった可能性があるので、同じ MAC アドレスの機体を
             // 再検索し、見つかれば新しい IP で 1 回だけ自動的に再接続する。
-            if !isAutoHealRetry, let match = await attemptAutoReheal(failedHost: host) {
-                await connect(host: match.host, port: match.port, isAutoHealRetry: true)
+            if allowReheal {
+                await rehealAndReconnect(failedHost: host)
             }
         }
     }
@@ -681,6 +729,8 @@ final class MainViewModel {
                     print("[DenonLog] All communication failed for command: \(command)")
                     handleDisconnect()
                     showCommandError(String(localized: "通信に失敗しました。ネットワークを確認してください。"))
+                    // コマンドの失敗も自動復旧に回す（参照: upgraded-guacamole 2ca9191）
+                    await recoverConnection(.command)
                 }
             }
         }
@@ -729,12 +779,68 @@ final class MainViewModel {
 
     private func handleAppResume() {
         print("[DenonLog] App resumed from background")
-        // 接続が「接続済み」でない、あるいはホスト情報があるのに切れている場合に再接続
-        if connectionStatus != .connected && !lastConnectedHost.isEmpty {
-            print("[DenonLog] Attempting auto-reconnect on resume...")
-            Task {
-                await connect(host: lastConnectedHost)
+        // バックグラウンド中はポーリングが止まるので、「接続済み」表示のままでも AVR に届くとは限らない。
+        // 状態に関わらず到達確認から始め、必要なら再接続・reheal まで行う（参照: upgraded-guacamole b95c09e）。
+        Task { await recoverConnection(.resume) }
+    }
+
+    // MARK: - Auto recovery
+
+    private enum RecoveryTrigger: String {
+        case resume, poll, command
+    }
+
+    /// 切断を検知したとき・アプリ復帰時の自動復旧。
+    /// 1. 前回のアドレスに届くか確認する。復帰直後は Wi-Fi が戻っていないことがあるので、1.5 秒後に 1 回だけ再確認する
+    /// 2. 届けばそのアドレスのまま。接続済みなら最新状態を取り直すだけ、切れていれば再接続する
+    /// 3. 届かなければ古いアドレスへの接続（5 秒タイムアウト）は繰り返さず、MAC による再検出（reheal）に進む
+    private func recoverConnection(_ trigger: RecoveryTrigger) async {
+        let savedHost = UserDefaults.standard.string(forKey: "defaultHost") ?? ""
+        let host = lastConnectedHost.isEmpty ? savedHost : lastConnectedHost
+        guard !isRecovering, !host.isEmpty, connectionStatus != .connecting else { return }
+        // このセッションで一度も接続していないなら、自動接続がオンのときだけ保存済みアドレスを試す
+        if lastConnectedHost.isEmpty && !UserDefaults.standard.bool(forKey: "autoConnect") { return }
+
+        isRecovering = true
+        defer { isRecovering = false }
+        DiagnosticsLog.shared.record("recover: start (\(trigger.rawValue))")
+
+        let savedPort = UserDefaults.standard.integer(forKey: "defaultPort")
+        let port = savedPort > 0 ? savedPort : 8080
+        var reachable = await client.isReachable(host: host, port: port)
+        if !reachable && trigger == .resume {
+            try? await Task.sleep(for: .seconds(1.5))
+            reachable = await client.isReachable(host: host, port: port)
+        }
+
+        if reachable {
+            if connectionStatus.isConnected {
+                await client.pollNow()
+                DiagnosticsLog.shared.record("recover: still reachable, refreshed")
+            } else {
+                await connect(host: host, allowReheal: false)
+                DiagnosticsLog.shared.record(connectionStatus.isConnected ? "recover: reconnected" : "recover: reconnect failed")
             }
+            return
+        }
+
+        // 古いアドレスでのポーリング・Telnet を止め、「接続済み」のまま古い状態を見せないようにする
+        await disconnect()
+        if await rehealAndReconnect(failedHost: host) {
+            DiagnosticsLog.shared.record("recover: reconnected via reheal")
+        } else {
+            DiagnosticsLog.shared.record("recover: AVR not found")
+        }
+    }
+
+    /// 一時的な通知を出す（数秒で自動的に消える）。key はローカライズキー。
+    private func showNotice(_ key: String) {
+        transientNoticeKey = key
+        let token = UUID()
+        noticeToken = token
+        Task {
+            try? await Task.sleep(for: .seconds(6))
+            if noticeToken == token { transientNoticeKey = nil }
         }
     }
 }
