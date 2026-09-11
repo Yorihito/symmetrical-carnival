@@ -183,8 +183,9 @@ enum MDNSScanner {
     }
 
     nonisolated private static func xmlValue(_ text: String, _ tag: String) -> String? {
-        guard let s = text.range(of: "<\(tag)>"),
-              let e = text.range(of: "</\(tag)>", range: s.upperBound..<text.endIndex)
+        // AVRHTTPClient.simpleXML と同じく大文字小文字を区別しない（MAC 照合で両者の結果をそろえるため）
+        guard let s = text.range(of: "<\(tag)>", options: .caseInsensitive),
+              let e = text.range(of: "</\(tag)>", options: .caseInsensitive, range: s.upperBound..<text.endIndex)
         else { return nil }
         let v = String(text[s.upperBound..<e.lowerBound]).trimmingCharacters(in: .whitespaces)
         return v.isEmpty ? nil : v

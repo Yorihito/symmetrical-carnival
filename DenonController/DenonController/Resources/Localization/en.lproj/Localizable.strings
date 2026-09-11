@@ -204,6 +204,9 @@
 "スライダー表示のときの並び順です。ドラッグして入れ替えられます。" = "Order used with the slider. Drag to rearrange.";
 "ダイアル表示のときの並び順です。ドラッグして入れ替えられます。" = "Order used with the dial. Drag to rearrange.";
 
+/* Auto reconnect */
+"AVR のアドレスが変わったため自動で再接続しました。" = "The receiver's address changed, so the app reconnected automatically.";
+
 /* Volume dial introduction */
 "新しい音量ダイアル" = "New Volume Dial";
 "ダイアルを試す" = "Try the Dial";

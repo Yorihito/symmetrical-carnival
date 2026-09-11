@@ -57,6 +57,10 @@ actor AVRHTTPClient {
     
     private var currentContinuation: AsyncStream<AVRStatusSnapshot>.Continuation?
 
+    /// 連続したポーリング失敗の回数。上限に達したらストリームを閉じて、VM に AVR へ届かないことを知らせる。
+    private var consecutivePollFailures = 0
+    private let maxConsecutivePollFailures = 3
+
     init() {
         print("[DenonLog] AVRHTTPClient.init")
     }
@@ -180,6 +184,34 @@ actor AVRHTTPClient {
         host = ""
     }
 
+    /// 待ち時間を捨てて即座にポーリングし直す（アプリ復帰時の最新状態の取り直し用）。
+    func pollNow() {
+        guard currentContinuation != nil, !host.isEmpty else { return }
+        lastActivityTime = Date()
+        currentInterval = 1.5
+        restartPollLoop()
+    }
+
+    /// 指定アドレスの AVR が HTTP で応答するかだけを確認する。ポーリング状態は変えない。
+    func isReachable(host: String, port: Int) async -> Bool {
+        let result = try? await bsdGET(path: "/goform/Deviceinfo.xml", host: host, port: port)
+        return result?.1 == 200
+    }
+
+    /// ポーリング結果を記録し、連続失敗が上限に達したらストリームを閉じて true を返す。
+    private func endStreamIfUnreachable(pollSucceeded: Bool) -> Bool {
+        if pollSucceeded {
+            consecutivePollFailures = 0
+            return false
+        }
+        consecutivePollFailures += 1
+        guard consecutivePollFailures >= maxConsecutivePollFailures else { return false }
+        consecutivePollFailures = 0
+        currentContinuation?.finish()
+        currentContinuation = nil
+        return true
+    }
+
     // MARK: - Polling
 
     private func startPolling() -> AsyncStream<AVRStatusSnapshot> {
@@ -188,6 +220,7 @@ actor AVRHTTPClient {
         
         let (stream, cont) = AsyncStream<AVRStatusSnapshot>.makeStream()
         self.currentContinuation = cont
+        consecutivePollFailures = 0
         
         restartPollLoop()
         return stream
@@ -201,6 +234,10 @@ actor AVRHTTPClient {
                 guard let self else { break }
                 
                 let (success, changed) = await self.performPoll()
+                // pollNow()/send() で差し替えられた古いループは結果を数えない（失敗の二重カウント防止）
+                guard !Task.isCancelled else { break }
+                // 連続失敗が上限に達したらストリームを閉じる（IP 変更などで AVR に届かなくなったことを VM に知らせる）
+                if await self.endStreamIfUnreachable(pollSucceeded: success) { break }
                 let nextSleep = await self.calculateNextInterval(success: success, stateChanged: changed)
                 
                 try? await Task.sleep(for: .seconds(nextSleep))
