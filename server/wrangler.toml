@@ -15,10 +15,16 @@ REPO = "Yorihito/symmetrical-carnival"
 
 # KV namespace for per-IP rate limiting.
 # Create it once, then paste the printed id below:
-#   npx wrangler kv namespace create RATE_LIMIT
+#   npx wrangler kv namespace create AVR_RATE_LIMIT
+#
+# NOTE: the same Cloudflare account also hosts tvremoteb-report-proxy (TV REMOTE
+# for B), whose namespace is titled "RATE_LIMIT". Do NOT reuse that id here: the
+# global hourly cap is keyed on a fixed "rl:global:report", so the two apps would
+# share one counter and rate-limit each other. This app needs its own namespace.
 [[kv_namespaces]]
 binding = "RATE_LIMIT"
-id = "REPLACE_WITH_KV_NAMESPACE_ID"
+# Title: AVR_RATE_LIMIT (this app's own namespace, NOT tvremoteb's "RATE_LIMIT")
+id = "d366df5add9b45459345ac5581b3a05e"
 
 # GITHUB_TOKEN and RATE_SALT are *secrets*, never put them here. Set with:
 #   npx wrangler secret put GITHUB_TOKEN
