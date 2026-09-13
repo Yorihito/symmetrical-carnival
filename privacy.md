@@ -19,9 +19,9 @@ Connection details such as your receiver's IP address are stored only on your
 device in the app's settings. They are not sent to the developer or to an
 external server.
 
-## Report a Problem and Feature Requests
+## Feedback and Feature Requests
 
-If you use **Settings → Report a Problem**, the app prepares a public GitHub
+If you use **Settings → Send Feedback**, the app prepares a public GitHub
 Issue containing:
 
 - The category, title, and body text that you review and submit

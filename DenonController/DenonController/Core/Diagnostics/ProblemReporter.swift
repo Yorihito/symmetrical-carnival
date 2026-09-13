@@ -4,7 +4,7 @@ import Foundation
 import UIKit
 #endif
 
-/// 「問題を報告」機能の報告種別。GitHub の既定ラベルに対応させる
+/// 「ご意見・ご要望を送る」機能の報告種別。GitHub の既定ラベルに対応させる
 /// （送信プロキシ側でも同じ対応表でラベルを決めるため、両者を一致させておくこと）。
 enum ProblemReportCategory: String, CaseIterable, Identifiable, Sendable {
     case bug
@@ -79,9 +79,13 @@ enum ProblemReporter {
 
     /// 既定のタイトル＋本文（Markdown）。ユーザーは送信前に自由に編集できる。
     static func makeReport(category: ProblemReportCategory, context: Context) -> Report {
-        let title = category == .feature
-            ? String(localized: "機能リクエスト")
-            : String(localized: "問題を報告")
+        // GitHub の Issue の初期タイトル。設定画面の項目名とは別に、種類がそのまま分かる語を使う
+        let title: String
+        switch category {
+        case .bug:     title = String(localized: "バグ報告")
+        case .feature: title = String(localized: "機能リクエスト")
+        case .other:   title = String(localized: "ご意見・ご要望")
+        }
 
         var body = template(for: category)
         body += "\n\n---\n"

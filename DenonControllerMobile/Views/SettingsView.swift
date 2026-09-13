@@ -189,13 +189,17 @@ struct SettingsView: View {
                 showProblemReport = true
             } label: {
                 Label {
-                    Text("問題を報告", bundle: bundle)
+                    Text("ご意見・ご要望を送る", bundle: bundle)
                 } icon: {
-                    Image(systemName: "exclamationmark.bubble")
+                    Image(systemName: "bubble.left.and.bubble.right")
                 }
             }
             .buttonStyle(.plain)
             .foregroundStyle(.primary)
+
+            Text("バグ報告や機能のリクエストを GitHub の Issue として送信します。", bundle: bundle)
+                .font(.caption)
+                .foregroundStyle(.secondary)
 
             Link(destination: HelpSiteLinks.privacyPolicy(locale: locale)) {
                 Label {
