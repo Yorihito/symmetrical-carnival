@@ -2,6 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>AVRReportEndpoint</key>
+	<string>https://avr-controller-report-proxy.nyoyapoya.workers.dev/report</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>ja</string>
 	<key>CFBundleExecutable</key>
@@ -21,10 +23,6 @@
 	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
-	<!-- 問題報告プロキシ（server/）の URL。未設定ならプレフィルURLフォールバックのみで動作する。
-	     デプロイ後、Worker の URL + "/report" を設定すること（例: https://xxx.workers.dev/report）。 -->
-	<key>AVRReportEndpoint</key>
-	<string></string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>NSBonjourServices</key>
