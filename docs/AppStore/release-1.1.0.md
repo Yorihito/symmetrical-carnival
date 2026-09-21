@@ -207,13 +207,15 @@ Apple には申告を省略できる例外（Optional Disclosure）があるが�
 
 - [ ] **App Store Version Release** で **Manually release this version** を選び、公開のタイミングを自分で決める
 - [ ] 1.1.0 のページ右上の **Save** で、ここまでの入力を保存する
-- [ ] 左メニュー **Monetization** → **In-App Purchases** → **Tip Small** → 右上の **Add for Review**
-  1. 提出がまだ無いので、新しい提出が作られる（既存の提出があるときは、それに追加するか **Create New Submission**）
-  2. 新しいアプリのバージョンが必要と表示されるので、プラットフォーム **iOS** とバージョン **1.1.0** を選ぶ
-  3. 確認画面ではまだ **Submit for Review** を押さず、閉じる
-- [ ] **Tip Medium**、**Tip Large** も同じく **Add for Review** を押し、**同じ提出に追加**する
-- [ ] 提出の中身（1.1.0 と IAP 3 つ）を確認して **Submit for Review**。提出を後から開くときは、
-  左メニュー **General** → **App Review**
+- [ ] 左メニュー **Monetization** → **In-App Purchases** → **Tip Small** → 右上の **Add for Review**。
+  **Draft Submission** が作られる。この時点では「Unable to Submit for Review（Your first consumable in-app
+  purchase must be submitted with a new app version.）」と出るが、1.1.0 がまだ入っていないだけなので正常。
+  右上の **✕** で閉じる（Draft Submission は残る）
+- [ ] **Tip Medium**、**Tip Large** も **Add for Review** を押し、同じ Draft Submission に追加する
+- [ ] **Distribution** → **iOS App** → **1.1.0** の**右上の Add for Review** で、1.1.0 を同じ Draft Submission に
+  追加する（IAP の画面ではバージョンを選べない）。入力漏れがあるとここで指摘されるので直す
+- [ ] Draft Submission に 1.1.0 と IAP 3 つが並び、警告が消えたら **Submit for Review**。
+  Draft Submission を後から開くときは、左メニュー **General** → **App Review**
 - [ ] 送信後、IAP の Status が **Waiting for Review** になっていることを確認
 
 （手順は https://developer.apple.com/help/app-store-connect/manage-submissions-to-app-review/submit-an-in-app-purchase ）
