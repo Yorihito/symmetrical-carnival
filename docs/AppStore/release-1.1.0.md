@@ -205,7 +205,8 @@ Apple には申告を省略できる例外（Optional Disclosure）があるが�
 
 ### 4-8. 提出（IAP と 1.1.0 をまとめて）
 
-- [ ] **App Store Version Release** で **Manually release this version** を選び、公開のタイミングを自分で決める
+- [ ] **App Store Version Release** で **Automatically release this version** を選ぶ（審査を通ったらすぐ公開。
+  累計 1,200 ダウンロードほどの規模なので、手動リリースや Phased Release は使わないと決めた）
 - [ ] 1.1.0 のページ右上の **Save** で、ここまでの入力を保存する
 - [ ] 左メニュー **Monetization** → **In-App Purchases** → **Tip Small** → 右上の **Add for Review**。
   **Draft Submission** が作られる。この時点では「Unable to Submit for Review（Your first consumable in-app
