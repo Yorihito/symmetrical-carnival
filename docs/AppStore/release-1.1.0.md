@@ -36,8 +36,9 @@ App Store Connect は英語表示の前提で、メニューやボタンの名�
 | Display Name（Japanese） | ちょっと応援 | しっかり応援 | たっぷり応援 |
 | Display Name（English (U.S.)） | Small Tip | Medium Tip | Large Tip |
 
-作成後の画面で、次の欄を埋めて右上の **Save** を押す。**Add for Review は押さない**（最初の消耗型 IAP は
-アプリのバージョンと一緒に提出する必要があるため。4-4 で追加する）。
+作成後の画面で、次の欄を埋めて右上の **Save** を押す。右上の **Add for Review** は、バージョンの
+準備がすべて整ってから 4-8 で押す（最初の消耗型 IAP はアプリのバージョンと一緒に提出する必要があり、
+その提出をこのボタンから作るため）。
 
 - [ ] **Product ID** を正確に入力する。一度作ると変更も再利用もできない。アプリ側の定義
   （`SupportStore.Tier`）と 1 文字でも違うと商品が表示されない
@@ -61,7 +62,9 @@ App Store Connect は英語表示の前提で、メニューやボタンの名�
     `-uiDemoSupport` で購入画面を直接開き、StoreKit を使わずに 3 段を並べる（日本語は予定価格の
     ¥160 / ¥480 / ¥980、英語は `Products.storekit` の価格）。価格を変えたら `SupportView.demoPrice` も直す
 - [ ] 一覧（**In-App Purchases** → **Drafts**）で 3 つとも Status が **Prepare for Submission** であること。
-  審査に出すまではこの表示のままで正常（項目が埋まっても「Ready to Submit」にはならない）
+  これは「作成済みで、まだ提出に入れていない」状態で、項目が埋まってもこの表示のまま。
+  **Add for Review** で **Ready for Review**、提出すると **Waiting for Review** に変わる
+  （https://developer.apple.com/help/app-store-connect/reference/in-app-purchase-statuses ）
 
 ## 3. TestFlight で本番の商品を試す（推奨）
 
@@ -146,11 +149,10 @@ App スイッチャーから完全に終了して開き直す。
 
 - [ ] **Build** 欄の **Add Build**（＋）→ 手順 3 でアップロードしたビルドを選んで **Done**
 
-### 4-4. App 内課金（In-App Purchases and Subscriptions）（最重要）
+### 4-4. App 内課金（最重要）
 
-- [ ] **In-App Purchases and Subscriptions** 欄 → **Add In-App Purchases or Subscriptions**（＋）→
-  3 つの IAP にチェックして **Done**。最初の IAP はアプリのバージョンと一緒でないと審査に出せず、
-  追加し忘れると IAP が審査に回らない
+バージョンのページには IAP を追加する欄は無い。IAP のページの **Add for Review** から提出（submission）を
+作り、そこに 1.1.0 を含める。バージョン側の入力（4-1〜4-7）がすべて終わってから、4-8 でまとめて行う。
 
 ### 4-5. App のプライバシー（App Privacy）（申告する）
 
@@ -188,8 +190,9 @@ Apple には申告を省略できる例外（Optional Disclosure）があるが�
 
 - [ ] バージョンのページ下部の **App Review Information** → **Notes** に
   [`ReviewNotes.md`](ReviewNotes.md) の内容を貼る（IAP の説明は追記済み）。**Sign-in required** はオフのまま
-- [ ] **実機デモ動画**は過去の提出で提出済み（審査通過）。1.1.0 の **Notes** / **Attachment** にも同じ
-  リンクや添付が引き継がれているか確認する（バージョンごとの設定のため）
+- [ ] **実機デモ動画**は過去の提出で提出済み（審査通過）だが、**1.1.0 では Notes も Attachment も空だった**
+  （前のバージョンから引き継がれない）。同じリンクを Notes に書くか、同じファイルを **Attachment** の
+  **Choose File (Optional)** で添付し直す
 
 ### 4-7. URL
 
@@ -198,10 +201,20 @@ Apple には申告を省略できる例外（Optional Disclosure）があるが�
 
 （どちらも 2026-09-21 に表示を確認済み）
 
-### 4-8. 提出
+### 4-8. 提出（IAP と 1.1.0 をまとめて）
 
 - [ ] **App Store Version Release** で **Manually release this version** を選び、公開のタイミングを自分で決める
-- [ ] 右上の **Add for Review** → 確認画面で **Submit to App Review**
+- [ ] 1.1.0 のページ右上の **Save** で、ここまでの入力を保存する
+- [ ] 左メニュー **Monetization** → **In-App Purchases** → **Tip Small** → 右上の **Add for Review**
+  1. 提出がまだ無いので、新しい提出が作られる（既存の提出があるときは、それに追加するか **Create New Submission**）
+  2. 新しいアプリのバージョンが必要と表示されるので、プラットフォーム **iOS** とバージョン **1.1.0** を選ぶ
+  3. 確認画面ではまだ **Submit for Review** を押さず、閉じる
+- [ ] **Tip Medium**、**Tip Large** も同じく **Add for Review** を押し、**同じ提出に追加**する
+- [ ] 提出の中身（1.1.0 と IAP 3 つ）を確認して **Submit for Review**。提出を後から開くときは、
+  左メニュー **General** → **App Review**
+- [ ] 送信後、IAP の Status が **Waiting for Review** になっていることを確認
+
+（手順は https://developer.apple.com/help/app-store-connect/manage-submissions-to-app-review/submit-an-in-app-purchase ）
 
 ## 5. 審査中と公開後
 
