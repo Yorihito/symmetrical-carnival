@@ -161,6 +161,11 @@ struct ConnectionView: View {
             }
             .onAppear {
                 if ipAddress.isEmpty { ipAddress = defaultHost }
+                #if DEBUG
+                // スクリーンショット撮影中は実際の検索をしない（LAN 上の実機 AVR に問い合わせてしまうため）。
+                // 検出結果は MainViewModel.applyScreenshotDemoState が入れている
+                if MainViewModel.isScreenshotDemo { return }
+                #endif
                 vm.discovery.start()
             }
             .onDisappear {

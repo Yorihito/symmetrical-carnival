@@ -850,8 +850,15 @@ final class MainViewModel {
     /// App Store 用スクリーンショット撮影用（DEBUG ビルドで起動引数 `-uiDemo`）。
     /// AVR が無くても接続中のダッシュボードを表示する。通信は一切しない。
     /// 参照: upgraded-guacamole の `-uiDemo`。撮影手順は `scripts/capture-screenshots.sh`
-    static var isScreenshotDemo: Bool {
+    nonisolated static var isScreenshotDemo: Bool {
         ProcessInfo.processInfo.arguments.contains("-uiDemo")
+    }
+
+    /// 撮影する画面（起動引数 `-uiDemoTab <home|input|tuner|remote|zone|settings|connection>`）
+    nonisolated static var screenshotDemoTab: String? {
+        let args = ProcessInfo.processInfo.arguments
+        guard let i = args.firstIndex(of: "-uiDemoTab"), i + 1 < args.count else { return nil }
+        return args[i + 1]
     }
 
     /// 接続中の見た目にするための固定の状態を入れる
@@ -863,8 +870,16 @@ final class MainViewModel {
         avr.isPoweredOn = true
         avr.isMuted = false
         avr.volumeDB = -32.5
-        avr.input = .bluray
+        // チューナー画面は入力が TUNER のときだけ操作できるので、チューナーを撮るときだけ切り替える
+        avr.input = Self.screenshotDemoTab == "tuner" ? .tuner : .bluray
         avr.surroundMode = .movie
+        avr.tunerBand = .fm
+        avr.tunerFrequency = "80.0"
+        avr.tunerPreset = 1
+        // 接続設定の画面に出す検出結果（撮影中は実際の検索をしない。ConnectionView を参照）
+        discovery.devices = [
+            DiscoveredDevice(id: "192.168.1.20", name: "AVR-X3800H", host: "192.168.1.20", port: 8080, macAddress: "")
+        ]
         connectionStatus = .connected
     }
     #endif

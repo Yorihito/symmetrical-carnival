@@ -42,7 +42,7 @@
   - 日本語: `開発を応援する投げ銭です。機能は変わりません`
   - 英語: `A tip to support the developer.`
 - [ ] **審査に関する情報**: 購入画面のスクリーンショットを 1 枚（3 つとも同じでよい）。撮影済みの
-  `marketing/iap-review/en/support.png`（英語）か `marketing/iap-review/ja/support.png`（日本語）を使う。
+  `marketing/iap-review/en/support.png`（英語、ダークモード）を使う（日本語版はライトモードの旧版）。
   審査メモは「購入しても機能は解放されない投げ銭です」
   - 撮り直すときは `scripts/capture-screenshots.sh`。DEBUG ビルド限定の起動引数
     `-uiDemoSupport` で購入画面を直接開き、StoreKit を使わずに 3 段を並べる（日本語は予定価格の
@@ -96,14 +96,32 @@ App Store タブの「＋」→ iOS のバージョン **1.1.0** を作成する
 
 ### 4-2. スクリーンショット
 
-- [ ] （任意・推奨）音量ダイアルは見た目で伝わる変更なので、1 枚追加する。撮影済みの画像を使う。
-  既存のストア画像と同じサイズ枠に並べること（日本語は iPhone 17 Pro の 6.3 インチ、英語は
-  iPhone 17 Pro Max の 6.9 インチで撮られている）
-  - 日本語: `marketing/appstore-screenshots/ja/dial-6.3.png`（6.9 インチ枠用は `dial-6.9.png`）
-  - 英語: `marketing/appstore-screenshots/en/dial-6.9.png`（6.3 インチ枠用は `dial-6.3.png`）
-  - 既存の画像に合わせて、ダークモードの素の画面。AVR に接続した状態は DEBUG ビルド限定の起動引数
-    `-uiDemo` で再現している（実機には接続しない）。撮り直すときは `scripts/capture-screenshots.sh`、
-    6.3 インチは `SIM_NAME="AVR Screenshots 6.3" DEVICE_TYPE="iPhone 17 Pro" scripts/capture-screenshots.sh`
+既存のストア画像はライトとダーク、画面の種類もサイズごとにばらばらだったので、**英語版をすべて
+ダークモードで撮り直した**（2026-09-21）。サイズごとの枠で、既存の画像をすべて削除してから、
+ファイル名の番号順にアップロードする。
+
+- [ ] **iPhone 6.9"**（6.5" 枠は「Using 6.9" Display」のままでよい）:
+  `marketing/appstore-screenshots/en/iphone-6.9/` の 7 枚
+- [ ] **iPhone 6.3"**: `marketing/appstore-screenshots/en/iphone-6.3/` の 7 枚
+- [ ] **iPad 13"**: `marketing/appstore-screenshots/en/ipad-13/` の 5 枚
+
+| 番号 | 画面 | iPhone | iPad |
+|---|---|---|---|
+| 01 | ダッシュボード（音量ダイアル） | ○ | ○ |
+| 02 | ダッシュボード（スライダー） | ○ | ○ |
+| 03 | 入力ソース | ○ | （ダッシュボードに含まれる） |
+| 04 | チューナー | ○ | ○ |
+| 05 | リモコン | ○ | ○ |
+| 06 | 設定 | ○ | ○ |
+| 07 | 接続設定（AVR の自動検出） | ○ | ― |
+
+（iPad は入力ソースと接続設定が無いため、ファイル番号は 01〜05 に詰めてある）
+
+- 日本語のローカリゼーションに独自のスクリーンショットが残っていると、日本のストアではそちらが
+  表示される。英語版に揃えるなら、日本語側の画像は削除する（画像の無いローカリゼーションは
+  主言語の画像を使う）
+- AVR に接続した状態は DEBUG ビルド限定の起動引数 `-uiDemo` で再現している（実機には接続しない）。
+  撮り直すときは `LOCALES=en scripts/capture-screenshots.sh`（端末を絞るなら `DEVICES=iphone69` など）
 
 ### 4-3. ビルド
 
