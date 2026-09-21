@@ -30,7 +30,7 @@ final class SupportStore {
         case success, pending, cancelled, failed
     }
 
-    /// 価格の安い順
+    /// small → medium → large の順（`Tier` の定義順）
     private(set) var products: [Product] = []
     private(set) var loadState: LoadState = .idle
     /// 購入処理中の商品 ID（多重購入の防止と、行ごとのインジケーター表示用）
@@ -52,7 +52,12 @@ final class SupportStore {
         loadState = .loading
         do {
             let fetched = try await Product.products(for: Tier.allCases.map(\.rawValue))
-            products = fetched.sorted { $0.price < $1.price }
+            // 価格ではなく Tier の定義順に並べる。価格は App Store Connect でいつでも変えられ、
+            // 変更の反映待ちの間などに順序が入れ替わってしまうため
+            let order = Tier.allCases.map(\.rawValue)
+            products = fetched.sorted {
+                (order.firstIndex(of: $0.id) ?? order.count) < (order.firstIndex(of: $1.id) ?? order.count)
+            }
             // App Store Connect に商品が未登録の間は空が返る
             loadState = products.isEmpty ? .unavailable : .loaded
         } catch {
