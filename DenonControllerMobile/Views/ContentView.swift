@@ -12,6 +12,15 @@ struct ContentView: View {
     @Environment(SupportStore.self) private var supportStore
     @State private var showingSupportRequest = false
     @State private var showingSupportSheet = false
+    @State private var selectedTab = ContentView.initialTab
+
+    /// 起動時に選ぶタブ。DEBUG ビルドのスクリーンショット撮影では起動引数 `-uiDemoTab` で指定する
+    nonisolated private static var initialTab: String {
+        #if DEBUG
+        if let tab = MainViewModel.screenshotDemoTab, tab != "connection" { return tab }
+        #endif
+        return "home"
+    }
 
     private var appLocale: Locale {
         switch appLanguage {
@@ -57,6 +66,9 @@ struct ContentView: View {
             #if DEBUG
             // App Store 用スクリーンショット撮影用: 接続中の画面を再現する（scripts/capture-screenshots.sh）
             if MainViewModel.isScreenshotDemo { vm.applyScreenshotDemoState() }
+            if MainViewModel.screenshotDemoTab == "connection" {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2.2) { showConnection = true }
+            }
             #endif
             // スクリーンショット撮影用: スプラッシュが消えたら「開発を応援する」を開く
             // （DEBUG ビルドの起動引数 -uiDemoSupport。scripts/capture-screenshots.sh）
@@ -225,38 +237,44 @@ struct ContentView: View {
     // MARK: - iPhone: Tab Bar
 
     private var iPhoneLayout: some View {
-        TabView {
+        TabView(selection: $selectedTab) {
             NavigationStack {
                 DashboardView(showConnection: $showConnection)
             }
             .tabItem { 
                 Label { Text("ホーム", bundle: lBundle) } icon: { Image(systemName: "house.fill") }
             }
+            .tag("home")
 
             NavigationStack { TunerView() }
             .tabItem { 
                 Label { Text("チューナー", bundle: lBundle) } icon: { Image(systemName: "antenna.radiowaves.left.and.right") }
             }
+            .tag("tuner")
 
             NavigationStack { InputView() }
             .tabItem { 
                 Label { Text("入力ソース", bundle: lBundle) } icon: { Image(systemName: "rectangle.on.rectangle.angled") }
             }
+            .tag("input")
 
             NavigationStack { RemoteView() }
             .tabItem { 
                 Label { Text("リモコン", bundle: lBundle) } icon: { Image(systemName: "dpad") }
             }
+            .tag("remote")
 
             NavigationStack { ZoneView() }
             .tabItem { 
                 Label { Text("ゾーン", bundle: lBundle) } icon: { Image(systemName: "square.split.2x1.fill") }
             }
+            .tag("zone")
 
             NavigationStack { SettingsView(showConnection: $showConnection) }
             .tabItem { 
                 Label { Text("設定", bundle: lBundle) } icon: { Image(systemName: "gear") }
             }
+            .tag("settings")
         }
     }
 
@@ -280,7 +298,18 @@ struct ContentView: View {
         }
     }
 
-    @State private var selectedItem: SidebarItem? = .dashboard
+    @State private var selectedItem: SidebarItem? = ContentView.initialSidebarItem
+
+    /// iPad の初期選択（撮影時の `-uiDemoTab` に対応。iPad に無い「入力ソース」はダッシュボード）
+    nonisolated private static var initialSidebarItem: SidebarItem {
+        switch initialTab {
+        case "tuner":    .tuner
+        case "remote":   .remote
+        case "zone":     .zone
+        case "settings": .settings
+        default:         .dashboard
+        }
+    }
 
     private var iPadLayout: some View {
         NavigationSplitView {
