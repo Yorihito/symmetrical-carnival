@@ -1,6 +1,6 @@
 # Backend (Cloudflare Worker)
 
-Backend for AVR Controller's "問題を報告" feature: turns a bug report or
+Backend for AVR Controller's "ご意見・ご要望を送る" (Send Feedback) feature: turns a bug report or
 feature request into a public GitHub issue.
 
 The GitHub write token lives **only** as a Worker secret — it is never shipped

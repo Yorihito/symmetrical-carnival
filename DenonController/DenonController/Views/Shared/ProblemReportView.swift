@@ -52,7 +52,7 @@ struct ProblemReportView: View {
                 }
             }
             .formStyle(.grouped)
-            .navigationTitle(Text("問題を報告", bundle: bundle))
+            .navigationTitle(Text("ご意見・ご要望", bundle: bundle))
             #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
             #endif
