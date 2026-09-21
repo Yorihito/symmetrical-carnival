@@ -189,10 +189,12 @@ Apple には申告を省略できる例外（Optional Disclosure）があるが�
 ### 4-6. App Review Information
 
 - [ ] バージョンのページ下部の **App Review Information** → **Notes** に
-  [`ReviewNotes.md`](ReviewNotes.md) の内容を貼る（IAP の説明は追記済み）。**Sign-in required** はオフのまま
+  [`ReviewNotes.txt`](ReviewNotes.txt) の内容をそのまま貼る（英語のプレーンテキスト。IAP の説明と、AVR が無くても
+  設定画面を開ける場所の説明を含む）。**Sign-in required** はオフのまま
 - [ ] **実機デモ動画**は過去の提出で提出済み（審査通過）だが、**1.1.0 では Notes も Attachment も空だった**
-  （前のバージョンから引き継がれない）。同じリンクを Notes に書くか、同じファイルを **Attachment** の
-  **Choose File (Optional)** で添付し直す
+  （前のバージョンから引き継がれない）。Notes の `[PASTE THE DEMO VIDEO LINK HERE]` を実際のリンクに
+  差し替える。ファイルで出す場合は **Attachment** の **Choose File (Optional)** で添付し、Notes の
+  `Demo video` の 2 行は `A demo video is attached.` に書き換える
 
 ### 4-7. URL
 

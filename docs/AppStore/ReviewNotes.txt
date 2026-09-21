@@ -1,0 +1,27 @@
+AVR Controller is a remote control app for Denon and Marantz AV receivers (AVRs) on the same local network. It requires a compatible network-connected receiver. Without one, the app cannot connect and stays on the connection screen (device search / manual IP address entry). This is expected behavior.
+
+Tested model: Denon AVR-X3800H (HEOS-enabled).
+
+Demo video (the app on a real iPhone controlling a real AVR-X3800H):
+[PASTE THE DEMO VIDEO LINK HERE]
+
+HOW TO REVIEW WITHOUT A RECEIVER
+- The Settings screen can be opened without a receiver. On iPhone it is in the More tab; on iPad it is in the sidebar.
+- The in-app purchases (see below) are in Settings > Support Development and can be purchased without a receiver.
+
+NETWORK USE
+- Receiver control uses the local network only: HTTP (mainly port 8080) and Telnet (port 23) to the receiver.
+- The Local Network permission is used only to discover and control compatible receivers.
+- The app sends data to an external service only when the user explicitly uses Settings > Send Feedback. The report is posted as a public GitHub issue through a Cloudflare Worker operated for this app. If the Worker is unavailable, the app opens a prefilled GitHub issue page in the browser instead.
+- There is no analytics, advertising, or tracking.
+
+IN-APP PURCHASES
+- Three consumable tips to support the developer:
+  cc.nyoyapoya.denoncontroller.tip.small
+  cc.nyoyapoya.denoncontroller.tip.medium
+  cc.nyoyapoya.denoncontroller.tip.large
+- Purchasing a tip does not unlock any features or content. All features remain free.
+- If a supporter sends feedback from Send Feedback, the resulting issue gets a "supporter" label so the developer can review those requests first. This is a support policy of the developer, not a feature unlocked in the app.
+
+ACCOUNT
+- No sign-in or account is required.

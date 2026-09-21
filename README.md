@@ -123,7 +123,7 @@ The Worker deployment procedure is documented in
 - [Current repository overview](docs/repository-overview.md)
 - [Product requirements and implementation status](REQUIREMENTS.md)
 - [App launch/playbook alignment](docs/playbook-alignment.md)
-- [App Review notes](docs/AppStore/ReviewNotes.md)
+- [App Review notes](docs/AppStore/ReviewNotes.txt)
 - [macOS App Store metadata](docs/AppStore/Metadata_Mac.md)
 - [iOS App Store metadata](docs/AppStore/Metadata_iOS.md)
 

@@ -5,7 +5,7 @@
 Phase 0 と Phase 1 の主要部分を実装済み。詳細は各セクションのステータス表記を参照。
 
 - **Phase 0**: 完了。`PrivacyInfo.xcprivacy`（両ターゲット）、`ITSAppUsesNonExemptEncryption`、
-  審査ノート（`docs/AppStore/ReviewNotes.md`。実機デモ動画リンクのみ TODO）、主要操作への
+  審査ノート（`docs/AppStore/ReviewNotes.txt`。英語のプレーンテキスト。実機デモ動画は過去の提出で提出済み）、主要操作への
   `accessibilityLabel` 付与（電源・音量・ミュート・Zone2/3電源・リモコンD-pad・メニューバー主要ボタン）。
 - **Phase 1**: ヘルプサイトは `help/` 配下に index/details/privacy を ja/en で作成し、GitHub Pagesで
   公開済み。問題報告・機能リクエストは `ProblemReporter` / `ProblemReportView` とCloudflare Worker
@@ -98,7 +98,7 @@ Phase 4  運用基盤（テレメトリ・CI）（任意・優先度低）
 |---|---|---|
 | プライバシーマニフェスト | `NSPrivacyAccessedAPICategoryUserDefaults` + reason `CA92.1` を宣言済み | `DenonController/DenonController/Core/PrivacyInfo.xcprivacy`（共有ソースとして両ターゲットに同梱） |
 | 輸出コンプラ申告の自動化 | `ITSAppUsesNonExemptEncryption` = `false` を追加（標準 TLS のみ・独自暗号なし） | `DenonController/DenonController/Info.plist`, `DenonControllerMobile/App/Info.plist` |
-| 審査ノート整備 | 「同一 LAN 上に対応 AVR が必要。無い場合は検出画面で止まるのが仕様」を明記し、実機（iPhone/iPad）+実機 AVR の動作デモ動画（限定公開）へのリンクを追加。プレイブック §8 の実例（TV REMOTE for B, Guideline 2.1）を踏まえた予防措置 | `docs/AppStore/` に `ReviewNotes.md` を新設、次回提出時に ASC の App Review 情報欄へ転記 |
+| 審査ノート整備 | 「同一 LAN 上に対応 AVR が必要。無い場合は検出画面で止まるのが仕様」を明記し、実機（iPhone/iPad）+実機 AVR の動作デモ動画（限定公開）へのリンクを追加。プレイブック §8 の実例（TV REMOTE for B, Guideline 2.1）を踏まえた予防措置 | `docs/AppStore/` に審査ノートを新設（現在は英語のプレーンテキストの `ReviewNotes.txt`）、次回提出時に ASC の App Review 情報欄へ転記 |
 | サポート/プライバシー URL | 日英ヘルプサイトを再構築し、GitHub Pagesで公開済み | `help/`、`.github/workflows/pages.yml` |
 | アクセシビリティの最小ライン | 主要操作（電源/音量/ミュート/Zone 2/3電源/リモコン方向パッド等）に `accessibilityLabel` を付与済み | `Views/MainWindow/*.swift`、`Views/Shared/*.swift`、`DenonControllerMobile/Views/*.swift` |
 
@@ -196,7 +196,7 @@ Cloudflare Worker プロキシ方式に合わせて書き換えた**（プレイ
 - **ASO の微調整**（§25）: `docs/AppStore/Metadata_*.md` は既に UX 訴求重視で高品質。プレイブックの
   「実在する検索行動の証拠で選ぶ」原則に沿って、キーワードの追加候補があれば裏取りしてから採用する
   軽微なチューニングに留める（作り直しは不要）。
-- **提出フロー・頻出ハマりどころの再確認**（§10・§11）: Phase 0 で作成した `ReviewNotes.md` を
+- **提出フロー・頻出ハマりどころの再確認**（§10・§11）: Phase 0 で作成した審査ノート（`ReviewNotes.txt`）を
   次回提出時に転記する運用を確立。
 
 ---
