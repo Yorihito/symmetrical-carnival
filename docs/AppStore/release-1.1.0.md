@@ -16,61 +16,78 @@
   cd DenonController && xcodegen generate
   ```
 
+App Store Connect は英語表示の前提で、メニューやボタンの名前は画面どおり英語で書く
+（画面の更新で多少変わることがある）。
+
 ## 1. 契約の確認
 
-- [ ] App Store Connect の「ビジネス」（契約／税金／口座情報）で、**有料 App 契約が「有効」**であること。
-  無効だと IAP を作っても商品が読み込まれない
+- [ ] トップページの **Business** →「Agreements」で、**Paid Apps** の契約が **Active** であること。
+  有効でないと IAP を作っても商品が読み込まれない
 
 ## 2. IAP を 3 つ作成
 
-アプリ（AVR Controller for D）の左メニュー「収益化」→「App 内課金」→「＋」。**種類は「消耗型」**。
+アプリ（AVR Controller for D）の左メニュー **Monetization** → **In-App Purchases** → **＋**。
+**Type** は **Consumable**、**Reference Name** と **Product ID** を入れて **Create**。
 
 | 項目 | small | medium | large |
 |---|---|---|---|
-| 参照名（社内用） | Tip Small | Tip Medium | Tip Large |
-| 製品 ID | `cc.nyoyapoya.denoncontroller.tip.small` | `cc.nyoyapoya.denoncontroller.tip.medium` | `cc.nyoyapoya.denoncontroller.tip.large` |
-| 価格（例） | 160 円前後 | 480 円前後 | 980 円前後 |
-| 表示名（日本語） | ちょっと応援 | しっかり応援 | たっぷり応援 |
-| 表示名（英語） | Small Tip | Medium Tip | Large Tip |
+| Reference Name（社内用） | Tip Small | Tip Medium | Tip Large |
+| Product ID | `cc.nyoyapoya.denoncontroller.tip.small` | `cc.nyoyapoya.denoncontroller.tip.medium` | `cc.nyoyapoya.denoncontroller.tip.large` |
+| Display Name（Japanese） | ちょっと応援 | しっかり応援 | たっぷり応援 |
+| Display Name（English (U.S.)） | Small Tip | Medium Tip | Large Tip |
 
-- [ ] **製品 ID** を正確に入力する。一度作ると変更も再利用もできない。アプリ側の定義
+作成後の画面で、次の欄を埋めて右上の **Save** を押す。**Add for Review は押さない**（最初の消耗型 IAP は
+アプリのバージョンと一緒に提出する必要があるため。4-4 で追加する）。
+
+- [ ] **Product ID** を正確に入力する。一度作ると変更も再利用もできない。アプリ側の定義
   （`SupportStore.Tier`）と 1 文字でも違うと商品が表示されない
-- [ ] **価格スケジュール**: 日本を基準に選ぶ（他の国は自動）。アプリは App Store Connect の価格を
-  そのまま表示するので、後から変えてもよい
-- [ ] **ローカリゼーション**: 日本語と英語（米国）。表示名は購入時の Apple の確認画面にも出るので、
-  アプリ内の名前と揃える。説明（45 文字以内）は次の文面でよい
-  - 日本語: `開発を応援する投げ銭です。機能は変わりません`
-  - 英語: `A tip to support the developer.`
-- [ ] **審査に関する情報**: 購入画面のスクリーンショットを 1 枚（3 つとも同じでよい）。撮影済みの
-  `marketing/iap-review/en/support.png`（英語、ダークモード）を使う（日本語版はライトモードの旧版）。
-  審査メモは「購入しても機能は解放されない投げ銭です」
+- [ ] **Availability** → **Set Up Availability** → すべての国と地域
+- [ ] **Price Schedule** → **Add Pricing** → **Base Country or Region** は **United States (USD)**
+  （ダウンロードの半分が米国のため）。他の国の価格は自動で計算され、為替などに応じて Apple が調整する。
+  アプリは App Store Connect の価格をそのまま表示するので、後から変えてもよい
+- [ ] **App Store Localization** → **＋** → ダイアログで言語（Japanese と English (U.S.)）ごとに
+  **Display Name** と **Description**（45 文字以内）を入れる。表示名は購入時の Apple の確認画面にも
+  出るので、アプリ内の名前と揃える。Description は次の文面でよい
+  - Japanese: `開発を応援する投げ銭です。機能は変わりません`
+  - English (U.S.): `A tip to support the developer.`
+- [ ] **Review Information** → **Screenshot** に購入画面を 1 枚（3 つとも同じでよい）。
+  `marketing/iap-review/en/support.png`（英語、ダークモード）を使う。**Review Notes** は次の文面でよい
+
+  ```
+  This is a tip to support the developer. It does not unlock any features or content; all features remain free. It is available from Settings > Support Development, which can be opened without connecting to an AV receiver.
+  ```
+
   - 撮り直すときは `scripts/capture-screenshots.sh`。DEBUG ビルド限定の起動引数
     `-uiDemoSupport` で購入画面を直接開き、StoreKit を使わずに 3 段を並べる（日本語は予定価格の
     ¥160 / ¥480 / ¥980、英語は `Products.storekit` の価格）。価格を変えたら `SupportView.demoPrice` も直す
-- [ ] 3 つともステータスが**「送信準備完了」**になったことを確認
+- [ ] 一覧（**In-App Purchases** → **Drafts**）で 3 つとも Status が **Prepare for Submission** であること。
+  審査に出すまではこの表示のままで正常（項目が埋まっても「Ready to Submit」にはならない）
 
 ## 3. TestFlight で本番の商品を試す（推奨）
 
 Xcode から直接実行するとローカルのテスト用商品が使われる。App Store Connect の本物の商品が
 読み込めるかは TestFlight で確認する。
 
-- [ ] Xcode で接続先を「Any iOS Device」にして Product → Archive（Team はいつもどおり選択）。
-  ビルド番号は git のコミット数から自動で付く
-- [ ] Organizer → Distribute App → App Store Connect でアップロード
-- [ ] TestFlight（内部テスト）で実機にインストールし、確認する
-  - [ ] 設定 → 開発を応援する で、3 つの商品が**円の価格で**表示される
+- [ ] Xcode で実行先を **Any iOS Device (arm64)** にして **Product** → **Archive**
+  （Team はいつもどおり選択）。ビルド番号は git のコミット数から自動で付く
+- [ ] Organizer → **Distribute App** → **App Store Connect** → **Upload**
+- [ ] App Store Connect の **TestFlight** タブ → **Internal Testing** で実機にインストールし、確認する
+  - [ ] 設定 → 開発を応援する で、3 つの商品が small → medium → large の順に、端末のストアの通貨で表示される
   - [ ] 購入でき、お礼が出る（TestFlight では**実際には課金されない**）
   - [ ] 「レビューを書く」で App Store のレビュー画面が開く
   - [ ] 応援後に「ご意見・ご要望を送る」から送ると、Issue に `supporter` ラベルが付く
     （**公開の Issue が作られる**ので、確認後に閉じる）
 
-商品が出ない場合は、IAP が「送信準備完了」か、有料 App 契約が有効かを確認する。
+商品が出ない、または価格の変更が反映されない場合: App Store Connect で保存してから TestFlight に
+届くまで数分〜1 時間ほどかかることがある。アプリは起動時に一度だけ商品を読み込むので、
+App スイッチャーから完全に終了して開き直す。
 
 ## 4. 1.1.0 のバージョンを作って提出
 
-App Store タブの「＋」→ iOS のバージョン **1.1.0** を作成する。
+**Distribution** タブの左メニュー **iOS App** → **1.1.0**（作成済み）を開く。説明文や画像は言語ごとの
+設定なので、ページ右上の言語メニュー（例: **English (U.S.)**）で切り替えて入力する。
 
-### 4-1. このバージョンの新機能
+### 4-1. 新機能の説明（What's New in This Version）
 
 - [ ] 日本語
 
@@ -97,13 +114,15 @@ App Store タブの「＋」→ iOS のバージョン **1.1.0** を作成する
 ### 4-2. スクリーンショット
 
 既存のストア画像はライトとダーク、画面の種類もサイズごとにばらばらだったので、**英語版をすべて
-ダークモードで撮り直した**（2026-09-21）。サイズごとの枠で、既存の画像をすべて削除してから、
-ファイル名の番号順にアップロードする。
+ダークモードで撮り直した**（2026-09-21）。
 
-- [ ] **iPhone 6.9"**（6.5" 枠は「Using 6.9" Display」のままでよい）:
-  `marketing/appstore-screenshots/en/iphone-6.9/` の 7 枚
-- [ ] **iPhone 6.3"**: `marketing/appstore-screenshots/en/iphone-6.3/` の 7 枚
-- [ ] **iPad 13"**: `marketing/appstore-screenshots/en/ipad-13/` の 5 枚
+**Previews and Screenshots** → **View All Sizes in Media Manager** を開き、サイズごとに **Delete All** で
+既存の画像を消してから、**Choose File** でファイル名の番号順にアップロードする。
+
+- [ ] **iPhone 6.9" Display**: `marketing/appstore-screenshots/en/iphone-6.9/` の 7 枚
+- [ ] **iPhone 6.5" Display**: **Using 6.9" Display** のままでよい
+- [ ] **iPhone 6.3" Display**: `marketing/appstore-screenshots/en/iphone-6.3/` の 7 枚
+- [ ] **iPad 13" Display**: `marketing/appstore-screenshots/en/ipad-13/` の 5 枚
 
 | 番号 | 画面 | iPhone | iPad |
 |---|---|---|---|
@@ -118,21 +137,22 @@ App Store タブの「＋」→ iOS のバージョン **1.1.0** を作成する
 （iPad は入力ソースと接続設定が無いため、ファイル番号は 01〜05 に詰めてある）
 
 - 日本語のローカリゼーションに独自のスクリーンショットが残っていると、日本のストアではそちらが
-  表示される。英語版に揃えるなら、日本語側の画像は削除する（画像の無いローカリゼーションは
-  主言語の画像を使う）
+  表示される。英語版に揃えるなら、右上の言語メニューで **Japanese** に切り替え、Media Manager で
+  日本語側の画像を削除する（画像の無いローカリゼーションは主言語の画像を使う）
 - AVR に接続した状態は DEBUG ビルド限定の起動引数 `-uiDemo` で再現している（実機には接続しない）。
   撮り直すときは `LOCALES=en scripts/capture-screenshots.sh`（端末を絞るなら `DEVICES=iphone69` など）
 
 ### 4-3. ビルド
 
-- [ ] 手順 3 でアップロードしたビルドを選ぶ
+- [ ] **Build** 欄の **Add Build**（＋）→ 手順 3 でアップロードしたビルドを選んで **Done**
 
-### 4-4. App 内課金とサブスクリプション（最重要）
+### 4-4. App 内課金（In-App Purchases and Subscriptions）（最重要）
 
-- [ ] バージョンのページのこの欄で、**3 つの IAP を追加する**。最初の IAP はアプリのバージョンと
-  一緒でないと審査に出せず、追加し忘れると IAP が審査に回らない
+- [ ] **In-App Purchases and Subscriptions** 欄 → **Add In-App Purchases or Subscriptions**（＋）→
+  3 つの IAP にチェックして **Done**。最初の IAP はアプリのバージョンと一緒でないと審査に出せず、
+  追加し忘れると IAP が審査に回らない
 
-### 4-5. App のプライバシー（申告する）
+### 4-5. App のプライバシー（App Privacy）（申告する）
 
 1.1.0 は、このアプリで初めて外部にデータを送るバージョン（ご意見・ご要望の送信）。送った内容は
 公開の GitHub Issue として残るので、Apple の定義する「収集」（リアルタイムの処理に必要な期間を
@@ -152,31 +172,36 @@ Apple には申告を省略できる例外（Optional Disclosure）があるが�
 - [x] アプリ内のプライバシーマニフェスト（`DenonController/DenonController/Core/PrivacyInfo.xcprivacy`）の
   `NSPrivacyCollectedDataTypes` を上の表に合わせた。**ビルドに含まれるので、この変更の入った main から
   アーカイブする**
-- [ ] App Store Connect の「App のプライバシー」（App Privacy）で申告して公開する
-  1. 「編集」→ データを収集しているかに「はい」
-  2. 「カスタマーサポート」「その他の診断データ」「購入履歴」の 3 つを選ぶ
-  3. それぞれ、用途は「App の機能」、ユーザーの身元との紐づけは「いいえ」、トラッキングは「いいえ」
-  4. 「公開」を押す。App のプライバシーはバージョンではなくアプリ単位の設定で、公開した時点で
-     ストアの表示に反映される（1.1.0 の公開前に 1.0.5 のページにも出るが、多めの申告なので問題ない）
+- [ ] App Store Connect で申告して公開する
+  1. 左メニュー **App Privacy**（**Trust & Safety** の下）→ **Get Started**（または **Edit**）
+  2. データを収集しているかに **Yes, we collect data from this app**
+  3. 次の 3 つにチェックして **Save**
+     - **User Content** → **Customer Support**
+     - **Diagnostics** → **Other Diagnostic Data**
+     - **Purchases** → **Purchase History**
+  4. それぞれの **Set Up** で、用途は **App Functionality**、身元との紐づけ（linked to the user's identity）は
+     **No**、トラッキング（tracking purposes）は **No** にして **Save**
+  5. **Publish**。App Privacy はバージョンではなくアプリ単位の設定で、公開した時点でストアの表示に
+     反映される（1.1.0 の公開前に 1.0.5 のページにも出るが、多めの申告なので問題ない）
 
-### 4-6. App Review に関する情報
+### 4-6. App Review Information
 
-- [ ] [`ReviewNotes.md`](ReviewNotes.md) の内容をメモ欄に貼る（IAP の説明は追記済み）
-- [ ] **実機デモ動画**（限定公開）のリンクを貼る。`ReviewNotes.md` では TODO のまま。同じ構造の
-  TV REMOTE for B が 2026-07-02 に「外部ハードウェアの動作確認ができない」（Guideline 2.1）で
-  リジェクトされているため、実機の iPhone と AVR が同じ画面に映る動画を用意する
+- [ ] バージョンのページ下部の **App Review Information** → **Notes** に
+  [`ReviewNotes.md`](ReviewNotes.md) の内容を貼る（IAP の説明は追記済み）。**Sign-in required** はオフのまま
+- [ ] **実機デモ動画**は過去の提出で提出済み（審査通過）。1.1.0 の **Notes** / **Attachment** にも同じ
+  リンクや添付が引き継がれているか確認する（バージョンごとの設定のため）
 
 ### 4-7. URL
 
-- [ ] サポート URL: `https://yorihito.github.io/symmetrical-carnival/`
-- [ ] プライバシーポリシー URL: `https://yorihito.github.io/symmetrical-carnival/privacy.html`
+- [ ] **Support URL**（バージョンのページ、言語ごと）: `https://yorihito.github.io/symmetrical-carnival/`
+- [ ] **Privacy Policy URL**（左メニュー **App Privacy** のページ）: `https://yorihito.github.io/symmetrical-carnival/privacy.html`
 
 （どちらも 2026-09-21 に表示を確認済み）
 
 ### 4-8. 提出
 
-- [ ] 「審査用に追加」→「審査へ提出」
-- [ ] リリース方法は「**手動でリリース**」にして、公開のタイミングを自分で決める
+- [ ] **App Store Version Release** で **Manually release this version** を選び、公開のタイミングを自分で決める
+- [ ] 右上の **Add for Review** → 確認画面で **Submit to App Review**
 
 ## 5. 審査中と公開後
 
