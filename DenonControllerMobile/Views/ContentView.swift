@@ -54,9 +54,23 @@ struct ContentView: View {
                     isSplashScreenActive = false
                 }
             }
+            #if DEBUG
+            // App Store 用スクリーンショット撮影用: 接続中の画面を再現する（scripts/capture-screenshots.sh）
+            if MainViewModel.isScreenshotDemo { vm.applyScreenshotDemoState() }
+            #endif
+            // スクリーンショット撮影用: スプラッシュが消えたら「開発を応援する」を開く
+            // （DEBUG ビルドの起動引数 -uiDemoSupport。scripts/capture-screenshots.sh）
+            if SupportView.isScreenshotDemo {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2.2) {
+                    showingSupportSheet = true
+                }
+            }
         }
         .onChange(of: vm.connectionStatus) { _, status in
             guard status == .connected else { return }
+            #if DEBUG
+            if MainViewModel.isScreenshotDemo { return }   // 撮影中は接続時のダイアログを出さない
+            #endif
             if !hasShownVolumeDialIntroduction {
                 let delay = isSplashScreenActive ? 1.7 : 0.2
                 DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
@@ -197,6 +211,9 @@ struct ContentView: View {
     }
 
     private func autoConnect() {
+        #if DEBUG
+        if MainViewModel.isScreenshotDemo { return }   // 撮影中は実機の AVR に接続しない
+        #endif
         let host = UserDefaults.standard.string(forKey: "defaultHost") ?? ""
         let auto = UserDefaults.standard.bool(forKey: "autoConnect")
         if auto && !host.isEmpty && !vm.connectionStatus.isConnected {
