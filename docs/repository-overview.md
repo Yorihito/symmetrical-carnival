@@ -205,15 +205,19 @@ Workerは受信した報告から公開GitHub Issueを作成する。GitHubト�
 - 生のIPアドレスを保存しない、ソルト付きハッシュキー
 - 必須secretやKVがない場合のfail closed
 
-### 調査時点のデプロイ状態
+### デプロイ状態（2026-09-13 時点）
 
-Workerはまだ利用可能な構成になっていない。
+Workerはデプロイ済みで、iOSアプリから利用できる状態にある。
 
-- `server/wrangler.toml` の KV namespace ID は `REPLACE_WITH_KV_NAMESPACE_ID` のまま
-- macOS / iOS双方の `Info.plist` にある `AVRReportEndpoint` は空文字
-- `GITHUB_TOKEN` と `RATE_SALT` はCloudflare上で設定する必要がある
+- Worker名: `avr-controller-report-proxy`、本番URL: `https://avr-controller-report-proxy.nyoyapoya.workers.dev`（アプリの送信先は `…/report`）
+- KV namespaceは専用の `AVR_RATE_LIMIT` を使う。同じCloudflareアカウントにはTV REMOTE for B用の
+  `RATE_LIMIT` もあるが、全体レート制限のキー `rl:global:report` が固定のため、**共用してはならない**
+- `GITHUB_TOKEN` と `RATE_SALT` はWorkerのsecretとして設定済み（secretはWorker単位で独立している）
+- iOSの `Info.plist` の `AVRReportEndpoint` は設定済み。macOSは凍結中のため空文字のまま
+  （未設定でもブラウザでIssue作成画面を開くフォールバックが動く）
 
-したがって、現時点のアプリはブラウザでGitHub Issue作成画面を開くフォールバック経路を使用する。
+したがって、次のiOSリリース以降はWorker経由の送信が既定の経路となり、Workerに届かない場合のみ
+ブラウザでのフォールバックに切り替わる。
 
 ## 11. ビルドと検証
 
