@@ -35,6 +35,8 @@ enum ProblemReporter {
         var category: ProblemReportCategory
         var title: String
         var body: String
+        /// 開発を応援してくれた人として送るか。プロキシが Issue に `supporter` ラベルを付ける。
+        var supporter = false
     }
 
     /// レポート本文に折り込む診断情報。IP アドレス・MAC アドレス・ホスト名などの
@@ -158,7 +160,8 @@ enum ProblemReporter {
             "title": report.title,
             "body": report.body,
             "category": report.category.rawValue,
-        ])
+            "supporter": report.supporter,
+        ] as [String: Any])
 
         do {
             let (data, response) = try await session.data(for: request)
@@ -183,7 +186,9 @@ enum ProblemReporter {
     /// 事前入力状態で開く URL。GitHub の URL 長制限があるため本文を切り詰める。
     static func prefilledIssueURL(_ report: Report, maxBody: Int = 6000) -> URL? {
         var components = URLComponents(string: "https://github.com/\(repo)/issues/new")
-        let body = report.body.count > maxBody ? String(report.body.prefix(maxBody)) + "\n\n…(truncated)" : report.body
+        var body = report.body.count > maxBody ? String(report.body.prefix(maxBody)) + "\n\n…(truncated)" : report.body
+        // ブラウザ経由だと一般ユーザーはラベルを付けられないため、本文に目印を残す
+        if report.supporter { body += "\n- Supporter: yes" }
         components?.queryItems = [
             URLQueryItem(name: "title", value: report.title),
             URLQueryItem(name: "body", value: body),

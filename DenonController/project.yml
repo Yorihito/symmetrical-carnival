@@ -90,3 +90,16 @@ targets:
             || /usr/libexec/PlistBuddy -c "Add :CFBundleVersion string $count" "$plist"
           echo "Set CFBundleVersion = $count (git commit count)"
         basedOnDependencyAnalysis: false
+
+schemes:
+  DenonControllerMobile:
+    build:
+      targets:
+        DenonControllerMobile: all
+    run:
+      config: Debug
+      # Local StoreKit testing of the tip jar (simulator / runs from Xcode). Has no
+      # effect on App Store builds; the real products come from App Store Connect.
+      storeKitConfiguration: Products.storekit
+    archive:
+      config: Release

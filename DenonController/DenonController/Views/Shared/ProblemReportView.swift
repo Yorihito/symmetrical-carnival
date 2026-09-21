@@ -28,6 +28,9 @@ struct ProblemReportView: View {
     @State private var title: String = ""
     @State private var reportBody: String = ""
     @State private var includeDiagnostics = true
+    /// 開発を応援してくれた人か（画面を開いた時点で 1 回だけ読む）
+    private let isSupporter = SupporterRecord.isSupporter
+    @State private var sendAsSupporter = true
     @State private var phase: Phase = .editing
     @State private var copied = false
 
@@ -86,6 +89,21 @@ struct ProblemReportView: View {
             }
         } header: {
             Text("種類", bundle: bundle)
+        } footer: {
+            // 機能の要望を書こうとしている人に、応援と優先検討の関係を伝える
+            if category == .feature && !isSupporter {
+                Text("応援してくださった方のご要望は、優先的に検討します。", bundle: bundle)
+            }
+        }
+
+        if isSupporter {
+            Section {
+                Toggle(isOn: $sendAsSupporter) {
+                    Text("サポーターとして送信する", bundle: bundle)
+                }
+            } footer: {
+                Text("Issue に「supporter」ラベルが付き、優先的に検討します。ラベルは公開されます。", bundle: bundle)
+            }
         }
 
         Section {
@@ -194,7 +212,8 @@ struct ProblemReportView: View {
     // MARK: - Report building
 
     private var currentReport: ProblemReporter.Report {
-        ProblemReporter.Report(category: category, title: title, body: reportBody)
+        ProblemReporter.Report(category: category, title: title, body: reportBody,
+                               supporter: isSupporter && sendAsSupporter)
     }
 
     private func buildReport() {

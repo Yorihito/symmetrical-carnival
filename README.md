@@ -25,7 +25,8 @@ can vary by model and firmware.
 - macOS menu bar controls and a full control window
 - iPhone tab-based UI and iPad split-view UI
 - Japanese and English UI
-- In-app help, privacy information, problem reporting, and review requests
+- In-app help, privacy information, feedback (bug reports and feature requests), and review requests
+- Optional tip jar to support development (every feature stays free; supporters' requests get priority consideration)
 
 ## Architecture
 

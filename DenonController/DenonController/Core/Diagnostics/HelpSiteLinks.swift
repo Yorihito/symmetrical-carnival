@@ -16,3 +16,13 @@ enum HelpSiteLinks {
         URL(string: isEnglish(locale) ? "\(base)/en/privacy.html" : "\(base)/privacy.html")!
     }
 }
+
+/// App Store への導線。
+enum AppStoreLinks {
+    /// App Store Connect のこのアプリの Apple ID
+    static let appID = "6766823418"
+
+    /// レビューを書く画面を直接開く。設定の「レビューを書く」ボタンから使う。
+    /// `requestReview()` は OS が年 3 回までに制限していて、ボタンから呼ぶと何も出ないことがあるため。
+    static let writeReview = URL(string: "https://apps.apple.com/app/id\(appID)?action=write-review")!
+}

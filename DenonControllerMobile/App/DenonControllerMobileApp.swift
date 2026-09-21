@@ -3,6 +3,7 @@ import SwiftUI
 @main
 struct DenonControllerMobileApp: App {
     @State private var vm = MainViewModel()
+    @State private var supportStore = SupportStore()
     @AppStorage("appLanguage") private var appLanguage = "system"
 
     init() {
@@ -25,9 +26,12 @@ struct DenonControllerMobileApp: App {
             ContentView()
                 .id(appLanguage)
                 .environment(vm)
+                .environment(supportStore)
                 .environment(\.locale, locale)
                 .environment(\.localizedBundle, makeLocalizedBundle(for: locale))
                 .onAppear { applyWindowBackground() }
+                // 取引の監視は起動直後から行う（承認待ちだった投げ銭の完了を取りこぼさないため）
+                .task { await supportStore.start() }
         }
     }
 

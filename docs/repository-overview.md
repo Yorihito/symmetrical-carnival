@@ -275,7 +275,8 @@ GitHub Pages公開のみである。今回の調査ではコードの読み取�
 - デプロイ後の `AVRReportEndpoint` 設定
 - App Store審査用の実機デモ動画作成
 - App Store Connect上のSupport URL / Privacy Policy URL確認
-- 収益化方式、テレメトリ、追加アクセシビリティ対応の判断
+- App Store Connect での投げ銭 IAP（3 段）の登録（収益化の方式は決定・実装済み）
+- テレメトリ、追加アクセシビリティ対応の判断
 - 自動テストおよびアプリ本体のCI整備
 
 ## 14. 主要ファイル

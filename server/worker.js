@@ -29,6 +29,11 @@ const CATEGORY_LABELS = {
   other: "question",
 };
 
+// Added when the app says the sender has tipped (tip jar) and chose to send as a
+// supporter. The endpoint is public, so this is a triage hint, not proof of
+// purchase — never gate anything important on it.
+const SUPPORTER_LABEL = "supporter";
+
 // Size caps. GitHub's issue-body limit is ~65,536 chars; leave margin.
 const MAX_TITLE_CHARS = 200;
 const MAX_BODY_CHARS = 60000;
@@ -96,6 +101,8 @@ async function handleReport(payload, env) {
   }
 
   const label = CATEGORY_LABELS[payload && payload.category] || CATEGORY_LABELS.other;
+  const labels = [label];
+  if (payload && payload.supporter === true) labels.push(SUPPORTER_LABEL);
   const repo = env.REPO || DEFAULTS.REPO;
 
   const ghResp = await fetch(`https://api.github.com/repos/${repo}/issues`, {
@@ -107,7 +114,7 @@ async function handleReport(payload, env) {
       "User-Agent": "avr-controller-report-proxy",
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ title, body, labels: [label] }),
+    body: JSON.stringify({ title, body, labels }),
   });
 
   if (!ghResp.ok) {

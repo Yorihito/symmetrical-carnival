@@ -1,6 +1,6 @@
 # Privacy Policy
 
-Last updated: September 4, 2026
+Last updated: September 21, 2026
 
 AVR Controller does not automatically collect, store, transmit, or share any
 personal information.
@@ -40,6 +40,17 @@ Controller, which forwards it to GitHub. If that service is unavailable or not
 configured, the app opens GitHub's Issue form in your browser with the report
 text prefilled. Outside this user-initiated reporting feature, the app does not
 send data to the developer or an external service.
+
+## Supporting Development (In-App Purchase)
+
+Tips from **Settings → Support Development** are processed by Apple's App Store;
+the developer never receives your payment information.
+
+The fact that you have tipped — only the date of your first tip, not the amount
+or count — is stored in your device's keychain, and syncs across your devices
+if iCloud Keychain is on. If you then send feedback with **Send as a
+Supporter** turned on, the public GitHub issue gets a "supporter" label. Turn it
+off and no label is added.
 
 ## Contact
 

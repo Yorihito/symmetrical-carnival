@@ -208,6 +208,32 @@
 /* Auto reconnect */
 "AVR のアドレスが変わったため自動で再接続しました。" = "The receiver's address changed, so the app reconnected automatically.";
 
+/* Support development (tip jar) */
+"開発を応援する" = "Support Development";
+"開発を応援しませんか？" = "Support Development?";
+"応援する" = "Support";
+"今はしない" = "Not Now";
+"いつも AVR Controller をお使いいただきありがとうございます。すべての機能を無料で提供しています。気に入っていただけたら、開発を応援していただけるとうれしいです。応援してくださった方のご要望は優先的に検討します。" = "Thanks for using AVR Controller! Every feature is free. If you enjoy the app, a tip to support development would mean a lot. Requests from supporters are given priority consideration.";
+"サポーターになっていただき、ありがとうございます" = "Thank You for Being a Supporter";
+"AVR Controller はすべての機能を無料で提供しています。応援していただいた分は、新機能の開発や対応機種の検証に使わせていただきます。" = "Every feature of AVR Controller is free. Tips go toward new features and testing with more receivers.";
+"応援の金額を選ぶ" = "Choose an Amount";
+"何度でも応援できます。応援しても機能は変わらず、すべての機能を引き続き無料でお使いいただけます。" = "You can tip as often as you like. Tipping doesn't change any features — everything stays free.";
+"ちょっと応援" = "Small Tip";
+"しっかり応援" = "Medium Tip";
+"たっぷり応援" = "Large Tip";
+"読み込み中…" = "Loading…";
+"現在、応援を受け付けできません。時間をおいてお試しください。" = "Tips aren't available right now. Please try again later.";
+"再読み込み" = "Retry";
+"サポーター特典" = "Supporter Perk";
+"応援してくださった方のご要望は、優先的に検討します。" = "Requests from supporters are given priority consideration.";
+"「ご意見・ご要望を送る」から送ると、サポーターのご要望として届きます。" = "Send them from “Send Feedback” and they'll arrive marked as from a supporter.";
+"ありがとうございます！" = "Thank You!";
+"応援していただき、本当にありがとうございます。今後の開発の励みになります。" = "Thank you so much for your support. It keeps development going.";
+"購入を完了できませんでした" = "Couldn't Complete the Purchase";
+"時間をおいてもう一度お試しください。" = "Please try again later.";
+"サポーターとして送信する" = "Send as a Supporter";
+"Issue に「supporter」ラベルが付き、優先的に検討します。ラベルは公開されます。" = "The issue gets a “supporter” label and priority consideration. The label is public.";
+
 /* Volume dial introduction */
 "新しい音量ダイアル" = "New Volume Dial";
 "ダイアルを試す" = "Try the Dial";
