@@ -15,6 +15,18 @@ struct SupportView: View {
     @State private var showingThanks = false
     @State private var showingFailure = false
 
+    /// スクリーンショット撮影用（DEBUG ビルドで起動引数 `-uiDemoSupport`）。
+    /// simctl から起動すると Xcode の StoreKit 設定（Products.storekit）が効かず商品を読み込めないため、
+    /// StoreKit を使わずに 3 段を並べる。撮影手順は `scripts/capture-support-screenshot.sh`。
+    /// 参照: upgraded-guacamole の `-uiDemo`
+    static var isScreenshotDemo: Bool {
+        #if DEBUG
+        ProcessInfo.processInfo.arguments.contains("-uiDemoSupport")
+        #else
+        false
+        #endif
+    }
+
     var body: some View {
         List {
             headerSection
@@ -31,6 +43,7 @@ struct SupportView: View {
             }
         }
         .task {
+            guard !Self.isScreenshotDemo else { return }
             if store.loadState == .idle || store.loadState == .unavailable {
                 await store.loadProducts()
             }
@@ -70,29 +83,42 @@ struct SupportView: View {
 
     private var tipsSection: some View {
         Section {
-            switch store.loadState {
-            case .idle, .loading:
-                HStack {
-                    ProgressView()
-                    Text("読み込み中…", bundle: bundle)
-                        .foregroundStyle(.secondary)
-                        .padding(.leading, 8)
+            if Self.isScreenshotDemo {
+                ForEach(SupportStore.Tier.allCases) { tier in
+                    Button { } label: {
+                        tipRowLabel(productID: tier.rawValue, price: demoPrice(for: tier), purchasing: false)
+                    }
                 }
-            case .unavailable:
-                Text("現在、応援を受け付けできません。時間をおいてお試しください。", bundle: bundle)
-                    .foregroundStyle(.secondary)
-                Button(LS("再読み込み", bundle)) {
-                    Task { await store.loadProducts() }
-                }
-            case .loaded:
-                ForEach(store.products, id: \.id) { product in
-                    tipRow(product)
-                }
+            } else {
+                storeRows
             }
         } header: {
             Text("応援の金額を選ぶ", bundle: bundle)
         } footer: {
             Text("何度でも応援できます。応援しても機能は変わらず、すべての機能を引き続き無料でお使いいただけます。", bundle: bundle)
+        }
+    }
+
+    @ViewBuilder
+    private var storeRows: some View {
+        switch store.loadState {
+        case .idle, .loading:
+            HStack {
+                ProgressView()
+                Text("読み込み中…", bundle: bundle)
+                    .foregroundStyle(.secondary)
+                    .padding(.leading, 8)
+            }
+        case .unavailable:
+            Text("現在、応援を受け付けできません。時間をおいてお試しください。", bundle: bundle)
+                .foregroundStyle(.secondary)
+            Button(LS("再読み込み", bundle)) {
+                Task { await store.loadProducts() }
+            }
+        case .loaded:
+            ForEach(store.products, id: \.id) { product in
+                tipRow(product)
+            }
         }
     }
 
@@ -115,23 +141,28 @@ struct SupportView: View {
         Button {
             Task { await buy(product) }
         } label: {
-            HStack(spacing: 12) {
-                Image(systemName: icon(for: product.id))
-                    .foregroundStyle(.pink)
-                    .frame(width: 28)
-                Text(title(for: product.id), bundle: bundle)
-                    .foregroundStyle(.primary)
-                Spacer()
-                if store.purchasingID == product.id {
-                    ProgressView()
-                } else {
-                    Text(product.displayPrice)
-                        .monospacedDigit()
-                        .foregroundStyle(.secondary)
-                }
-            }
+            tipRowLabel(productID: product.id, price: product.displayPrice,
+                        purchasing: store.purchasingID == product.id)
         }
         .disabled(store.purchasingID != nil)
+    }
+
+    private func tipRowLabel(productID: String, price: String, purchasing: Bool) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: icon(for: productID))
+                .foregroundStyle(.pink)
+                .frame(width: 28)
+            Text(title(for: productID), bundle: bundle)
+                .foregroundStyle(.primary)
+            Spacer()
+            if purchasing {
+                ProgressView()
+            } else {
+                Text(price)
+                    .monospacedDigit()
+                    .foregroundStyle(.secondary)
+            }
+        }
     }
 
     // MARK: - Actions
@@ -156,6 +187,16 @@ struct SupportView: View {
         case .medium: "しっかり応援"
         case .large:  "たっぷり応援"
         case nil:     "応援する"
+        }
+    }
+
+    /// 撮影用の表示価格。日本語は App Store Connect で設定する予定の価格、英語は Products.storekit の価格
+    private func demoPrice(for tier: SupportStore.Tier) -> String {
+        let japanese = locale.identifier.hasPrefix("ja")
+        switch tier {
+        case .small:  return japanese ? "¥160" : "$0.99"
+        case .medium: return japanese ? "¥480" : "$2.99"
+        case .large:  return japanese ? "¥980" : "$5.99"
         }
     }
 

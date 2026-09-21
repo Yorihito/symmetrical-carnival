@@ -54,6 +54,13 @@ struct ContentView: View {
                     isSplashScreenActive = false
                 }
             }
+            // スクリーンショット撮影用: スプラッシュが消えたら「開発を応援する」を開く
+            // （DEBUG ビルドの起動引数 -uiDemoSupport。scripts/capture-support-screenshot.sh）
+            if SupportView.isScreenshotDemo {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2.2) {
+                    showingSupportSheet = true
+                }
+            }
         }
         .onChange(of: vm.connectionStatus) { _, status in
             guard status == .connected else { return }
