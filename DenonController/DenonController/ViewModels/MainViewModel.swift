@@ -843,4 +843,29 @@ final class MainViewModel {
             if noticeToken == token { transientNoticeKey = nil }
         }
     }
+
+    #if DEBUG
+    // MARK: - Screenshot demo
+
+    /// App Store 用スクリーンショット撮影用（DEBUG ビルドで起動引数 `-uiDemo`）。
+    /// AVR が無くても接続中のダッシュボードを表示する。通信は一切しない。
+    /// 参照: upgraded-guacamole の `-uiDemo`。撮影手順は `scripts/capture-screenshots.sh`
+    static var isScreenshotDemo: Bool {
+        ProcessInfo.processInfo.arguments.contains("-uiDemo")
+    }
+
+    /// 接続中の見た目にするための固定の状態を入れる
+    func applyScreenshotDemoState() {
+        var info = DeviceInfo()
+        info.modelName = "AVR-X3800H"
+        avr.deviceInfo = info
+        avr.isConnected = true
+        avr.isPoweredOn = true
+        avr.isMuted = false
+        avr.volumeDB = -32.5
+        avr.input = .bluray
+        avr.surroundMode = .movie
+        connectionStatus = .connected
+    }
+    #endif
 }

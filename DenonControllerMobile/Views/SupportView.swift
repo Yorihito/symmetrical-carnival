@@ -17,7 +17,7 @@ struct SupportView: View {
 
     /// スクリーンショット撮影用（DEBUG ビルドで起動引数 `-uiDemoSupport`）。
     /// simctl から起動すると Xcode の StoreKit 設定（Products.storekit）が効かず商品を読み込めないため、
-    /// StoreKit を使わずに 3 段を並べる。撮影手順は `scripts/capture-support-screenshot.sh`。
+    /// StoreKit を使わずに 3 段を並べる。撮影手順は `scripts/capture-screenshots.sh`。
     /// 参照: upgraded-guacamole の `-uiDemo`
     static var isScreenshotDemo: Bool {
         #if DEBUG
