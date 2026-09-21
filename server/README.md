@@ -14,12 +14,16 @@ the feature works even before this backend exists.
 ### `POST /report`
 
 ```json
-{ "title": "string (≤200 chars)", "body": "string (≤60000 chars)", "category": "bug | feature | other" }
+{ "title": "string (≤200 chars)", "body": "string (≤60000 chars)", "category": "bug | feature | other", "supporter": true }
 ```
 
 `category` maps to a GitHub label server-side (`bug`→`bug`, `feature`→`enhancement`,
 anything else→`question`) — all three exist by default on a new GitHub repo,
 so no label needs to be created ahead of time.
+
+`supporter` (optional boolean) is sent by the app when the user has tipped via the
+in-app tip jar and chose to send as a supporter; `true` adds a `supporter` label.
+The endpoint is public, so treat it as a triage hint, not proof of purchase.
 
 | Status | Body | Meaning |
 |--------|------|---------|

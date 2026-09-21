@@ -1,5 +1,4 @@
 import SwiftUI
-import StoreKit
 
 struct SettingsView: View {
     @AppStorage("defaultHost")  private var defaultHost  = ""
@@ -10,7 +9,7 @@ struct SettingsView: View {
     @Environment(MainViewModel.self) private var vm
     @Environment(\.locale) private var locale
     @Environment(\.localizedBundle) private var bundle
-    @Environment(\.requestReview) private var requestReview
+    @Environment(SupportStore.self) private var supportStore
     @Binding var showConnection: Bool
     @State private var showResetAlert = false
     @State private var showProblemReport = false
@@ -173,17 +172,28 @@ struct SettingsView: View {
                 }
             }
 
-            Button {
-                requestReview()
-            } label: {
+            // requestReview() は OS が年 3 回までに制限していて押しても何も出ないことがあるため、
+            // レビューを書く画面を直接開く
+            Link(destination: AppStoreLinks.writeReview) {
                 Label {
                     Text("レビューを書く", bundle: bundle)
                 } icon: {
                     Image(systemName: "star")
                 }
             }
-            .buttonStyle(.plain)
-            .foregroundStyle(.primary)
+
+            NavigationLink {
+                SupportView()
+                    .environment(\.locale, locale)
+                    .environment(\.localizedBundle, bundle)
+            } label: {
+                Label {
+                    Text("開発を応援する", bundle: bundle)
+                } icon: {
+                    Image(systemName: supportStore.isSupporter ? "heart.fill" : "heart")
+                        .foregroundStyle(.pink)
+                }
+            }
 
             Button {
                 showProblemReport = true

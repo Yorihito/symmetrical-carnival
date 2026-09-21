@@ -9,6 +9,9 @@ struct ContentView: View {
     @AppStorage("volumeControlStyle") private var volumeControlStyle = "slider"
     @AppStorage("hasShownVolumeDialIntroductionV1") private var hasShownVolumeDialIntroduction = false
     @State private var showingVolumeDialIntroduction = false
+    @Environment(SupportStore.self) private var supportStore
+    @State private var showingSupportRequest = false
+    @State private var showingSupportSheet = false
 
     private var appLocale: Locale {
         switch appLanguage {
@@ -62,9 +65,34 @@ struct ContentView: View {
                 }
                 return
             }
-            guard ReviewRequestManager.shouldRequest() else { return }
-            requestReview()
-            ReviewRequestManager.markRequested()
+            if ReviewRequestManager.shouldRequest() {
+                requestReview()
+                ReviewRequestManager.markRequested()
+                return
+            }
+            // 評価のお願いより長く使ってくれている人に、一度だけ開発の応援をお願いする
+            if SupportRequestManager.shouldRequest() {
+                let delay = isSplashScreenActive ? 1.7 : 0.2
+                DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+                    guard SupportRequestManager.shouldRequest() else { return }
+                    SupportRequestManager.markRequested()
+                    showingSupportRequest = true
+                }
+            }
+        }
+        .alert(Text("開発を応援しませんか？", bundle: lBundle), isPresented: $showingSupportRequest) {
+            Button(LS("応援する", lBundle)) { showingSupportSheet = true }
+            Button(LS("今はしない", lBundle), role: .cancel) { }
+        } message: {
+            Text("いつも AVR Controller をお使いいただきありがとうございます。すべての機能を無料で提供しています。気に入っていただけたら、開発を応援していただけるとうれしいです。応援してくださった方のご要望は優先的に検討します。", bundle: lBundle)
+        }
+        .sheet(isPresented: $showingSupportSheet) {
+            NavigationStack {
+                SupportView(isModal: true)
+            }
+            .environment(supportStore)
+            .environment(\.locale, appLocale)
+            .environment(\.localizedBundle, lBundle)
         }
         .alert(Text("新しい音量ダイアル", bundle: lBundle), isPresented: $showingVolumeDialIntroduction) {
             Button(LS("ダイアルを試す", lBundle)) {
