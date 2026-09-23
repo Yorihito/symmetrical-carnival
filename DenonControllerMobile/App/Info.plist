@@ -34,7 +34,7 @@
 	<key>NSHumanReadableCopyright</key>
 	<string>Copyright (c) 2026 Yorihito Tada. All rights reserved.</string>
 	<key>NSLocalNetworkUsageDescription</key>
-	<string>Control a Denon / Marantz AV receiver over the local network.</string>
+	<string>Control your AV receiver over the local network.</string>
 	<key>UILaunchScreen</key>
 	<dict>
 		<key>UIColorName</key>

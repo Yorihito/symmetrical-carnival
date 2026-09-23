@@ -864,7 +864,7 @@ final class MainViewModel {
     /// 接続中の見た目にするための固定の状態を入れる
     func applyScreenshotDemoState() {
         var info = DeviceInfo()
-        info.modelName = "AVR-X3800H"
+        info.modelName = "AV Receiver"
         avr.deviceInfo = info
         avr.isConnected = true
         avr.isPoweredOn = true
@@ -878,7 +878,7 @@ final class MainViewModel {
         avr.tunerPreset = 1
         // 接続設定の画面に出す検出結果（撮影中は実際の検索をしない。ConnectionView を参照）
         discovery.devices = [
-            DiscoveredDevice(id: "192.168.1.20", name: "AVR-X3800H", host: "192.168.1.20", port: 8080, macAddress: "")
+            DiscoveredDevice(id: "192.168.1.20", name: "AV Receiver", host: "192.168.1.20", port: 8080, macAddress: "")
         ]
         connectionStatus = .connected
     }

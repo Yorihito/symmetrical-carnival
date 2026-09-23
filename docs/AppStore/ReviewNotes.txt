@@ -1,6 +1,11 @@
-AVR Controller is a remote control app for Denon and Marantz AV receivers (AVRs) on the same local network. It requires a compatible network-connected receiver. Without one, the app cannot connect and stays on the connection screen (device search / manual IP address entry). This is expected behavior.
+AVR Controller is a remote control app for network-enabled AV receivers (AVRs) on the same local network. It uses the receiver's local network control commands (HTTP and Telnet). It requires a compatible network-connected receiver. Without one, the app cannot connect and stays on the connection screen (device search / manual IP address entry). This is expected behavior.
 
-Tested model: Denon AVR-X3800H (HEOS-enabled).
+Tested model: Denon AVR-X3800H.
+
+THIRD-PARTY NAMES (Guidelines 5.2.1 and 4.1(a))
+- This is an unofficial app by an independent developer. It is not affiliated with, endorsed by, or sponsored by any receiver manufacturer.
+- In this build and its metadata, the manufacturer's name has been removed from the app name, subtitle, keywords, screenshots, and in-app text. The only remaining reference is one sentence in the description naming the model the app was tested on, together with a non-affiliation notice, so customers can check compatibility.
+- The app contains no third-party logos, artwork, or other content.
 
 Demo video (the app on a real iPhone controlling a real AVR-X3800H):
 [PASTE THE DEMO VIDEO LINK HERE]

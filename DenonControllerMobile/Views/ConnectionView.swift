@@ -52,7 +52,7 @@ struct ConnectionView: View {
                 } header: {
                     Text("手動入力", bundle: bundle)
                 } footer: {
-                    Text("Denon / Marantz AVR の IP アドレスを入力してください。", bundle: bundle)
+                    Text("AV レシーバーの IP アドレスを入力してください。", bundle: bundle)
                 }
 
                 // mDNS 自動検索セクション
