@@ -58,7 +58,7 @@ shot_args() {  # 画面 → 起動引数
     input)      echo "-uiDemo -uiDemoTab input" ;;
     tuner)      echo "-uiDemo -uiDemoTab tuner" ;;
     remote)     echo "-uiDemo -uiDemoTab remote" ;;
-    settings)   echo "-uiDemo -uiDemoTab settings -defaultHost Denon-AVR-X3800H.local" ;;
+    settings)   echo "-uiDemo -uiDemoTab settings -defaultHost 192.168.1.20" ;;
     connection) echo "-uiDemo -uiDemoTab connection" ;;
     support)    echo "-uiDemo -uiDemoSupport" ;;
     *) echo "unknown shot: $1" >&2; exit 1 ;;

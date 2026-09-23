@@ -5,8 +5,8 @@ Last updated: September 21, 2026
 AVR Controller does not automatically collect, store, transmit, or share any
 personal information.
 
-The app communicates over the network to discover and control compatible Denon
-or Marantz AV receivers on your local network. It does not automatically
+The app communicates over the network to discover and control compatible AV
+receivers on your local network. It does not automatically
 collect your name, email address, location, advertising identifiers, or other
 device identifiers.
 

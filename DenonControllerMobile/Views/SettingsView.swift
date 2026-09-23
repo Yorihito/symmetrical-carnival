@@ -288,7 +288,7 @@ struct SettingsView: View {
     private var aboutSection: some View {
         Section(header: Text("バージョン情報", bundle: bundle)) {
             LabeledContent {
-                Text("Denon / Marantz Controller")
+                Text("AVR Controller")
             } label: {
                 Text("アプリ", bundle: bundle)
             }
