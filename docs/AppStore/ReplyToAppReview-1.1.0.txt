@@ -1,0 +1,31 @@
+Hello App Review Team,
+
+Thank you very much for taking the time to review AVR Controller and for explaining the issues so clearly. We understand the concern, and we fully respect the rights of other companies. We have made changes to address both guidelines.
+
+We do not have authorization from the receiver manufacturer. As you advised, we have therefore removed the third-party name from the app and its metadata, rather than asking to keep it.
+
+Guideline 4.1(a) - Metadata
+
+- App name: changed from "AVR Controller for D" to "AVR Controller: Volume Dial" (Japanese localization: "AVR Controller – AVアンプ リモコン"). We now understand that the "for D" suffix could be read as a reference to the brand, so it is gone from every localization.
+- Subtitle, keywords, and promotional text: the manufacturer's name and any abbreviation of it have been removed.
+- Screenshots: all screenshots have been retaken. They no longer show any manufacturer name or model number. The connected device now appears simply as "AV Receiver".
+- Support website: the manufacturer's name has been removed from the top page and the privacy policy.
+
+Guideline 5.2.1 - Intellectual Property
+
+- In-app text: new build 1.1.0 (175) removes the manufacturer's name from every screen, including the About section, the connection screen, and the Local Network permission message.
+- The app is now presented as a controller for network-enabled AV receivers in general.
+- The app does not include or download any third-party logos, artwork, audio, or other content. It only sends the receiver's own local network control commands to a receiver on the user's home network.
+
+One remaining reference, which we are glad to remove
+
+The description keeps a single factual sentence naming the one model we tested the app on. It is there only so customers can check compatibility before downloading. It sits next to a clear notice that the app is unofficial and is not affiliated with, endorsed by, or sponsored by any manufacturer.
+
+If you feel this sentence is still not appropriate, please let us know and we will remove it right away. We have replacement text ready that points customers to our support page instead.
+
+We are an independent developer who built this app because we wanted a faster and more comfortable way to control our own home theater, and we are grateful for the care App Review takes to keep the App Store trustworthy. If anything else needs to change, we will be happy to address it promptly.
+
+Thank you again for your time and guidance.
+
+Best regards,
+Yorihito Tada
