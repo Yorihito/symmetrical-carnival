@@ -50,22 +50,8 @@
 再提出すると返信できなくなるので、先に返信する。
 
 1. **Resolve** の画面で **Reply to App Review**
-2. 下の文面を **Reply** 欄に貼る（`<BUILD>` を新しいビルド番号に置き換える）
+2. [ReplyToAppReview-1.1.0.txt](ReplyToAppReview-1.1.0.txt) を全文 **Reply** 欄に貼る（ビルド番号が 175 でなければ直す）
 3. **Reply**
-
-```
-Hello,
-
-Thank you for the review. We do not have authorization from the receiver manufacturer, so we have removed its name from the app and the metadata:
-
-- The app name has changed from "AVR Controller for D" to "AVR Controller: Volume Dial" (Japanese: "AVR Controller – AVアンプ リモコン").
-- The manufacturer's name has been removed from the subtitle, keywords, promotional text, screenshots, and all in-app text (new build 1.1.0 (<BUILD>)).
-- The description now presents the app as a controller for network-enabled AV receivers. It keeps one sentence naming the model the app was tested on, together with a notice that the app is unofficial and not affiliated with any manufacturer, so customers can check compatibility. If this sentence is still not acceptable, please let us know and we will remove it.
-
-The app contains no third-party logos, artwork, or other content.
-
-Thank you.
-```
 
 ## 5. 再提出する
 
