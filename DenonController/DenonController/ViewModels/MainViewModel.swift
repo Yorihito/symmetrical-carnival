@@ -224,14 +224,24 @@ final class MainViewModel {
 
         let knownBrand = brand ?? Self.savedBrand(forHost: host)
         do {
+            // 覚えているメーカーの方式で先に試し、応答がなければもう一方も試す
+            // （同じアドレスの機器を別メーカーの AV レシーバーに買い替えた場合にもつながるように）
             if knownBrand == .yamaha {
-                try await connectYamaha(host: host, connectionID: connectionID)
+                do {
+                    try await connectYamaha(host: host, connectionID: connectionID)
+                } catch {
+                    guard currentConnectionID == connectionID, brand == nil else { throw error }
+                    connectionLog.append("Not a Yamaha receiver; trying Denon/Marantz...")
+                    try await connectDenon(host: host, port: targetPort == YamahaClient.port ? 8080 : targetPort,
+                                           connectionID: connectionID)
+                }
             } else {
                 do {
                     try await connectDenon(host: host, port: targetPort, connectionID: connectionID)
                 } catch {
-                    // Denon として応答しなかった。メーカーが分からない場合だけ Yamaha かを確かめる
-                    guard knownBrand == nil, await YamahaClient.identify(host: host) != nil else { throw error }
+                    // Denon として応答しなかった。検出でメーカーが分かっている場合以外は Yamaha かを確かめる
+                    guard currentConnectionID == connectionID, brand == nil,
+                          await YamahaClient.identify(host: host) != nil else { throw error }
                     connectionLog.append("Not a Denon/Marantz receiver; trying Yamaha...")
                     try await connectYamaha(host: host, connectionID: connectionID)
                 }

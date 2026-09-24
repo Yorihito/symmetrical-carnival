@@ -150,7 +150,12 @@ enum PromptCoordinator {
         }
     }
 
+    /// 区切りのたびに判定するので、同じ結果が続くときは記録しない（診断ログが同じ行で埋まらないように）
+    private static var lastLogged = ""
+
     private static func log(_ message: String) {
+        guard message != lastLogged else { return }
+        lastLogged = message
         DiagnosticsLog.shared.record("prompt: \(message)")
     }
 

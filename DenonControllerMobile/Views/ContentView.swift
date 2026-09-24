@@ -5,6 +5,7 @@ struct ContentView: View {
     @Environment(MainViewModel.self) private var vm
     @Environment(\.requestReview) private var requestReview
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @State private var showConnection = false
     @AppStorage("appLanguage") private var appLanguage = "system"
     @AppStorage("volumeControlStyle") private var volumeControlStyle = "slider"
@@ -256,7 +257,7 @@ struct ContentView: View {
         VStack {
             Spacer()
             HStack(alignment: .top, spacing: 12) {
-                Image(systemName: "checkmark.circle.fill")
+                Image(systemName: "checkmark.seal")
                     .padding(.top, 2)
                 Text("この機種はまだ動作確認されていません。動いたかどうか教えてください", bundle: lBundle)
                     .font(.subheadline.weight(.medium))
@@ -283,10 +284,11 @@ struct ContentView: View {
             .foregroundStyle(.white)
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
-            .background(Color.green.opacity(0.9), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .background(Color.accentColor.opacity(0.95), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
             .shadow(radius: 4)
             .padding(.horizontal, 16)
-            .padding(.bottom, 12)
+            // iPhone は下のタブバーに重ならないようにする（iPad はサイドバーなので下に余白は要らない）
+            .padding(.bottom, horizontalSizeClass == .compact ? 96 : 16)
         }
         .transition(.move(edge: .bottom).combined(with: .opacity))
     }
