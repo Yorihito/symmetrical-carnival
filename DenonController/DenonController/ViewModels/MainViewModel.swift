@@ -288,6 +288,10 @@ final class MainViewModel {
         caps.hasZone3 = finalInfo.hasZone3
         usingYamaha = false
         loadTunerPresets(for: caps.brand)
+        // サラウンドモードは HTTP では取れない。Telnet の問い合わせの答えが来るまでは「分からない」にして、
+        // どのボタンも選ばない（既定の Auto を選んだままにすると、本体と違うモードが選ばれて見える）
+        avr.soundModeID = ""
+        denonModeIsSpecific = false
         connectionLog.append("Step 4: Finalizing app state...")
         didConnect(host: host, info: finalInfo, capabilities: caps)
 
@@ -351,6 +355,10 @@ final class MainViewModel {
                 print("[DenonLog] Telnet connected")
                 DiagnosticsLog.shared.record("telnet: connected")
                 startTelnetListening(lines)
+                // 今のサラウンドモードを問い合わせる（変わったときにしか通知されないため）。
+                // MS? で方式名、SSSMG ? でモードのグループ（Movie / Music / Game / Pure）が返る
+                try? await telnet.send("MS?")
+                try? await telnet.send("SSSMG ?")
             } catch is CancellationError {
                 print("[DenonLog] Telnet connect superseded by a newer connection")
             } catch {
@@ -544,16 +552,29 @@ final class MainViewModel {
             }
             return
         }
+        // OPSMLALL MOV031Dolby Atmos/DSurr — 選べるサウンドモードの一覧。グループ 3 文字、番号 2 桁、
+        // 選択中なら 1、名前の順。選択中の行から今のモードが分かる（AVR-X3800H など）
+        if line.hasPrefix("OPSMLALL ") {
+            let item = line.dropFirst(9)
+            guard item.count > 6, item[item.index(item.startIndex, offsetBy: 5)] == "1",
+                  !shouldIgnoreSync(for: "surround") else { return }
+            let group = String(item.prefix(3))
+            let name = item.dropFirst(6).lowercased()
+            switch name {
+            case "stereo":      avr.surroundMode = .stereo;     denonModeIsSpecific = true
+            case "direct":      avr.surroundMode = .direct;     denonModeIsSpecific = true
+            case "pure direct": avr.surroundMode = .pureDirect; denonModeIsSpecific = true
+            case "auro-3d":     avr.surroundMode = .auro3D;     denonModeIsSpecific = true
+            default:
+                if let mode = Self.denonMode(forGroup: group) { avr.surroundMode = mode }
+                denonModeIsSpecific = false
+            }
+            return
+        }
         // SSSMG MOV / MUS / GAM / PUR — サウンドモードのグループ（AVR-X3800H など）
         if line.hasPrefix("SSSMG ") {
             guard !shouldIgnoreSync(for: "surround"), !denonModeIsSpecific else { return }
-            switch String(line.dropFirst(6)) {
-            case "MOV": avr.surroundMode = .movie
-            case "MUS": avr.surroundMode = .music
-            case "GAM": avr.surroundMode = .game
-            case "PUR": avr.surroundMode = .direct
-            default: break
-            }
+            if let mode = Self.denonMode(forGroup: String(line.dropFirst(6))) { avr.surroundMode = mode }
             return
         }
 
@@ -590,6 +611,17 @@ final class MainViewModel {
     /// 直前の MS 通知が、ボタンと対応する方式名（STEREO、DIRECT など）だったか。
     /// そうなら、後から届くグループの通知（Stereo は Movie グループに入っている）で上書きしない
     private var denonModeIsSpecific = false
+
+    /// Denon のサウンドモードのグループに対応するボタン
+    private static func denonMode(forGroup group: String) -> SurroundMode? {
+        switch group {
+        case "MOV": .movie
+        case "MUS": .music
+        case "GAM": .game
+        case "PUR": .direct
+        default:    nil
+        }
+    }
 
     private func formatMHz(_ mhz: Double) -> String {
         // 87.5 → "87.5" / 76.1 → "76.1" (小数第1位まで表示)

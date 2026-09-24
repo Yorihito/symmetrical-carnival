@@ -38,6 +38,9 @@ def apply_command(cmd):
     elif cmd == "MUON": state["mute"] = "on"
     elif cmd == "MUOFF": state["mute"] = "off"
     elif cmd.startswith("SI"): state["input"] = cmd[2:]
+    elif cmd == "MS?":
+        notify("MS" + state["ms"])
+        return
     elif cmd.startswith("MS") and not cmd.endswith("?"):
         state["ms"] = cmd[2:]
         notify("MS" + state["ms"])
