@@ -203,6 +203,7 @@ final class MainViewModel {
     func connect(host: String, port: Int? = nil, brand: ReceiverBrand? = nil, allowReheal: Bool = true) async {
         let connectionID = UUID()
         currentConnectionID = connectionID
+        await telnet.activate(connectionID)
 
         print("[DenonLog] [\(connectionID.uuidString.prefix(4))] connect(host: \(host), port: \(port ?? 0)) called")
         connectionLog = ["--- Connection Started ---", "Target: \(host):\(port ?? 0)"]
@@ -343,13 +344,17 @@ final class MainViewModel {
         Task { [weak self] in
             guard let self else { return }
             do {
-                let lines = try await telnet.connect(host: host, port: 23)
+                let lines = try await telnet.connect(host: host, port: 23, token: connectionID)
                 // 待っている間に別の接続が始まっていたら、この Telnet の受信は使わない
                 guard self.currentConnectionID == connectionID else { return }
                 self.connectionLog.append("  -> Telnet connected successfully")
+                print("[DenonLog] Telnet connected")
                 DiagnosticsLog.shared.record("telnet: connected")
                 startTelnetListening(lines)
+            } catch is CancellationError {
+                print("[DenonLog] Telnet connect superseded by a newer connection")
             } catch {
+                print("[DenonLog] Telnet failed (optional): \(error.localizedDescription)")
                 self.connectionLog.append("  -> Telnet failed (optional): \(error.localizedDescription)")
             }
         }
@@ -490,8 +495,10 @@ final class MainViewModel {
         telnetListenTask = Task { [weak self] in
             for await line in lines {
                 guard let self else { return }
+                print("[DenonLog] Telnet < \(line)")
                 parseTelnetLine(line)
             }
+            print("[DenonLog] Telnet stream ended")
         }
     }
 

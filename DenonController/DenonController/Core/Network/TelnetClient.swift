@@ -18,6 +18,14 @@ actor TelnetClient {
     /// Telnet の通知がまったく届かなくなっていた
     private var continuation: AsyncStream<String>.Continuation?
 
+    /// 今有効な接続の世代。VM が接続を始めるたびに `activate` で更新する。
+    /// 起動直後は自動接続と復帰時の再接続が重なり、Telnet の接続も 2 本同時に走る。actor は await の間に
+    /// 別の呼び出しを受け付けるので、そのままだと古い方の接続が最後に残ったり、Denon が 1 本しか受け付けない
+    /// Telnet の枠を古い方が占有したりして、通知が届かなくなる。世代が古い接続は途中で打ち切る
+    private var activeToken: UUID?
+    /// 接続処理中か（接続は 1 本ずつ順番に行う）
+    private var isConnecting = false
+
     // MARK: Init / Deinit
 
     deinit {
@@ -27,8 +35,18 @@ actor TelnetClient {
 
     // MARK: - Connect
 
-    /// 接続して、受信した行（Denon の応答・状態変化の通知）を流すストリームを返す
-    func connect(host: String, port: UInt16 = 23) async throws -> AsyncStream<String> {
+    /// これから始める接続の世代を登録する（これより前の世代の接続は使われなくなる）
+    func activate(_ token: UUID) {
+        activeToken = token
+    }
+
+    /// 接続して、受信した行（Denon の応答・状態変化の通知）を流すストリームを返す。
+    /// `token` が今有効な世代でなければ `CancellationError` を投げる
+    func connect(host: String, port: UInt16 = 23, token: UUID) async throws -> AsyncStream<String> {
+        while isConnecting { try await Task.sleep(for: .milliseconds(50)) }
+        guard token == activeToken else { throw CancellationError() }
+        isConnecting = true
+        defer { isConnecting = false }
         await internalDisconnect()
 
         // sockaddr_in を構築（var への &参照を分離するためヘルパーで生成）
@@ -77,6 +95,11 @@ actor TelnetClient {
         var tvRecv = timeval(tv_sec: 0, tv_usec: 100_000)
         setsockopt(newFd, SOL_SOCKET, SO_RCVTIMEO, &tvRecv, socklen_t(MemoryLayout<timeval>.size))
 
+        // 接続を待っている間に新しい接続が始まっていたら、この接続は捨てる
+        guard token == activeToken else {
+            Darwin.close(newFd)
+            throw CancellationError()
+        }
         fd = newFd
         let (stream, cont) = AsyncStream<String>.makeStream()
         continuation = cont
