@@ -225,30 +225,30 @@ struct SettingsView: View {
 
     private var inputSourcesSection: some View {
         Section(header: Text("入力ソース", bundle: bundle)) {
-            ForEach(InputSource.allCases) { source in
+            ForEach(vm.capabilities.inputs) { source in
                 HStack(spacing: 12) {
                     Toggle("", isOn: Binding(
-                        get: { !vm.inputNames.isHidden(source) },
-                        set: { vm.inputNames.setHidden(!$0, for: source) }
+                        get: { !vm.inputNames.isHidden(id: source.id) },
+                        set: { vm.inputNames.setHidden(!$0, id: source.id) }
                     ))
                     .toggleStyle(.switch)
                     .labelsHidden()
 
                     Label(source.displayName, systemImage: source.systemImage)
-                        .foregroundStyle(vm.inputNames.isHidden(source) ? .secondary : .primary)
+                        .foregroundStyle(vm.inputNames.isHidden(id: source.id) ? .secondary : .primary)
 
                     Spacer()
 
                     TextField(LS("カスタム名", bundle),
                               text: Binding(
-                                get: { vm.inputNames.customName(for: source) ?? "" },
-                                set: { vm.inputNames.setName($0, for: source) }
+                                get: { vm.inputNames.customName(forID: source.id) ?? "" },
+                                set: { vm.inputNames.setName($0, forID: source.id) }
                               ))
                     .font(.callout)
                     .multilineTextAlignment(.trailing)
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: 120)
-                    .disabled(vm.inputNames.isHidden(source))
+                    .disabled(vm.inputNames.isHidden(id: source.id))
                 }
             }
         }

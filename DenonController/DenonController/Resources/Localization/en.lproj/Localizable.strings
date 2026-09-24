@@ -268,3 +268,10 @@
 "送信先が設定されていません。" = "No report server is configured.";
 "送信に失敗しました。" = "Sending failed.";
 "送信に失敗しました（応答が不正）。" = "Sending failed (invalid response).";
+
+/* Yamaha support (1.2.0) */
+"AVR から正常応答がありません" = "No response from AVR";
+"AVR が操作を受け付けませんでした。" = "The AVR did not accept the command.";
+"AVR からの応答を読み取れませんでした。" = "Could not read the response from the AVR.";
+"この機種は、アプリからの本体メニューの操作に対応していません。" = "This model does not support controlling its on-screen menus from the app.";
+"スロット %lld / %lld を確認中..." = "Checking slot %lld / %lld...";

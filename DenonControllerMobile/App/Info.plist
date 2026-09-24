@@ -30,6 +30,8 @@
 		<string>_denon-heos._tcp</string>
 		<string>_heos-audio._tcp</string>
 		<string>_http._tcp</string>
+		<string>_airplay._tcp</string>
+		<string>_raop._tcp</string>
 	</array>
 	<key>NSHumanReadableCopyright</key>
 	<string>Copyright (c) 2026 Yorihito Tada. All rights reserved.</string>

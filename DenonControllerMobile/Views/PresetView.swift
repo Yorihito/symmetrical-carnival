@@ -8,7 +8,7 @@ struct PresetView: View {
 
     var body: some View {
         Group {
-            if vm.presetStore.presets.isEmpty {
+            if vm.usablePresets.isEmpty {
                 emptyState
             } else {
                 presetList
@@ -38,7 +38,7 @@ struct PresetView: View {
 
     private var presetList: some View {
         List {
-            ForEach(vm.presetStore.presets) { preset in
+            ForEach(vm.usablePresets) { preset in
                 PresetRow(preset: preset) {
                     guard vm.avr.isConnected && vm.avr.isPoweredOn else { return }
                     vm.applyPreset(preset)
@@ -88,6 +88,7 @@ struct PresetView: View {
 // MARK: - Preset Row
 
 private struct PresetRow: View {
+    @Environment(MainViewModel.self) private var vm
     let preset: Preset
     let onApply: () -> Void
     let onEdit: () -> Void
@@ -105,7 +106,7 @@ private struct PresetRow: View {
                     .font(.body.weight(.semibold))
 
                 HStack(spacing: 6) {
-                    Label(preset.input.displayName, systemImage: preset.input.systemImage)
+                    Label(vm.capabilities.input(for: preset.input).displayName, systemImage: vm.capabilities.input(for: preset.input).systemImage)
                     Text("·")
                     Label(String(format: "%.0f dB", preset.volumeDB),
                           systemImage: "speaker.wave.2")
@@ -113,7 +114,7 @@ private struct PresetRow: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
 
-                Label(preset.surroundMode.displayName, systemImage: preset.surroundMode.systemImage)
+                Label(vm.capabilities.soundMode(for: preset.surroundMode).displayName, systemImage: vm.capabilities.soundMode(for: preset.surroundMode).systemImage)
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -167,7 +168,7 @@ private struct AddPresetSheet: View {
 
                 Section("保存する設定") {
                     LabeledContent("入力") {
-                        Label(vm.avr.input.displayName, systemImage: vm.avr.input.systemImage)
+                        Label(vm.currentInput.displayName, systemImage: vm.currentInput.systemImage)
                             .foregroundStyle(.secondary)
                     }
                     LabeledContent("音量") {
@@ -175,8 +176,8 @@ private struct AddPresetSheet: View {
                             .foregroundStyle(.secondary)
                     }
                     LabeledContent("サラウンド") {
-                        Label(vm.avr.surroundMode.displayName,
-                              systemImage: vm.avr.surroundMode.systemImage)
+                        Label(vm.currentSoundMode.displayName,
+                              systemImage: vm.currentSoundMode.systemImage)
                             .foregroundStyle(.secondary)
                     }
                 }
@@ -220,7 +221,7 @@ private struct EditPresetSheet: View {
 
                 Section("設定（変更不可）") {
                     LabeledContent("入力") {
-                        Label(preset.input.displayName, systemImage: preset.input.systemImage)
+                        Label(vm.capabilities.input(for: preset.input).displayName, systemImage: vm.capabilities.input(for: preset.input).systemImage)
                             .foregroundStyle(.secondary)
                     }
                     LabeledContent("音量") {
@@ -228,8 +229,8 @@ private struct EditPresetSheet: View {
                             .foregroundStyle(.secondary)
                     }
                     LabeledContent("サラウンド") {
-                        Label(preset.surroundMode.displayName,
-                              systemImage: preset.surroundMode.systemImage)
+                        Label(vm.capabilities.soundMode(for: preset.surroundMode).displayName,
+                              systemImage: vm.capabilities.soundMode(for: preset.surroundMode).systemImage)
                             .foregroundStyle(.secondary)
                     }
                 }

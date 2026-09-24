@@ -153,6 +153,8 @@ struct VolumeDialControl: View {
     let value: Double
     let isMuted: Bool
     var diameter: CGFloat = 176
+    /// 回せる範囲（dB）。機器によって違う（Denon −80〜+18、Yamaha は機器が返す範囲）
+    var range: ClosedRange<Double> = -80...18
     let onEditingChanged: (Double, Bool) -> Void
 
     @Environment(\.localizedBundle) private var bundle
@@ -161,8 +163,8 @@ struct VolumeDialControl: View {
     @State private var angleRemainder: Double = 0
     @State private var hapticTrigger = 0
 
-    private let minimum = -80.0
-    private let maximum = 18.0
+    private var minimum: Double { range.lowerBound }
+    private var maximum: Double { range.upperBound }
     private let step = 0.5
     private let sweep = 280.0
     private let startAngle = -140.0

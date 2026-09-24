@@ -12,9 +12,22 @@ struct RemoteView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 16) {
-                functionButtons
-                directionPad
-                backButton
+                if vm.avr.isConnected && !vm.capabilities.supportsRemote {
+                    // 本体メニューをネットワークから操作できない機種（YXC にも旧 XML API にも操作がない）
+                    Label {
+                        Text("この機種は、アプリからの本体メニューの操作に対応していません。", bundle: lBundle)
+                    } icon: {
+                        Image(systemName: "info.circle")
+                    }
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.vertical, 8)
+                } else {
+                    functionButtons
+                    directionPad
+                    backButton
+                }
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 12)

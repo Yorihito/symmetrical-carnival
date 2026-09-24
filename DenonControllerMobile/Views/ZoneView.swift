@@ -8,7 +8,9 @@ struct ZoneView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 16) {
-                zone2Card
+                if vm.capabilities.hasZone2 {
+                    zone2Card
+                }
                 if vm.avr.deviceInfo.hasZone3 {
                     zone3Card
                 }
@@ -53,7 +55,7 @@ struct ZoneView: View {
                 if vm.avr.zone2Power {
                     Divider()
                     ZoneStepControl(
-                        label: vm.avr.zone2VolumeDBString,
+                        label: vm.zoneVolumeLabel(vm.avr.zone2VolumeDB),
                         isMuted: vm.avr.zone2Mute,
                         supportsMute: true,
                         isEnabled: vm.avr.isConnected,
@@ -95,7 +97,7 @@ struct ZoneView: View {
                 if vm.avr.zone3Power {
                     Divider()
                     ZoneStepControl(
-                        label: vm.avr.zone3VolumeDBString,
+                        label: vm.zoneVolumeLabel(vm.avr.zone3VolumeDB),
                         isMuted: false,
                         supportsMute: false,
                         isEnabled: vm.avr.isConnected,
