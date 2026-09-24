@@ -1,30 +1,61 @@
 name: Deploy help site to GitHub Pages
 
+# Besides the usual push-to-help trigger, this also runs on issue activity
+# (to pick up new/edited compatibility reports quickly) and once a day on a
+# schedule (to catch anything the issue-event trigger missed, e.g. an issue
+# edited by someone else's automation). See docs/compatibility-reports-design.md
+# section 4.3.
 on:
   push:
     branches: [main]
     paths:
       - "help/**"
+      - "scripts/aggregate-compat.mjs"
       - ".github/workflows/pages.yml"
+  issues:
+    types: [opened, edited, labeled, unlabeled, closed, reopened]
+  schedule:
+    - cron: "17 3 * * *"
   workflow_dispatch:
 
 permissions:
   contents: read
   pages: write
   id-token: write
+  issues: write
 
 concurrency:
+  # issue events can fire frequently in a short span; cancelling superseded
+  # runs is fine here since each run recomputes the full aggregation from
+  # scratch anyway.
   group: pages
   cancel-in-progress: true
 
 jobs:
   deploy:
+    # For issue-triggered runs, skip entirely unless the issue looks like a
+    # compatibility report (has the label, or carries the avr-compat marker
+    # for browser-fallback submissions that never got labeled) — no point
+    # rebuilding help/ for an unrelated bug report or feature request.
+    if: >-
+      github.event_name != 'issues' ||
+      contains(github.event.issue.labels.*.name, 'compatibility') ||
+      contains(github.event.issue.body, 'avr-compat')
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Aggregate compatibility reports
+        run: node scripts/aggregate-compat.mjs
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OUT_DIR: help
+          CLOSE_ISSUES: "1"
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
