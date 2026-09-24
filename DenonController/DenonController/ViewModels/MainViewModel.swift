@@ -497,6 +497,32 @@ final class MainViewModel {
 
     /// Denon Telnet プロトコルのレスポンス行を解析して状態を更新する。
     private func parseTelnetLine(_ line: String) {
+        // 本体や付属リモコンでの操作も Telnet で通知される。HTTP のポーリングは操作がないと間隔が広がる
+        // （最大 10 分）ので、ここで即座に反映する。アプリで操作した直後（同期ガード中）は上書きしない
+        // MV45 / MV455 — メイン音量（"MVMAX 98" は最大音量の設定なので無視する）
+        if line.hasPrefix("MV"), !line.hasPrefix("MVMAX") {
+            let digits = String(line.dropFirst(2))
+            if digits.allSatisfy(\.isNumber), let raw = Double(digits), !shouldIgnoreSync(for: "volume") {
+                let unit = digits.count == 3 ? raw / 10 : raw
+                avr.volumeDB = unit - 80
+            }
+            return
+        }
+        if line == "MUON" || line == "MUOFF" {
+            if !shouldIgnoreSync(for: "mute") { avr.isMuted = line == "MUON" }
+            return
+        }
+        if line == "PWON" || line == "PWSTANDBY" {
+            if !shouldIgnoreSync(for: "power") { avr.isPoweredOn = line == "PWON" }
+            return
+        }
+        // SIHDMI1 など — 入力
+        if line.hasPrefix("SI") {
+            let code = String(line.dropFirst(2))
+            if InputSource(rawValue: code) != nil, !shouldIgnoreSync(for: "input") { avr.inputID = code }
+            return
+        }
+
         // MS... — サラウンドモード変更通知（AVR 側での変更も追跡できる）
         if line.hasPrefix("MS") {
             let code = String(line.dropFirst(2))
