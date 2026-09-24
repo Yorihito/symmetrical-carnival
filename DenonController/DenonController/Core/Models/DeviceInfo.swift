@@ -8,6 +8,12 @@ struct DeviceInfo: Sendable {
     var hasZone2: Bool       = true     // ほぼ全機種あり
     var hasZone3: Bool       = false    // 上位機種のみ
     var macAddress: String   = ""       // DHCP で IP が変わっても同一機体を識別するための安定 ID
+    // 動作報告に添える情報（取れる機種だけ）
+    var firmwareVersion: String = ""
+    var apiVersion: String      = ""    // Yamaha の YXC の API バージョン
+    var region: String          = ""    // Yamaha の仕向け地（"J" など）
+
+    var brand: ReceiverBrand { ReceiverBrand(brandName: brandName) }
 
     /// 16 進の文字だけを大文字で残した MAC アドレス（区切り文字・空白・改行を除去）。
     /// 機種・ファームウェアや XML の書式によって表記揺れがあるため、

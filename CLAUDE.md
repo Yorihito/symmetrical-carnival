@@ -115,6 +115,38 @@ Commands are plain strings sent via HTTP GET to port 8080:
 Status polling parses XML from `/goform/formMainZone_MainZoneXmlStatusLite.xml`.
 Tuner presets are fetched from `/goform/formTuner_TunerPresetXml.xml` (XML bulk fetch, falls back to Telnet scan).
 
+### Networking Protocol (Yamaha AVR, since 1.2.0)
+
+Yamaha receivers are controlled by `YamahaClient` (Core/Network) over YXC (Yamaha Extended Control): HTTP GET to port 80, JSON responses, `/YamahaExtendedControl/v1/...`.
+- Every response has `response_code` (0 = OK). A non-zero code throws `YamahaError.rejected`. The VM shows it as a message and does **not** treat it as a disconnect.
+- Remote (OSD):
+  - Use YXC `controlCursor` / `controlMenu` when `getFeatures` lists `cursor` / `menu` (2020+ models).
+  - Otherwise use the legacy YNC XML API (`POST /YamahaRemoteControl/ctrl`), with element paths read from `/YamahaRemoteControl/desc.xml` (RX-V581 era). 2020+ models no longer have YNC.
+- Volume:
+  - With `actual_volume`, use dB directly.
+  - Otherwise, step value to dB is `-80.5 + 0.5 × step`, checked once at connect against YNC's dB reading.
+- Design and research: `docs/yamaha-support-design.md`. Test unit: RX-V581.
+
+### Brand abstraction
+
+- `ReceiverCapabilities` (Core/Models/ReceiverTypes.swift) is built at connect time and drives what the views show: input and sound mode lists, volume range, the Denon "Vol" readout, zones, tuner bands and preset count, and remote support. Views must read `vm.capabilities`, `vm.visibleInputs`, `vm.currentInput` and `vm.currentSoundMode`, not `InputSource.allCases` / `SurroundMode.selectableModes`.
+- `AVRState.inputID` / `soundModeID` are brand-specific ID strings. The old `input` / `surroundMode` properties remain as Denon compatibility accessors.
+- `MainViewModel.dispatch(denon:feature:yamaha:)` sends every command: the Denon string over Telnet or HTTP, or the matching `YamahaClient` call. The Denon command strings are unchanged from 1.1.x.
+- Connect order:
+  - The VM remembers each host's brand (`receiverBrandByHost`) and tries that brand first, then the other.
+  - Discovery also browses `_airplay._tcp` / `_raop._tcp` and recognises Yamaha via `YamahaClient.identify`.
+
+### Testing without hardware (DEBUG)
+
+- Mock receivers:
+  - `scripts/mock-yamaha.py` imitates an RX-V581 on port 80. `MODERN=1` imitates a 2020+ model.
+  - `scripts/mock-denon.py` imitates an AVR-X3800H over HTTP only. Run it on a port other than 8080 (e.g. `PORT=18080`); 8080 on loopback did not work from the simulator.
+- Launch arguments:
+  - `-debugConnectHost <ip>[:port]`: connect only there, with no scan and no reheal. Always pair it with `-autoConnect NO` so tests never reach a real receiver on the LAN. Adding a port connects as Denon.
+  - `-debugExercise`: send each kind of command once.
+  - Prompt testing: `-promptNow <review|support|compatibility|intro>`, `-promptDate yyyy-MM-dd`, `-promptReset`. Rules are in `docs/in-app-prompts-design.md`.
+- The mocks listen on all interfaces, so use `127.0.0.1`. The Mac firewall may drop LAN-IP connections.
+
 ## OSD Navigation (Remote Control)
 
 OSD navigation is implemented on both macOS and iOS/iPadOS. Commands are

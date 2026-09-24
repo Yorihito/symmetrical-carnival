@@ -12,11 +12,11 @@ struct InputView: View {
 
                 let columns = [GridItem(.adaptive(minimum: 100), spacing: 16)]
                 LazyVGrid(columns: columns, spacing: 16) {
-                    ForEach(vm.inputNames.visibleSources) { source in
+                    ForEach(vm.visibleInputs) { source in
                         LargeInputButton(
                             source: source,
                             name: source.name(using: vm.inputNames),
-                            isSelected: vm.avr.input == source,
+                            isSelected: vm.avr.inputID == source.id,
                             isEnabled: vm.avr.isConnected && vm.avr.isPoweredOn
                         ) {
                             hapticTrigger += 1
@@ -34,7 +34,7 @@ struct InputView: View {
 
     private var currentInputBanner: some View {
         HStack(spacing: 14) {
-            Image(systemName: vm.avr.input.systemImage)
+            Image(systemName: vm.currentInput.systemImage)
                 .font(.system(size: 28))
                 .foregroundStyle(Color.accentColor)
                 .frame(width: 48, height: 48)
@@ -44,7 +44,7 @@ struct InputView: View {
                 Text("現在の入力", bundle: bundle)
                     .font(.caption)
                     .foregroundStyle(.secondary)
-                Text(vm.avr.input.name(using: vm.inputNames))
+                Text(vm.currentInput.name(using: vm.inputNames))
                     .font(.title3.weight(.semibold))
             }
             Spacer()
@@ -55,7 +55,7 @@ struct InputView: View {
 }
 
 private struct LargeInputButton: View {
-    let source: InputSource
+    let source: ReceiverInput
     let name: String
     let isSelected: Bool
     let isEnabled: Bool

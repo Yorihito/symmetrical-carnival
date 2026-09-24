@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		055E15B4BCB6F0DCC94BFAEC /* SupportStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 385C6F0B0CEDBB1BBB00DA9A /* SupportStore.swift */; };
+		060A177D78E7A812FEABE7C0 /* CompatibilityPromptPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7D10C31AAC54376B4797EA4 /* CompatibilityPromptPolicy.swift */; };
 		06F28E54E74061919B044C2B /* MainViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4BA24D1B24069C44CB42386 /* MainViewModel.swift */; };
 		0CEC9399E7612D00FAAFDD49 /* DiagnosticsLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99D0A3750A0A270EC589E0F3 /* DiagnosticsLog.swift */; };
 		0E82EDB2D74A532F3A20A260 /* DenonControllerMobileApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EC4A3F474DCD7D46A766271 /* DenonControllerMobileApp.swift */; };
@@ -20,6 +21,8 @@
 		14F36167FA4F2BD39F9B1F75 /* ProblemReporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDF1FA1D97040B3C00675C2C /* ProblemReporter.swift */; };
 		1661486C7A095436F3B9CF79 /* Network.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1C21F089DD18EF96A1FB1D37 /* Network.framework */; };
 		18BC2655A7A945363CD3EF1A /* InputView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 371B2F4E3F7CEE3A934FE1DC /* InputView.swift */; };
+		191466263B20A3FF391D2011 /* CompatibilityDirectory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38FFB9ABE6B2B4B2711C1341 /* CompatibilityDirectory.swift */; };
+		1B3A7DEF82A51EA15DE69CDC /* YamahaEventListener.swift in Sources */ = {isa = PBXBuildFile; fileRef = 400D3E6F5EAD47E2BA07AFF7 /* YamahaEventListener.swift */; };
 		1E31B61684414568011C77E0 /* DenonControllerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48CC524B97F708FFD31253DA /* DenonControllerApp.swift */; };
 		1E876FDB15C53E820184D209 /* InputSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9ECA17A4A0B3A093DB6F604 /* InputSource.swift */; };
 		2114C9A9C177E05A75B528C3 /* HelpSiteLinks.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCCBCF2FC5C91D12F8A8E660 /* HelpSiteLinks.swift */; };
@@ -37,6 +40,7 @@
 		4C169A94637BC5F05839DCF7 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87532AE642CC4C7933E62C61 /* DashboardView.swift */; };
 		51B370EAE04F8F1B50809307 /* ProblemReporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDF1FA1D97040B3C00675C2C /* ProblemReporter.swift */; };
 		53D6A9EA92F403A78ADAEE76 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DD48B21048CEB692DAB7C46 /* SettingsView.swift */; };
+		548E134AAD1F6E32CC111B80 /* CompatibilityReport.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7D936B158AA858CCB39074A /* CompatibilityReport.swift */; };
 		54CE9FA2CDE5781F438F6B9B /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBCC033BDB61A8099289FAA5 /* ContentView.swift */; };
 		5777FE44697C30EE9BB30981 /* SupporterRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4B1F263040327CDC49F4089 /* SupporterRecord.swift */; };
 		586CC8A8C58A9B78BC42F4B5 /* MDNSDiscovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A00BF5F14989E8C48AE08AB /* MDNSDiscovery.swift */; };
@@ -46,19 +50,26 @@
 		6F526542ED1AAC5FBA5A125F /* TunerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B68F7EA22CF66FAEDFC81885 /* TunerView.swift */; };
 		7306032949F820C71B3DA11E /* InputNameStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 495D17163A2E55D86ADB4C94 /* InputNameStore.swift */; };
 		738334988E65F7F1CCE4681E /* DashboardLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5494C1E27FAC2CB79410897E /* DashboardLayout.swift */; };
+		764207B2121A4BF3545D48F3 /* PromptCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 507153F6DE625535713643DA /* PromptCoordinator.swift */; };
 		7A449D55D002777F1E0465AB /* SupportRequestManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 958D2993EF1099E008D5F991 /* SupportRequestManager.swift */; };
 		7ED5C56644A95B215D350E86 /* InputView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AEBFDA374E25758961C3B07 /* InputView.swift */; };
+		7EF4B5CCD7026023368B64D7 /* YamahaCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 343AE4A2F026CBD4298DB560 /* YamahaCatalog.swift */; };
 		81E1AD15BD2DD6474C1DA18B /* ReviewRequestManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D7BEA9BAF2E1744356FF741 /* ReviewRequestManager.swift */; };
 		85C6BEFABD78D72516F662D4 /* Preset.swift in Sources */ = {isa = PBXBuildFile; fileRef = F76C8EA4E66F47B8F0207066 /* Preset.swift */; };
 		87BB00386EAF4C75067006A8 /* ReviewRequestManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D7BEA9BAF2E1744356FF741 /* ReviewRequestManager.swift */; };
 		87CB10DC1C014F5087070D0C /* MenuBarPopoverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20BE8F10BC0930A047050EF /* MenuBarPopoverView.swift */; };
 		88DC0722B8B20D65FA11A700 /* ProblemReportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63E026C54E7A9A9382069B71 /* ProblemReportView.swift */; };
+		8D2B47C3CB979DDAB0556C78 /* YamahaClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94908E18A94C14FCB9F05BF5 /* YamahaClient.swift */; };
+		8EB4C0A36C0A12E2154795AF /* InAppPrompt.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05D4E2194B074CDAE7A851E4 /* InAppPrompt.swift */; };
 		8F11D1BDD33AFE005D2E57D4 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 870C7384E8D60B2408318E96 /* Localizable.strings */; };
+		94B485B93E80C1A3C9C909CA /* LocalHTTP.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E1D87D11973FC50EC4795EE /* LocalHTTP.swift */; };
 		95EFC25C1D4B6A1A0D3F6586 /* PresetStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0EAFCB048A23BD89077533F3 /* PresetStore.swift */; };
 		9D457112D11E0B3126B14B2A /* AVRHTTPClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CB324EA5D91A2660C953E1F /* AVRHTTPClient.swift */; };
 		9E35C74CEFDB4EE401BE7A53 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E3F661D100D83AE3D90486C /* DashboardView.swift */; };
+		9EAF9DF1A774976CDCC855C8 /* YamahaClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94908E18A94C14FCB9F05BF5 /* YamahaClient.swift */; };
 		9EE83FAB03B55BBE25058DAC /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 84B2E217523B349EC130FB92 /* Assets.xcassets */; };
 		A552B2384A64070F14595C87 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2C97D129A06A4A87956F7FD /* AppDelegate.swift */; };
+		AB43DC16950D90062F8C0543 /* UsageTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94658C2256474BABA38ECB7A /* UsageTracker.swift */; };
 		B3F1365972CF77F7177704C6 /* ZoneView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C62E5948C5D63D30BB07F2C /* ZoneView.swift */; };
 		B695A3D5A451FCF5E9F4A039 /* SurroundMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F00BCCBB5642689C5E0B915 /* SurroundMode.swift */; };
 		BDBBEF07D4AD3C23AD19F0FE /* RemoteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 762AA34BEC612F45E4B9C052 /* RemoteView.swift */; };
@@ -67,27 +78,40 @@
 		C1FE2D4CDD7416175860A28F /* SupportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3F2E1C90530C575FCDC6FA9 /* SupportView.swift */; };
 		C2E702869124D81FEF45FBD9 /* LocalizationHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67CDCF1D31DD391F01631CE2 /* LocalizationHelper.swift */; };
 		C73D769DF1CFD293E916453C /* PresetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8AAAE8AB7AA4238C35C99A6 /* PresetView.swift */; };
+		C746CDB79F4AFF0233C248C8 /* LocalHTTP.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E1D87D11973FC50EC4795EE /* LocalHTTP.swift */; };
+		C81E0B347D684077A3E1492B /* PromptCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 507153F6DE625535713643DA /* PromptCoordinator.swift */; };
 		C8B659374EDECC0EF38A7A9F /* MDNSDiscovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A00BF5F14989E8C48AE08AB /* MDNSDiscovery.swift */; };
 		CB761EBF6993D6F10238BE12 /* SurroundView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 593531F756C20B22B1282906 /* SurroundView.swift */; };
 		CC5B7138DE1DEE475F8FCAA0 /* RemoteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F7373E45F2D8A0A873510C1 /* RemoteView.swift */; };
+		CD1A76B55F0547858CE19164 /* UsageTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94658C2256474BABA38ECB7A /* UsageTracker.swift */; };
 		D06FB4A0EF2802537377E32F /* VolumeControlView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 71B63BF0A3338974C13AD96C /* VolumeControlView.swift */; };
 		D079330241F0CF45F84A6C49 /* Preset.swift in Sources */ = {isa = PBXBuildFile; fileRef = F76C8EA4E66F47B8F0207066 /* Preset.swift */; };
+		D2187C2BE4FC8A366E937E66 /* ReceiverTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E84D74EF58BCEEC97216267 /* ReceiverTypes.swift */; };
 		D3615836D1796E560FAFCB1E /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C88FB0556735B17869D5A94 /* ContentView.swift */; };
+		D53504782E99AE327EC0C377 /* CompatibilityReport.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7D936B158AA858CCB39074A /* CompatibilityReport.swift */; };
 		D5B636D1118D2749307334E6 /* AVRState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DBDB1F2094291B09A369428 /* AVRState.swift */; };
 		DA56A1BF00A89DE4B12BECB2 /* DeviceInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 271AF613F454DB67A569A133 /* DeviceInfo.swift */; };
 		DF7700969F9383B5CDA18534 /* ProblemReportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63E026C54E7A9A9382069B71 /* ProblemReportView.swift */; };
 		E073BAB275455B3D6569E0CA /* TunerPreset.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C3EE3F5E05059A0B9CC8309 /* TunerPreset.swift */; };
+		E1A501F0DE5A849DA88BB66F /* CompatibilityDirectory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38FFB9ABE6B2B4B2711C1341 /* CompatibilityDirectory.swift */; };
+		E207F93DD2579E7F81708F68 /* YamahaEventListener.swift in Sources */ = {isa = PBXBuildFile; fileRef = 400D3E6F5EAD47E2BA07AFF7 /* YamahaEventListener.swift */; };
+		E21EC0837E0CA31D38097919 /* CompatibilityPromptPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7D10C31AAC54376B4797EA4 /* CompatibilityPromptPolicy.swift */; };
 		E6C1323447E13E49F82EEB59 /* DiagnosticsLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99D0A3750A0A270EC589E0F3 /* DiagnosticsLog.swift */; };
 		E8223854D0A25620B23FFA87 /* ConnectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EBA445EDC221C01FA9C6049 /* ConnectionView.swift */; };
 		E99FF3946B1A1C2271CC67B8 /* AVRState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DBDB1F2094291B09A369428 /* AVRState.swift */; };
+		E9C531BD98341E4868EC6124 /* YamahaCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 343AE4A2F026CBD4298DB560 /* YamahaCatalog.swift */; };
+		ED1B5B29837A12210B6FDC38 /* ReceiverTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E84D74EF58BCEEC97216267 /* ReceiverTypes.swift */; };
+		ED471F50C03EB531C8FBFEB8 /* InAppPrompt.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05D4E2194B074CDAE7A851E4 /* InAppPrompt.swift */; };
 		EE614F6A701643C3ACE29B46 /* TelnetClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2FEF8CF0CF7104302E3474B /* TelnetClient.swift */; };
 		F0632EC557B94DBD5F4B1671 /* ConnectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C3874D625282B482D38AE6A /* ConnectionView.swift */; };
+		F30240704C9B115782F66631 /* CompatibilityReportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DFB7AE9758DAD05D049CB8E /* CompatibilityReportView.swift */; };
 		F85DA1958EAB9A9D07F93D5C /* SurroundMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F00BCCBB5642689C5E0B915 /* SurroundMode.swift */; };
 		FA5F210C12AC9F361029D2F8 /* ZoneView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7F395F8FE0341BC628627D5 /* ZoneView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		01525DCDCE780E88CC6F5771 /* DenonController.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = DenonController.entitlements; sourceTree = "<group>"; };
+		05D4E2194B074CDAE7A851E4 /* InAppPrompt.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InAppPrompt.swift; sourceTree = "<group>"; };
 		065D9658F557880E7A68B28F /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		0C15B761820435FAA607C12D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		0DBDB1F2094291B09A369428 /* AVRState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AVRState.swift; sourceTree = "<group>"; };
@@ -99,10 +123,14 @@
 		1EC4A3F474DCD7D46A766271 /* DenonControllerMobileApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DenonControllerMobileApp.swift; sourceTree = "<group>"; };
 		271AF613F454DB67A569A133 /* DeviceInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceInfo.swift; sourceTree = "<group>"; };
 		2C62E5948C5D63D30BB07F2C /* ZoneView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZoneView.swift; sourceTree = "<group>"; };
+		343AE4A2F026CBD4298DB560 /* YamahaCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YamahaCatalog.swift; sourceTree = "<group>"; };
 		371B2F4E3F7CEE3A934FE1DC /* InputView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputView.swift; sourceTree = "<group>"; };
 		385C6F0B0CEDBB1BBB00DA9A /* SupportStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupportStore.swift; sourceTree = "<group>"; };
+		38FFB9ABE6B2B4B2711C1341 /* CompatibilityDirectory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompatibilityDirectory.swift; sourceTree = "<group>"; };
+		400D3E6F5EAD47E2BA07AFF7 /* YamahaEventListener.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YamahaEventListener.swift; sourceTree = "<group>"; };
 		48CC524B97F708FFD31253DA /* DenonControllerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DenonControllerApp.swift; sourceTree = "<group>"; };
 		495D17163A2E55D86ADB4C94 /* InputNameStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputNameStore.swift; sourceTree = "<group>"; };
+		507153F6DE625535713643DA /* PromptCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PromptCoordinator.swift; sourceTree = "<group>"; };
 		5494C1E27FAC2CB79410897E /* DashboardLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardLayout.swift; sourceTree = "<group>"; };
 		593531F756C20B22B1282906 /* SurroundView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SurroundView.swift; sourceTree = "<group>"; };
 		5CB324EA5D91A2660C953E1F /* AVRHTTPClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AVRHTTPClient.swift; sourceTree = "<group>"; };
@@ -120,11 +148,16 @@
 		84B2E217523B349EC130FB92 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		87532AE642CC4C7933E62C61 /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
 		8C88FB0556735B17869D5A94 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		8E1D87D11973FC50EC4795EE /* LocalHTTP.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalHTTP.swift; sourceTree = "<group>"; };
+		8E84D74EF58BCEEC97216267 /* ReceiverTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiverTypes.swift; sourceTree = "<group>"; };
 		8F7373E45F2D8A0A873510C1 /* RemoteView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteView.swift; sourceTree = "<group>"; };
 		92DE52C6C47E8EE18C49EC97 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		94658C2256474BABA38ECB7A /* UsageTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageTracker.swift; sourceTree = "<group>"; };
+		94908E18A94C14FCB9F05BF5 /* YamahaClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YamahaClient.swift; sourceTree = "<group>"; };
 		958D2993EF1099E008D5F991 /* SupportRequestManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupportRequestManager.swift; sourceTree = "<group>"; };
 		99D0A3750A0A270EC589E0F3 /* DiagnosticsLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticsLog.swift; sourceTree = "<group>"; };
 		9AEBFDA374E25758961C3B07 /* InputView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputView.swift; sourceTree = "<group>"; };
+		9DFB7AE9758DAD05D049CB8E /* CompatibilityReportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompatibilityReportView.swift; sourceTree = "<group>"; };
 		9E3F661D100D83AE3D90486C /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
 		A20BE8F10BC0930A047050EF /* MenuBarPopoverView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarPopoverView.swift; sourceTree = "<group>"; };
 		A2C97D129A06A4A87956F7FD /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -135,6 +168,7 @@
 		C191CB6B2DD3759D5568EB40 /* ja */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ja; path = ja.lproj/Localizable.strings; sourceTree = "<group>"; };
 		D4B1F263040327CDC49F4089 /* SupporterRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupporterRecord.swift; sourceTree = "<group>"; };
 		D4BA24D1B24069C44CB42386 /* MainViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainViewModel.swift; sourceTree = "<group>"; };
+		D7D10C31AAC54376B4797EA4 /* CompatibilityPromptPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompatibilityPromptPolicy.swift; sourceTree = "<group>"; };
 		D7F395F8FE0341BC628627D5 /* ZoneView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZoneView.swift; sourceTree = "<group>"; };
 		D9E63666C2D93B7D0561E5A9 /* DenonControllerMobile.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = DenonControllerMobile.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E6C6A70CDC90F4B7352DEBB5 /* TunerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TunerView.swift; sourceTree = "<group>"; };
@@ -145,6 +179,7 @@
 		F3F2E1C90530C575FCDC6FA9 /* SupportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupportView.swift; sourceTree = "<group>"; };
 		F74152998E3524849FCB09AD /* PresetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresetView.swift; sourceTree = "<group>"; };
 		F76C8EA4E66F47B8F0207066 /* Preset.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Preset.swift; sourceTree = "<group>"; };
+		F7D936B158AA858CCB39074A /* CompatibilityReport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompatibilityReport.swift; sourceTree = "<group>"; };
 		F813D9A057553CD9E8878B5F /* CardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardView.swift; sourceTree = "<group>"; };
 		FBEBF653CEC8F883DA903813 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -165,6 +200,7 @@
 			isa = PBXGroup;
 			children = (
 				065D9658F557880E7A68B28F /* PrivacyInfo.xcprivacy */,
+				421210C7FBE8D36D0031F6CC /* Compatibility */,
 				F1D7924C5AE3E63AFD79609C /* Diagnostics */,
 				11AB2D68EEAD131B7A0CD10D /* Models */,
 				D328F5083913C9E7A655C988 /* Network */,
@@ -200,8 +236,10 @@
 				271AF613F454DB67A569A133 /* DeviceInfo.swift */,
 				E9ECA17A4A0B3A093DB6F604 /* InputSource.swift */,
 				F76C8EA4E66F47B8F0207066 /* Preset.swift */,
+				8E84D74EF58BCEEC97216267 /* ReceiverTypes.swift */,
 				7F00BCCBB5642689C5E0B915 /* SurroundMode.swift */,
 				7C3EE3F5E05059A0B9CC8309 /* TunerPreset.swift */,
+				343AE4A2F026CBD4298DB560 /* YamahaCatalog.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -221,6 +259,15 @@
 				385C6F0B0CEDBB1BBB00DA9A /* SupportStore.swift */,
 			);
 			path = Store;
+			sourceTree = "<group>";
+		};
+		421210C7FBE8D36D0031F6CC /* Compatibility */ = {
+			isa = PBXGroup;
+			children = (
+				38FFB9ABE6B2B4B2711C1341 /* CompatibilityDirectory.swift */,
+				F7D936B158AA858CCB39074A /* CompatibilityReport.swift */,
+			);
+			path = Compatibility;
 			sourceTree = "<group>";
 		};
 		448920A46D8571411DE4E00F /* Resources */ = {
@@ -277,8 +324,12 @@
 		8AD9861DAAEFD5FECAD9253A /* Review */ = {
 			isa = PBXGroup;
 			children = (
+				D7D10C31AAC54376B4797EA4 /* CompatibilityPromptPolicy.swift */,
+				05D4E2194B074CDAE7A851E4 /* InAppPrompt.swift */,
+				507153F6DE625535713643DA /* PromptCoordinator.swift */,
 				5D7BEA9BAF2E1744356FF741 /* ReviewRequestManager.swift */,
 				958D2993EF1099E008D5F991 /* SupportRequestManager.swift */,
+				94658C2256474BABA38ECB7A /* UsageTracker.swift */,
 			);
 			path = Review;
 			sourceTree = "<group>";
@@ -345,8 +396,11 @@
 			isa = PBXGroup;
 			children = (
 				5CB324EA5D91A2660C953E1F /* AVRHTTPClient.swift */,
+				8E1D87D11973FC50EC4795EE /* LocalHTTP.swift */,
 				1A00BF5F14989E8C48AE08AB /* MDNSDiscovery.swift */,
 				A2FEF8CF0CF7104302E3474B /* TelnetClient.swift */,
+				94908E18A94C14FCB9F05BF5 /* YamahaClient.swift */,
+				400D3E6F5EAD47E2BA07AFF7 /* YamahaEventListener.swift */,
 			);
 			path = Network;
 			sourceTree = "<group>";
@@ -354,6 +408,7 @@
 		D80C86CEA3FCE982D7B10ABA /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				9DFB7AE9758DAD05D049CB8E /* CompatibilityReportView.swift */,
 				6C3874D625282B482D38AE6A /* ConnectionView.swift */,
 				EBCC033BDB61A8099289FAA5 /* ContentView.swift */,
 				5494C1E27FAC2CB79410897E /* DashboardLayout.swift */,
@@ -581,6 +636,10 @@
 				1045CFDE17400F0C299B117A /* AVRHTTPClient.swift in Sources */,
 				D5B636D1118D2749307334E6 /* AVRState.swift in Sources */,
 				2F263825EEA8AFE4C9A46AE6 /* CardView.swift in Sources */,
+				E1A501F0DE5A849DA88BB66F /* CompatibilityDirectory.swift in Sources */,
+				060A177D78E7A812FEABE7C0 /* CompatibilityPromptPolicy.swift in Sources */,
+				548E134AAD1F6E32CC111B80 /* CompatibilityReport.swift in Sources */,
+				F30240704C9B115782F66631 /* CompatibilityReportView.swift in Sources */,
 				F0632EC557B94DBD5F4B1671 /* ConnectionView.swift in Sources */,
 				54CE9FA2CDE5781F438F6B9B /* ContentView.swift in Sources */,
 				738334988E65F7F1CCE4681E /* DashboardLayout.swift in Sources */,
@@ -589,9 +648,11 @@
 				C047CC739A755CDD5AE482E3 /* DeviceInfo.swift in Sources */,
 				E6C1323447E13E49F82EEB59 /* DiagnosticsLog.swift in Sources */,
 				21A872FC62BB883A5A35B2EA /* HelpSiteLinks.swift in Sources */,
+				ED471F50C03EB531C8FBFEB8 /* InAppPrompt.swift in Sources */,
 				2AAA0C216218E52C0AC77822 /* InputNameStore.swift in Sources */,
 				BFFA6C52F1C109A464B735D9 /* InputSource.swift in Sources */,
 				7ED5C56644A95B215D350E86 /* InputView.swift in Sources */,
+				94B485B93E80C1A3C9C909CA /* LocalHTTP.swift in Sources */,
 				C2E702869124D81FEF45FBD9 /* LocalizationHelper.swift in Sources */,
 				586CC8A8C58A9B78BC42F4B5 /* MDNSDiscovery.swift in Sources */,
 				44DBFAB90E3BE083C08D6F0B /* MainViewModel.swift in Sources */,
@@ -600,6 +661,8 @@
 				C73D769DF1CFD293E916453C /* PresetView.swift in Sources */,
 				DF7700969F9383B5CDA18534 /* ProblemReportView.swift in Sources */,
 				51B370EAE04F8F1B50809307 /* ProblemReporter.swift in Sources */,
+				C81E0B347D684077A3E1492B /* PromptCoordinator.swift in Sources */,
+				ED1B5B29837A12210B6FDC38 /* ReceiverTypes.swift in Sources */,
 				BDBBEF07D4AD3C23AD19F0FE /* RemoteView.swift in Sources */,
 				81E1AD15BD2DD6474C1DA18B /* ReviewRequestManager.swift in Sources */,
 				53D6A9EA92F403A78ADAEE76 /* SettingsView.swift in Sources */,
@@ -611,7 +674,11 @@
 				EE614F6A701643C3ACE29B46 /* TelnetClient.swift in Sources */,
 				E073BAB275455B3D6569E0CA /* TunerPreset.swift in Sources */,
 				0E8FADDEB53D2148312703A5 /* TunerView.swift in Sources */,
+				CD1A76B55F0547858CE19164 /* UsageTracker.swift in Sources */,
 				68E65267FE353572BC4B7CBC /* VolumeControlView.swift in Sources */,
+				7EF4B5CCD7026023368B64D7 /* YamahaCatalog.swift in Sources */,
+				9EAF9DF1A774976CDCC855C8 /* YamahaClient.swift in Sources */,
+				E207F93DD2579E7F81708F68 /* YamahaEventListener.swift in Sources */,
 				FA5F210C12AC9F361029D2F8 /* ZoneView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -623,6 +690,9 @@
 				9D457112D11E0B3126B14B2A /* AVRHTTPClient.swift in Sources */,
 				E99FF3946B1A1C2271CC67B8 /* AVRState.swift in Sources */,
 				A552B2384A64070F14595C87 /* AppDelegate.swift in Sources */,
+				191466263B20A3FF391D2011 /* CompatibilityDirectory.swift in Sources */,
+				E21EC0837E0CA31D38097919 /* CompatibilityPromptPolicy.swift in Sources */,
+				D53504782E99AE327EC0C377 /* CompatibilityReport.swift in Sources */,
 				E8223854D0A25620B23FFA87 /* ConnectionView.swift in Sources */,
 				D3615836D1796E560FAFCB1E /* ContentView.swift in Sources */,
 				4C169A94637BC5F05839DCF7 /* DashboardView.swift in Sources */,
@@ -630,9 +700,11 @@
 				DA56A1BF00A89DE4B12BECB2 /* DeviceInfo.swift in Sources */,
 				0CEC9399E7612D00FAAFDD49 /* DiagnosticsLog.swift in Sources */,
 				2114C9A9C177E05A75B528C3 /* HelpSiteLinks.swift in Sources */,
+				8EB4C0A36C0A12E2154795AF /* InAppPrompt.swift in Sources */,
 				7306032949F820C71B3DA11E /* InputNameStore.swift in Sources */,
 				1E876FDB15C53E820184D209 /* InputSource.swift in Sources */,
 				18BC2655A7A945363CD3EF1A /* InputView.swift in Sources */,
+				C746CDB79F4AFF0233C248C8 /* LocalHTTP.swift in Sources */,
 				1345E6D35DEE36AAAF7DD2D2 /* LocalizationHelper.swift in Sources */,
 				C8B659374EDECC0EF38A7A9F /* MDNSDiscovery.swift in Sources */,
 				06F28E54E74061919B044C2B /* MainViewModel.swift in Sources */,
@@ -642,6 +714,8 @@
 				3E9CD6EF7FA601D09188C4D0 /* PresetView.swift in Sources */,
 				88DC0722B8B20D65FA11A700 /* ProblemReportView.swift in Sources */,
 				14F36167FA4F2BD39F9B1F75 /* ProblemReporter.swift in Sources */,
+				764207B2121A4BF3545D48F3 /* PromptCoordinator.swift in Sources */,
+				D2187C2BE4FC8A366E937E66 /* ReceiverTypes.swift in Sources */,
 				CC5B7138DE1DEE475F8FCAA0 /* RemoteView.swift in Sources */,
 				87BB00386EAF4C75067006A8 /* ReviewRequestManager.swift in Sources */,
 				1154BACFEC09434FDA7A9A21 /* SettingsView.swift in Sources */,
@@ -653,7 +727,11 @@
 				2B35EC982FDB62B5E9D6DB96 /* TelnetClient.swift in Sources */,
 				27144C0796515B5833274C3C /* TunerPreset.swift in Sources */,
 				6F526542ED1AAC5FBA5A125F /* TunerView.swift in Sources */,
+				AB43DC16950D90062F8C0543 /* UsageTracker.swift in Sources */,
 				D06FB4A0EF2802537377E32F /* VolumeControlView.swift in Sources */,
+				E9C531BD98341E4868EC6124 /* YamahaCatalog.swift in Sources */,
+				8D2B47C3CB979DDAB0556C78 /* YamahaClient.swift in Sources */,
+				1B3A7DEF82A51EA15DE69CDC /* YamahaEventListener.swift in Sources */,
 				B3F1365972CF77F7177704C6 /* ZoneView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -782,7 +860,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 1.1.0;
+				MARKETING_VERSION = 1.2.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -872,7 +950,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 1.1.0;
+				MARKETING_VERSION = 1.2.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;

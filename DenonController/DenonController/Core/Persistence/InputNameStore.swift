@@ -26,38 +26,52 @@ final class InputNameStore {
     }
 
     // MARK: - Names
+    //
+    // キーは入力 ID（Denon は "HDMI1"、Yamaha は "hdmi1" など）。メーカーごとに ID の書き方が違うので、
+    // 同じ辞書に入れても混ざらない（1.1.x までの Denon の保存データもそのまま使える）。
 
-    func customName(for source: InputSource) -> String? {
-        names[source.rawValue]
+    func customName(forID id: String) -> String? {
+        names[id]
     }
 
-    func setName(_ name: String, for source: InputSource) {
+    func setName(_ name: String, forID id: String) {
         if name.trimmingCharacters(in: .whitespaces).isEmpty {
-            names.removeValue(forKey: source.rawValue)
+            names.removeValue(forKey: id)
         } else {
-            names[source.rawValue] = name
+            names[id] = name
         }
         UserDefaults.standard.set(names, forKey: namesKey)
     }
 
+    func customName(for source: InputSource) -> String? { customName(forID: source.rawValue) }
+    func setName(_ name: String, for source: InputSource) { setName(name, forID: source.rawValue) }
+
     // MARK: - Visibility
 
-    func isHidden(_ source: InputSource) -> Bool {
-        hiddenRawValues.contains(source.rawValue)
+    func isHidden(id: String) -> Bool {
+        hiddenRawValues.contains(id)
     }
 
-    func setHidden(_ hidden: Bool, for source: InputSource) {
+    func setHidden(_ hidden: Bool, id: String) {
         if hidden {
-            hiddenRawValues.insert(source.rawValue)
+            hiddenRawValues.insert(id)
         } else {
-            hiddenRawValues.remove(source.rawValue)
+            hiddenRawValues.remove(id)
         }
         UserDefaults.standard.set(Array(hiddenRawValues), forKey: hiddenKey)
     }
 
-    /// 表示する入力ソースのみ（非表示でないもの）
+    func isHidden(_ source: InputSource) -> Bool { isHidden(id: source.rawValue) }
+    func setHidden(_ hidden: Bool, for source: InputSource) { setHidden(hidden, id: source.rawValue) }
+
+    /// 表示する入力ソースのみ（非表示でないもの）— Denon の固定一覧
     var visibleSources: [InputSource] {
         InputSource.allCases.filter { !isHidden($0) }
+    }
+
+    /// 接続中の機器の入力のうち、非表示にしていないもの
+    func visible(_ inputs: [ReceiverInput]) -> [ReceiverInput] {
+        inputs.filter { !isHidden(id: $0.id) }
     }
 
     /// すべてのカスタム名・非表示設定を初期値に戻す

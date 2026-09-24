@@ -13,6 +13,7 @@ struct SettingsView: View {
     @Binding var showConnection: Bool
     @State private var showResetAlert = false
     @State private var showProblemReport = false
+    @State private var showCompatibilityReport = false
 
     var body: some View {
         Form {
@@ -28,6 +29,12 @@ struct SettingsView: View {
         .navigationBarTitleDisplayMode(.large)
         .sheet(isPresented: $showProblemReport) {
             ProblemReportView()
+                .environment(vm)
+                .environment(\.locale, locale)
+                .environment(\.localizedBundle, bundle)
+        }
+        .sheet(isPresented: $showCompatibilityReport) {
+            CompatibilityReportView()
                 .environment(vm)
                 .environment(\.locale, locale)
                 .environment(\.localizedBundle, bundle)
@@ -211,6 +218,23 @@ struct SettingsView: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
 
+            Button {
+                showCompatibilityReport = true
+            } label: {
+                Label {
+                    Text("この機種での動作を報告する", bundle: bundle)
+                } icon: {
+                    Image(systemName: "checkmark.seal")
+                }
+            }
+            .buttonStyle(.plain)
+            .foregroundStyle(vm.avr.isConnected ? .primary : .secondary)
+            .disabled(!vm.avr.isConnected)
+
+            Text("お使いの機種で動いたかどうかを送ると、対応機種の一覧に反映されます。", bundle: bundle)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
             Link(destination: HelpSiteLinks.privacyPolicy(locale: locale)) {
                 Label {
                     Text("プライバシーポリシー", bundle: bundle)
@@ -225,30 +249,30 @@ struct SettingsView: View {
 
     private var inputSourcesSection: some View {
         Section(header: Text("入力ソース", bundle: bundle)) {
-            ForEach(InputSource.allCases) { source in
+            ForEach(vm.capabilities.inputs) { source in
                 HStack(spacing: 12) {
                     Toggle("", isOn: Binding(
-                        get: { !vm.inputNames.isHidden(source) },
-                        set: { vm.inputNames.setHidden(!$0, for: source) }
+                        get: { !vm.inputNames.isHidden(id: source.id) },
+                        set: { vm.inputNames.setHidden(!$0, id: source.id) }
                     ))
                     .toggleStyle(.switch)
                     .labelsHidden()
 
                     Label(source.displayName, systemImage: source.systemImage)
-                        .foregroundStyle(vm.inputNames.isHidden(source) ? .secondary : .primary)
+                        .foregroundStyle(vm.inputNames.isHidden(id: source.id) ? .secondary : .primary)
 
                     Spacer()
 
                     TextField(LS("カスタム名", bundle),
                               text: Binding(
-                                get: { vm.inputNames.customName(for: source) ?? "" },
-                                set: { vm.inputNames.setName($0, for: source) }
+                                get: { vm.inputNames.customName(forID: source.id) ?? "" },
+                                set: { vm.inputNames.setName($0, forID: source.id) }
                               ))
                     .font(.callout)
                     .multilineTextAlignment(.trailing)
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: 120)
-                    .disabled(vm.inputNames.isHidden(source))
+                    .disabled(vm.inputNames.isHidden(id: source.id))
                 }
             }
         }

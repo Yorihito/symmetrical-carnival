@@ -97,11 +97,11 @@ struct DashboardView: View {
         HStack(spacing: 0) {
             VStack(alignment: .leading, spacing: 3) {
                 if vm.avr.isConnected && vm.avr.isPoweredOn {
-                    Label(vm.avr.input.name(using: vm.inputNames),
-                          systemImage: vm.avr.input.systemImage)
+                    Label(vm.currentInput.name(using: vm.inputNames),
+                          systemImage: vm.currentInput.systemImage)
                         .font(.caption.weight(.semibold))
                         .foregroundStyle(Color.accentColor)
-                    Text(vm.avr.surroundMode.displayName)
+                    Text(vm.currentSoundMode.displayName)
                         .font(.caption2)
                         .foregroundStyle(.secondary)
                 } else {
@@ -177,7 +177,7 @@ struct DashboardView: View {
                 // −
                 VolumeStepButton(systemImage: "minus", label: "音量 −") {
                     hapticTrigger += 1
-                    let newVal = max(-80.0, ((isDraggingVolume || isPendingVolume) ? dragVolumeValue : vm.avr.volumeDB) - 0.5)
+                    let newVal = max(vm.capabilities.volumeRangeDB.lowerBound, ((isDraggingVolume || isPendingVolume) ? dragVolumeValue : vm.avr.volumeDB) - 0.5)
                     dragVolumeValue = newVal
                     isPendingVolume = true
                     lastInteractionTime = Date()
@@ -206,7 +206,7 @@ struct DashboardView: View {
                 // +
                 VolumeStepButton(systemImage: "plus", label: "音量 +") {
                     hapticTrigger += 1
-                    let newVal = min(18.0, ((isDraggingVolume || isPendingVolume) ? dragVolumeValue : vm.avr.volumeDB) + 0.5)
+                    let newVal = min(vm.capabilities.volumeRangeDB.upperBound, ((isDraggingVolume || isPendingVolume) ? dragVolumeValue : vm.avr.volumeDB) + 0.5)
                     dragVolumeValue = newVal
                     isPendingVolume = true
                     lastInteractionTime = Date()
@@ -228,7 +228,8 @@ struct DashboardView: View {
         return VolumeDialControl(
             value: displayDB,
             isMuted: vm.avr.isMuted,
-            diameter: 184
+            diameter: 184,
+            range: vm.capabilities.volumeRangeDB
         ) { newValue, editing in
             if editing && !isDraggingVolume {
                 isPendingVolume = false
@@ -262,24 +263,42 @@ struct DashboardView: View {
             .padding(.horizontal, 20)
             .padding(.top, 14)
 
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 10) {
-                    Spacer(minLength: 10)
-                    ForEach(vm.inputNames.visibleSources) { source in
-                        InputChip(
-                            source: source,
-                            name: source.name(using: vm.inputNames),
-                            isSelected: vm.avr.input == source,
-                            isEnabled: vm.avr.isConnected && vm.avr.isPoweredOn
-                        ) {
-                            hapticTrigger += 1
-                            vm.setInput(source)
+            ScrollViewReader { proxy in
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 10) {
+                        Spacer(minLength: 10)
+                        ForEach(vm.visibleInputs) { source in
+                            InputChip(
+                                source: source,
+                                name: source.name(using: vm.inputNames),
+                                isSelected: vm.avr.inputID == source.id,
+                                isEnabled: vm.avr.isConnected && vm.avr.isPoweredOn
+                            ) {
+                                hapticTrigger += 1
+                                vm.setInput(source)
+                            }
+                            .id(source.id)
                         }
+                        Spacer(minLength: 10)
                     }
-                    Spacer(minLength: 10)
+                }
+                // 選択中のボタンが画面の外にあると分かりにくいので、見える位置までスクロールする
+                // （本体やリモコンで切り替えた場合も含む）
+                .onAppear { proxy.scrollTo(vm.avr.inputID, anchor: .center) }
+                .onChange(of: vm.avr.inputID) { _, id in
+                    withAnimation(.easeInOut(duration: 0.3)) { proxy.scrollTo(id, anchor: .center) }
                 }
             }
             .padding(.bottom, 14)
+        }
+    }
+
+    private func scrollToSelectedSoundMode(_ proxy: ScrollViewProxy, animated: Bool) {
+        guard let id = vm.capabilities.soundModes.first(where: { vm.isSoundModeSelected($0) })?.id else { return }
+        if animated {
+            withAnimation(.easeInOut(duration: 0.3)) { proxy.scrollTo(id, anchor: .center) }
+        } else {
+            proxy.scrollTo(id, anchor: .center)
         }
     }
 
@@ -294,21 +313,27 @@ struct DashboardView: View {
                 .padding(.horizontal, 20)
                 .padding(.top, 14)
 
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 10) {
-                    Spacer(minLength: 10)
-                    ForEach(SurroundMode.selectableModes) { mode in
-                        SurroundChip(
-                            mode: mode,
-                            isSelected: vm.avr.surroundMode == mode,
-                            isEnabled: vm.avr.isConnected && vm.avr.isPoweredOn
-                        ) {
-                            hapticTrigger += 1
-                            vm.setSurroundMode(mode)
+            ScrollViewReader { proxy in
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 10) {
+                        Spacer(minLength: 10)
+                        ForEach(vm.capabilities.soundModes) { mode in
+                            SurroundChip(
+                                mode: mode,
+                                isSelected: vm.isSoundModeSelected(mode),
+                                isEnabled: vm.avr.isConnected && vm.avr.isPoweredOn
+                            ) {
+                                hapticTrigger += 1
+                                vm.setSoundMode(mode)
+                            }
+                            .id(mode.id)
                         }
+                        Spacer(minLength: 10)
                     }
-                    Spacer(minLength: 10)
                 }
+                // 選択中のボタンが見える位置までスクロールする（入力ソースと同じ）
+                .onAppear { scrollToSelectedSoundMode(proxy, animated: false) }
+                .onChange(of: vm.avr.soundModeID) { _, _ in scrollToSelectedSoundMode(proxy, animated: true) }
             }
             .padding(.bottom, 20)
         }
@@ -349,10 +374,13 @@ private struct VolumeDisplay: View {
             .monospacedDigit()
             .contentTransition(.numericText())
             .animation(.spring(duration: 0.15), value: displayDB)
-        Text("Vol  \(String(format: "%.1f", displayDB + 80.0))")
-            .font(.callout.weight(.medium))
-            .foregroundStyle(.tertiary)
-            .monospacedDigit()
+        // Denon 本体と同じ目盛り（dB + 80）。ほかのメーカーでは出さない
+        if vm.capabilities.showsNativeVolumeScale {
+            Text("Vol  \(String(format: "%.1f", displayDB + 80.0))")
+                .font(.callout.weight(.medium))
+                .foregroundStyle(.tertiary)
+                .monospacedDigit()
+        }
     }
 }
 
@@ -384,7 +412,7 @@ private struct VolumeSlider: View {
                     lastTouch = Date() // 操作時刻を更新
                 }
             ),
-            in: -80...18,
+            in: vm.capabilities.volumeRangeDB,
             step: 0.5,
             onEditingChanged: { editing in
                 if editing {
@@ -426,7 +454,7 @@ private struct VolumeStepButton: View {
 // MARK: - Input Chip
 
 private struct InputChip: View {
-    let source: InputSource
+    let source: ReceiverInput
     let name: String
     let isSelected: Bool
     let isEnabled: Bool
@@ -457,7 +485,7 @@ private struct InputChip: View {
 // MARK: - Surround Chip
 
 private struct SurroundChip: View {
-    let mode: SurroundMode
+    let mode: SoundModeOption
     let isSelected: Bool
     let isEnabled: Bool
     let action: () -> Void

@@ -71,10 +71,10 @@ struct TunerView: View {
 
                 Spacer()
 
-                if vm.avr.isConnected && vm.avr.isPoweredOn && vm.avr.input != .tuner {
+                if vm.avr.isConnected && vm.avr.isPoweredOn && !vm.isTunerInputSelected {
                     Button {
                         hapticTrigger += 1
-                        vm.setInput(.tuner)
+                        vm.selectTunerInput()
                     } label: {
                         VStack(spacing: 4) {
                             Image(systemName: "exclamationmark.triangle.fill")
@@ -106,7 +106,7 @@ struct TunerView: View {
                         .foregroundStyle(.secondary)
 
                     HStack(spacing: 12) {
-                        ForEach([TunerBand.fm, TunerBand.am], id: \.self) { band in
+                        ForEach(vm.capabilities.tunerBands, id: \.self) { band in
                             TunerBandButton(
                                 band: band,
                                 isSelected: vm.avr.tunerBand == band,
@@ -235,7 +235,8 @@ struct TunerView: View {
 
                 Divider()
                 
-                // 除外周波数設定（常時表示）
+                // 除外周波数設定。空きスロットも周波数を返す Denon のためのもの（Yamaha は空きを返さないので出さない）
+                if vm.capabilities.tunerPresetsNeedScan {
                 HStack(spacing: 8) {
                     Text("除外周波数:", bundle: bundle)
                         .font(.caption)
@@ -251,11 +252,12 @@ struct TunerView: View {
                         .foregroundStyle(.secondary)
                 }
                 .onAppear { skipFreqText = vm.tunerSkipFrequencies }
+                }
 
                 if vm.isScanningTuner {
                     VStack(alignment: .leading, spacing: 6) {
-                        ProgressView(value: Double(vm.tunerScanProgress), total: 56)
-                        Text("スロット \(vm.tunerScanProgress) / 56 を確認中...", bundle: bundle)
+                        ProgressView(value: Double(vm.tunerScanProgress), total: Double(max(vm.maxTunerSlots, 1)))
+                        Text("スロット \(vm.tunerScanProgress) / \(vm.maxTunerSlots) を確認中...", bundle: bundle)
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
@@ -380,7 +382,7 @@ struct TunerView: View {
     }
 
     private var isTunerMode: Bool {
-        vm.avr.input == .tuner
+        vm.isTunerInputSelected
     }
 }
 

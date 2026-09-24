@@ -11,11 +11,12 @@ struct DiscoveredDevice: Identifiable, Sendable {
     let host: String    // IPv4 アドレス
     let port: Int       // 接続用ポート (8080, 10101 等)
     let macAddress: String  // DHCP で IP が変わっても同一機体か判定するための安定 ID（取得できない場合は空）
+    var brand: ReceiverBrand = .denon
 }
 
 // MARK: - MDNSDiscovery
 
-/// Denon / HEOS デバイスを LAN 上で検出する。
+/// AV レシーバー（Denon / Marantz / Yamaha）を LAN 上で検出する。
 /// iOSの実機で動作させるため、BSD ソケットではなく NetServiceBrowser (Bonjour) を使用します。
 @Observable
 @MainActor
@@ -69,20 +70,28 @@ enum MDNSScanner {
         log.append(contentsOf: innerLog)
         log.append("Bonjour resolved devices: \(pairs.count)")
         
-        // HTTP で Denon デバイスか確認してデバイス情報を取得
+        // HTTP で Denon / Marantz か、Yamaha（YXC）かを確認してデバイス情報を取得
         var seen = Set<String>()
         var devices: [DiscoveredDevice] = []
         await withTaskGroup(of: (DiscoveredDevice?, String).self) { group in
             for (ip, hint, port) in pairs where !ip.isEmpty && !seen.contains(ip) {
                 seen.insert(ip)
-                group.addTask { await verifyDenon(ip: ip, nameHint: hint, port: port) }
+                group.addTask {
+                    let (denon, denonLog) = await verifyDenon(ip: ip, nameHint: hint, port: port)
+                    if let denon { return (denon, denonLog) }
+                    guard let yamaha = await YamahaClient.identify(host: ip) else { return (nil, denonLog + " / not Yamaha") }
+                    let name = yamaha.networkName.isEmpty ? yamaha.modelName : yamaha.networkName
+                    let device = DiscoveredDevice(id: ip, name: name.isEmpty ? ip : name, host: ip, port: YamahaClient.port,
+                                                  macAddress: yamaha.macAddress, brand: .yamaha)
+                    return (device, "Verifying \(ip)... Yamaha OK")
+                }
             }
             for await (d, verifyLog) in group {
                 log.append(verifyLog)
                 if let d { devices.append(d) }
             }
         }
-        log.append("Verified Denon AVR devices: \(devices.count)")
+        log.append("Verified AVR devices: \(devices.count)")
         return (devices.sorted { $0.name < $1.name }, log)
     }
 
@@ -175,11 +184,15 @@ enum MDNSScanner {
         }
 
         guard let text = String(data: responseData, encoding: .utf8) ?? String(data: responseData, encoding: .isoLatin1),
-              text.contains("200 OK") else { return (nil, "No XML API") }
+              text.contains("200 OK"),
+              // どんなパスにも 200 を返す機器（ルーターの管理画面など）を AVR と取り違えないよう、中身も確かめる
+              text.range(of: "ModelName", options: .caseInsensitive) != nil
+        else { return (nil, "No XML API") }
 
         let name = xmlValue(text, "FriendlyName") ?? xmlValue(text, "ModelName") ?? nameHint
         let mac = xmlValue(text, "MacAddress").map { DeviceInfo.normalizedMac($0) } ?? ""
-        return (DiscoveredDevice(id: ip, name: name.isEmpty ? ip : name, host: ip, port: port, macAddress: mac), "OK")
+        let brand: ReceiverBrand = xmlValue(text, "BrandCode") == "1" ? .marantz : .denon
+        return (DiscoveredDevice(id: ip, name: name.isEmpty ? ip : name, host: ip, port: port, macAddress: mac, brand: brand), "OK")
     }
 
     nonisolated private static func xmlValue(_ text: String, _ tag: String) -> String? {
@@ -230,7 +243,9 @@ enum MDNSScanner {
 
 @MainActor
 private class NWDiscoveryScanner: NSObject {
-    private let types = ["_denon-heos._tcp", "_heos-audio._tcp", "_http._tcp"]
+    // Yamaha の AV レシーバーは Denon 系のサービスを出さないので、AirPlay の告知からも拾う
+    // （見つかった IP はすべて HTTP で AV レシーバーか確かめるので、Apple TV などは除外される）
+    private let types = ["_denon-heos._tcp", "_heos-audio._tcp", "_http._tcp", "_airplay._tcp", "_raop._tcp"]
     private var browsers: [NWBrowser] = []
     private var resolvedPairs: [String: (name: String, port: Int)] = [:] // IP -> (Name, Port)
     private var scanLog: [String] = []

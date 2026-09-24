@@ -126,6 +126,10 @@ actor AVRHTTPClient {
             info.macAddress = DeviceInfo.normalizedMac(mac)
         }
 
+        // ファームウェアの版（動作報告に添える。取れない機種もある）
+        if let v = simpleXML(in: xml, tag: "UpgradeVersion"), !v.isEmpty { info.firmwareVersion = v }
+        if let v = simpleXML(in: xml, tag: "CommApiVers"), !v.isEmpty { info.apiVersion = v }
+
         // Zone 3 は XML に明示されないため、Zone3 ステータス XML が返るか試す
         // 同期的に確認するため Task.detached を使わず、フラグは後で更新
         return info

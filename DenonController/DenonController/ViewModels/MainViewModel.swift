@@ -59,9 +59,21 @@ final class MainViewModel {
     var errorMessage: String?
     var lastConnectedHost: String = ""
 
+    /// 接続中の機器でできること（画面の出し分けに使う）。未接続のあいだは Denon のまま
+    private(set) var capabilities: ReceiverCapabilities = .denon
+
+    /// この接続で実際に成功した操作（動作報告の画面の初期値に使う）
+    private(set) var sessionSucceededFeatures: Set<CompatibilityFeature> = []
+
+    /// 直近のユーザー操作の時刻。お願い・案内を出す「区切り」の判定に使う（設計: in-app-prompts-design.md 2.1）
+    private(set) var lastUserOperationAt: Date?
+
     // MARK: - Private
     private let client = AVRHTTPClient()
     private let telnet = TelnetClient()
+    private let yamaha = YamahaClient()
+    /// 今の接続が Yamaha（YXC）か
+    private var usingYamaha = false
     private var updateTask: Task<Void, Never>?
     private var telnetListenTask: Task<Void, Never>?
     
@@ -100,7 +112,9 @@ final class MainViewModel {
         let savedHost = UserDefaults.standard.string(forKey: "defaultHost") ?? ""
         if !savedHost.isEmpty {
             await connect(host: savedHost)
-            if connectionStatus.isConnected { return }
+            // 起動直後は復帰時の自動復旧（recoverConnection）も同じアドレスへ接続しにいく。
+            // こちらの接続が後から始まった接続に置き換えられた場合も含め、もう接続済みか接続中なら検索はしない
+            if connectionStatus.isConnected || connectionStatus == .connecting { return }
         }
 
         connectionStatus = .connecting
@@ -111,6 +125,8 @@ final class MainViewModel {
         let (found, _) = await MDNSScanner.scan()
         let savedMac = DeviceInfo.normalizedMac(UserDefaults.standard.string(forKey: "defaultMacAddress") ?? "")
         let macMatch = savedMac.isEmpty ? nil : found.first(where: { $0.macAddress == savedMac })
+        // 検索している間に別の経路で接続できていたら、その状態を上書きしない
+        if connectionStatus.isConnected { return }
         guard let device = macMatch ?? (found.count == 1 ? found.first : nil) else {
             DiagnosticsLog.shared.record("autoConnect: fallback scan found \(found.count) AVR(s), none selected")
             connectionStatus = .disconnected
@@ -119,10 +135,11 @@ final class MainViewModel {
         }
 
         connectingDetail = ""
-        await connect(host: device.host, port: device.port)
+        await connect(host: device.host, port: device.port, brand: device.brand)
         if connectionStatus.isConnected {
             UserDefaults.standard.set(device.host, forKey: "defaultHost")
             UserDefaults.standard.set(device.port, forKey: "defaultPort")
+            recordFeatureSuccess(.discovery)
         }
     }
 
@@ -130,7 +147,7 @@ final class MainViewModel {
     /// 見つかった場合は `defaultHost` / `defaultPort` を新しい値に更新して返す。
     /// 同じアドレスで見つかった場合も返す（復帰直後に Wi-Fi が戻る前の失敗だった可能性があるため）。
     /// 30秒に1回・多重実行なしに制限し、AVR が本当にオフラインのときに無限ループしないようにする。
-    private func attemptAutoReheal(failedHost: String) async -> (host: String, port: Int)? {
+    private func attemptAutoReheal(failedHost: String) async -> (host: String, port: Int, brand: ReceiverBrand)? {
         guard !isRehealing else { return nil }
         let savedMac = DeviceInfo.normalizedMac(UserDefaults.standard.string(forKey: "defaultMacAddress") ?? "")
         guard !savedMac.isEmpty else {
@@ -161,7 +178,7 @@ final class MainViewModel {
         DiagnosticsLog.shared.record(moved ? "reheal: found at a new address" : "reheal: found at the same address")
         UserDefaults.standard.set(match.host, forKey: "defaultHost")
         UserDefaults.standard.set(match.port, forKey: "defaultPort")
-        return (match.host, match.port)
+        return (match.host, match.port, match.brand)
     }
 
     /// reheal で見つかったアドレスへ 1 回だけ再接続する（再接続時は reheal しないのでループしない）。
@@ -171,141 +188,78 @@ final class MainViewModel {
     private func rehealAndReconnect(failedHost: String) async -> Bool {
         guard let match = await attemptAutoReheal(failedHost: failedHost) else { return false }
         let healLog = connectionLog
-        await connect(host: match.host, port: match.port, allowReheal: false)
+        await connect(host: match.host, port: match.port, brand: match.brand, allowReheal: false)
         connectionLog = healLog + connectionLog   // 再接続でリセットされる reheal のログを残す
         guard connectionStatus.isConnected else { return false }
         if match.host != failedHost {
             showNotice("AVR のアドレスが変わったため自動で再接続しました。")
+            recordFeatureSuccess(.reconnect)
         }
         return true
     }
 
-    func connect(host: String, port: Int? = nil, allowReheal: Bool = true) async {
+    /// - Parameter brand: 検出で分かっていればメーカー。nil なら、前回このアドレスにつないだときのメーカーを使い、
+    ///   それも分からなければ Denon として試してから Yamaha かを確かめる（IP アドレスを手入力した場合など）
+    func connect(host: String, port: Int? = nil, brand: ReceiverBrand? = nil, allowReheal: Bool = true) async {
         let connectionID = UUID()
         currentConnectionID = connectionID
-        
+        await telnet.activate(connectionID)
+
         print("[DenonLog] [\(connectionID.uuidString.prefix(4))] connect(host: \(host), port: \(port ?? 0)) called")
         connectionLog = ["--- Connection Started ---", "Target: \(host):\(port ?? 0)"]
-        
+
         // 既存の接続があれば確実に終了するまで待つ
         print("[DenonLog] Step 1: Disconnecting previous sessions...")
         connectionLog.append("Step 1: Disconnecting previous sessions...")
         await disconnect()
         print("[DenonLog] Disconnect complete")
-        
+
         let savedPort = UserDefaults.standard.integer(forKey: "defaultPort")
         let targetPort = port ?? (savedPort > 0 ? savedPort : 8080)
-        
+
         connectionStatus = .connecting
         connectingDetail = ""
         errorMessage = nil
+        sessionSucceededFeatures = []
         DiagnosticsLog.shared.record("connect: start")
 
+        let knownBrand = brand ?? Self.savedBrand(forHost: host)
         do {
-            connectionLog.append("Step 2: Connecting via HTTP to port \(targetPort)...")
-            let (info, updates) = try await client.connect(host: host, port: targetPort) { @Sendable _ in
-                // 進捗更新を一旦無効化して初期化エラーを確実に消す
-            }
-            connectionLog.append("Step 3: Probing additional zones...")
-            var finalInfo = info
-            finalInfo.hasZone3 = await client.probeZone3()
-
-            connectionLog.append("Step 4: Finalizing app state...")
-            connectingDetail = ""
-            connectionStatus = .connected
-            avr.isConnected = true
-            avr.deviceInfo  = finalInfo
-            lastConnectedHost = host
-            ReviewRequestManager.recordSuccess()
-            DiagnosticsLog.shared.record("connect: success (\(finalInfo.modelName))")
-
-            // MAC アドレスを保存しておく（次回起動時に IP が変わっていても同一機体として再検出できるように）
-            if !finalInfo.macAddress.isEmpty {
-                UserDefaults.standard.set(finalInfo.macAddress, forKey: "defaultMacAddress")
-            } else {
-                DiagnosticsLog.shared.record("connect: AVR reported no MAC address; auto-reheal unavailable")
-            }
-
-            // HTTP ポーリング
-            connectionLog.append("Step 5: Starting status update loop...")
-            updateTask = Task { [weak self] in
-                guard let self else { return }
-                print("[DenonLog] [\(connectionID.uuidString.prefix(4))] Update loop started")
-                for await snapshot in updates {
-                    // このタスクがまだ有効（最新）かチェック
-                    if self.currentConnectionID != connectionID { 
-                        print("[DenonLog] [\(connectionID.uuidString.prefix(4))] Update loop aborted (ID mismatch)")
-                        break 
-                    }
-                    print("[DenonLog] [\(connectionID.uuidString.prefix(4))] Received snapshot: Vol=\(snapshot.volumeDB)")
-                    
-                    // 同期ガードをチェックして、操作直後のプロパティは上書きしない
-                    if !self.shouldIgnoreSync(for: "power")  { self.avr.isPoweredOn = snapshot.isPoweredOn }
-                    if !self.shouldIgnoreSync(for: "volume") { self.avr.volumeDB = snapshot.volumeDB }
-                    if !self.shouldIgnoreSync(for: "mute")   { self.avr.isMuted = snapshot.isMuted }
-                    
-                    if !self.shouldIgnoreSync(for: "input") {
-                        let code: String = snapshot.inputCode
-                        if let src: InputSource = InputSource(rawValue: code) {
-                            let targetAVR: AVRState = self.avr
-                            targetAVR.input = src
-                        }
-                    }
-                    
-                    // チューナー情報は同期ガード対象外（反映に時間がかかるため）
-                    if snapshot.tunerDataFetched {
-                        if let band = TunerBand(rawValue: snapshot.tunerBand) {
-                            self.avr.tunerBand = band
-                        }
-                        self.avr.tunerFrequency = snapshot.tunerFrequency
-                        self.avr.tunerPreset = snapshot.tunerPreset
-                        self.avr.tunerStationName = snapshot.tunerStationName
-                    }
-                    
-                    // Zone2, 3 も同様に（必要に応じてガードを広げることも可能）
-                    self.avr.zone2Power = snapshot.zone2Power
-                    self.avr.zone2VolumeDB = snapshot.zone2VolumeDB
-                    self.avr.zone2Mute = snapshot.zone2Muted
-                    if let src2 = InputSource(rawCode: snapshot.zone2InputCode) {
-                        self.avr.zone2Input = src2
-                    }
-                }
-                print("[DenonLog] [\(connectionID.uuidString.prefix(4))] Update loop finished (Stream ended)")
-                self.connectionLog.append("!!! Update loop ended (ID: \(connectionID.uuidString.prefix(4)))")
-                if self.currentConnectionID == connectionID {
-                    self.handleDisconnect()
-                    // キャンセルではなくストリームが閉じた = ポーリングが連続で失敗した。
-                    // IP が変わった可能性があるので自動復旧に回す（ユーザー操作による切断では走らない）。
-                    // updateTask は再接続時にキャンセルされるため、復旧は別タスクで行う。
-                    if !Task.isCancelled {
-                        DiagnosticsLog.shared.record("poll: AVR unreachable, recovering")
-                        Task { [weak self] in await self?.recoverConnection(.poll) }
-                    }
-                }
-            }
-
-            // Telnet 接続
-            connectionLog.append("Step 6: Connecting to Telnet (port 23)...")
-            Task { [weak self] in
-                guard let self else { return }
+            // 覚えているメーカーの方式で先に試し、応答がなければもう一方も試す
+            // （同じアドレスの機器を別メーカーの AV レシーバーに買い替えた場合にもつながるように）
+            if knownBrand == .yamaha {
                 do {
-                    try await telnet.connect(host: host, port: 23)
-                    self.connectionLog.append("  -> Telnet connected successfully")
-                    startTelnetListening()
+                    try await connectYamaha(host: host, connectionID: connectionID)
                 } catch {
-                    self.connectionLog.append("  -> Telnet failed (optional): \(error.localizedDescription)")
+                    guard currentConnectionID == connectionID, brand == nil else { throw error }
+                    connectionLog.append("Not a Yamaha receiver; trying Denon/Marantz...")
+                    try await connectDenon(host: host, port: targetPort == YamahaClient.port ? 8080 : targetPort,
+                                           connectionID: connectionID)
+                }
+            } else {
+                do {
+                    try await connectDenon(host: host, port: targetPort, connectionID: connectionID)
+                } catch {
+                    // Denon として応答しなかった。検出でメーカーが分かっている場合以外は Yamaha かを確かめる
+                    guard currentConnectionID == connectionID, brand == nil,
+                          await YamahaClient.identify(host: host) != nil else { throw error }
+                    connectionLog.append("Not a Denon/Marantz receiver; trying Yamaha...")
+                    try await connectYamaha(host: host, connectionID: connectionID)
                 }
             }
             connectionLog.append("Success: Connection sequence complete.")
             print("[DenonLog] Success: Fully connected to \(host)")
 
         } catch {
+            // 待っている間に新しい接続が始まっていたら、古い接続の失敗で画面の状態を上書きしない
+            guard currentConnectionID == connectionID else { return }
             print("[DenonLog] Fatal Error: \(error.localizedDescription)")
             connectionLog.append("Fatal Error: \(error.localizedDescription)")
             connectingDetail = ""
             errorMessage = error.localizedDescription
             connectionStatus = .error(error.localizedDescription)
             avr.isConnected = false
+            UsageTracker.recordFailure()
             // record() redacts IPs/MACs as a backstop, but error.localizedDescription
             // can otherwise echo the host we just tried to reach.
             DiagnosticsLog.shared.record("connect: failed - \(error.localizedDescription)")
@@ -318,6 +272,195 @@ final class MainViewModel {
         }
     }
 
+    /// Denon / Marantz（/goform と Telnet）で接続する
+    private func connectDenon(host: String, port targetPort: Int, connectionID: UUID) async throws {
+        connectionLog.append("Step 2: Connecting via HTTP to port \(targetPort)...")
+        let (info, updates) = try await client.connect(host: host, port: targetPort) { @Sendable _ in
+            // 進捗更新を一旦無効化して初期化エラーを確実に消す
+        }
+        connectionLog.append("Step 3: Probing additional zones...")
+        var finalInfo = info
+        finalInfo.hasZone3 = await client.probeZone3()
+
+        var caps = ReceiverCapabilities.denon
+        caps.brand = finalInfo.brand
+        caps.hasZone2 = finalInfo.hasZone2
+        caps.hasZone3 = finalInfo.hasZone3
+        usingYamaha = false
+        loadTunerPresets(for: caps.brand)
+        // サラウンドモードは HTTP では取れない。Telnet の問い合わせの答えが来るまでは「分からない」にして、
+        // どのボタンも選ばない（既定の Auto を選んだままにすると、本体と違うモードが選ばれて見える）
+        avr.soundModeID = ""
+        denonModeIsSpecific = false
+        connectionLog.append("Step 4: Finalizing app state...")
+        didConnect(host: host, info: finalInfo, capabilities: caps)
+
+        // HTTP ポーリング
+        connectionLog.append("Step 5: Starting status update loop...")
+        updateTask = Task { [weak self] in
+            guard let self else { return }
+            print("[DenonLog] [\(connectionID.uuidString.prefix(4))] Update loop started")
+            for await snapshot in updates {
+                // このタスクがまだ有効（最新）かチェック
+                if self.currentConnectionID != connectionID {
+                    print("[DenonLog] [\(connectionID.uuidString.prefix(4))] Update loop aborted (ID mismatch)")
+                    break
+                }
+                print("[DenonLog] [\(connectionID.uuidString.prefix(4))] Received snapshot: Vol=\(snapshot.volumeDB)")
+
+                // 同期ガードをチェックして、操作直後のプロパティは上書きしない
+                if !self.shouldIgnoreSync(for: "power")  { self.avr.isPoweredOn = snapshot.isPoweredOn }
+                if !self.shouldIgnoreSync(for: "volume") { self.avr.volumeDB = snapshot.volumeDB }
+                if !self.shouldIgnoreSync(for: "mute")   { self.avr.isMuted = snapshot.isMuted }
+
+                if !self.shouldIgnoreSync(for: "input") {
+                    let code: String = snapshot.inputCode
+                    if InputSource(rawValue: code) != nil {
+                        self.avr.inputID = code
+                    }
+                }
+
+                // チューナー情報は同期ガード対象外（反映に時間がかかるため）
+                if snapshot.tunerDataFetched {
+                    if let band = TunerBand(rawValue: snapshot.tunerBand) {
+                        self.avr.tunerBand = band
+                    }
+                    self.avr.tunerFrequency = snapshot.tunerFrequency
+                    self.avr.tunerPreset = snapshot.tunerPreset
+                    self.avr.tunerStationName = snapshot.tunerStationName
+                }
+
+                // Zone2, 3 も同様に（必要に応じてガードを広げることも可能）
+                self.avr.zone2Power = snapshot.zone2Power
+                self.avr.zone2VolumeDB = snapshot.zone2VolumeDB
+                self.avr.zone2Mute = snapshot.zone2Muted
+                if InputSource(rawCode: snapshot.zone2InputCode) != nil {
+                    self.avr.zone2InputID = snapshot.zone2InputCode
+                }
+            }
+            print("[DenonLog] [\(connectionID.uuidString.prefix(4))] Update loop finished (Stream ended)")
+            self.connectionLog.append("!!! Update loop ended (ID: \(connectionID.uuidString.prefix(4)))")
+            self.streamEnded(connectionID: connectionID)
+        }
+
+        // Telnet 接続
+        connectionLog.append("Step 6: Connecting to Telnet (port 23)...")
+        Task { [weak self] in
+            guard let self else { return }
+            do {
+                let lines = try await telnet.connect(host: host, port: 23, token: connectionID)
+                // 待っている間に別の接続が始まっていたら、この Telnet の受信は使わない
+                guard self.currentConnectionID == connectionID else { return }
+                self.connectionLog.append("  -> Telnet connected successfully")
+                print("[DenonLog] Telnet connected")
+                DiagnosticsLog.shared.record("telnet: connected")
+                startTelnetListening(lines)
+                // 今のサラウンドモードを問い合わせる（変わったときにしか通知されないため）。
+                // MS? で方式名、SSSMG ? でモードのグループ（Movie / Music / Game / Pure）が返る
+                try? await telnet.send("MS?")
+                try? await telnet.send("SSSMG ?")
+            } catch is CancellationError {
+                print("[DenonLog] Telnet connect superseded by a newer connection")
+            } catch {
+                print("[DenonLog] Telnet failed (optional): \(error.localizedDescription)")
+                self.connectionLog.append("  -> Telnet failed (optional): \(error.localizedDescription)")
+            }
+        }
+    }
+
+    /// Yamaha（YXC）で接続する
+    private func connectYamaha(host: String, connectionID: UUID) async throws {
+        connectionLog.append("Step 2: Connecting to Yamaha Extended Control (port \(YamahaClient.port))...")
+        let (info, caps, _, updates) = try await yamaha.connect(host: host)
+        // 待っている間に新しい接続が始まっていたら、この接続の結果は使わない
+        guard currentConnectionID == connectionID else { throw CancellationError() }
+        usingYamaha = true
+        loadTunerPresets(for: .yamaha)
+        connectionLog.append("Step 3: Finalizing app state...")
+        didConnect(host: host, info: info, capabilities: caps)
+
+        connectionLog.append("Step 4: Starting status update loop...")
+        updateTask = Task { [weak self] in
+            guard let self else { return }
+            for await snap in updates {
+                if self.currentConnectionID != connectionID { break }
+                if !self.shouldIgnoreSync(for: "power")  { self.avr.isPoweredOn = snap.isPoweredOn }
+                if !self.shouldIgnoreSync(for: "volume") { self.avr.volumeDB = snap.volumeDB }
+                if !self.shouldIgnoreSync(for: "mute")   { self.avr.isMuted = snap.isMuted }
+                if !self.shouldIgnoreSync(for: "input"), !snap.input.isEmpty { self.avr.inputID = snap.input }
+                if !self.shouldIgnoreSync(for: "surround") {
+                    let mode = snap.pureDirect ? YamahaCatalog.pureDirectID : snap.soundProgram
+                    if !mode.isEmpty { self.avr.soundModeID = mode }
+                }
+                if snap.tunerFetched {
+                    self.avr.tunerBand = snap.tunerBand
+                    if !snap.tunerFrequency.isEmpty { self.avr.tunerFrequency = snap.tunerFrequency }
+                    self.avr.tunerPreset = snap.tunerPreset
+                    self.avr.tunerStationName = ""
+                }
+                if snap.hasZone2 {
+                    self.avr.zone2Power = snap.zone2Power
+                    self.avr.zone2VolumeDB = snap.zone2VolumeDB
+                    self.avr.zone2Mute = snap.zone2Muted
+                    if !snap.zone2Input.isEmpty { self.avr.zone2InputID = snap.zone2Input }
+                }
+            }
+            self.connectionLog.append("!!! Update loop ended (ID: \(connectionID.uuidString.prefix(4)))")
+            self.streamEnded(connectionID: connectionID)
+        }
+    }
+
+    /// 接続できたときの共通の後処理
+    private func didConnect(host: String, info: DeviceInfo, capabilities caps: ReceiverCapabilities) {
+        capabilities = caps
+        connectingDetail = ""
+        connectionStatus = .connected
+        avr.isConnected = true
+        avr.deviceInfo  = info
+        lastConnectedHost = host
+        Self.saveBrand(caps.brand, forHost: host)
+        UsageTracker.recordSuccessfulConnection(brand: caps.brand, model: info.modelName)
+        Task { await CompatibilityDirectory.shared.refreshIfNeeded() }
+        DiagnosticsLog.shared.record("connect: success (\(caps.brand.rawValue) \(info.modelName))")
+
+        // MAC アドレスを保存しておく（次回起動時に IP が変わっていても同一機体として再検出できるように）
+        if !info.macAddress.isEmpty {
+            UserDefaults.standard.set(info.macAddress, forKey: "defaultMacAddress")
+        } else {
+            DiagnosticsLog.shared.record("connect: AVR reported no MAC address; auto-reheal unavailable")
+        }
+    }
+
+    /// 状態の取得が止まったとき（ポーリングが連続で失敗した）の共通処理
+    private func streamEnded(connectionID: UUID) {
+        guard currentConnectionID == connectionID else { return }
+        handleDisconnect()
+        // キャンセルではなくストリームが閉じた = ポーリングが連続で失敗した。
+        // IP が変わった可能性があるので自動復旧に回す（ユーザー操作による切断では走らない）。
+        // updateTask は再接続時にキャンセルされるため、復旧は別タスクで行う。
+        if !Task.isCancelled {
+            UsageTracker.recordFailure()
+            DiagnosticsLog.shared.record("poll: AVR unreachable, recovering")
+            Task { [weak self] in await self?.recoverConnection(.poll) }
+        }
+    }
+
+    // MARK: - Brand memory
+
+    /// アドレスごとに、前回つながったメーカーを覚えておく（次回は最初からそのメーカーの方式で接続する）
+    private static let brandByHostKey = "receiverBrandByHost"
+
+    private static func savedBrand(forHost host: String) -> ReceiverBrand? {
+        let map = UserDefaults.standard.dictionary(forKey: brandByHostKey) as? [String: String] ?? [:]
+        return map[host].flatMap(ReceiverBrand.init(rawValue:))
+    }
+
+    private static func saveBrand(_ brand: ReceiverBrand, forHost host: String) {
+        var map = UserDefaults.standard.dictionary(forKey: brandByHostKey) as? [String: String] ?? [:]
+        map[host] = brand.rawValue
+        UserDefaults.standard.set(map, forKey: brandByHostKey)
+    }
+
     func disconnect() async {
         updateTask?.cancel()
         updateTask = nil
@@ -328,6 +471,7 @@ final class MainViewModel {
         await withTaskGroup(of: Void.self) { group in
             group.addTask { await self.client.disconnect() }
             group.addTask { await self.telnet.disconnect() }
+            group.addTask { await self.yamaha.disconnect() }
             
             // 最大1秒待って次へ進む
             let timeoutTask = Task { try? await Task.sleep(for: .seconds(1)) }
@@ -354,24 +498,83 @@ final class MainViewModel {
 
     // MARK: - Telnet Listener
 
-    private func startTelnetListening() {
+    private func startTelnetListening(_ lines: AsyncStream<String>) {
         telnetListenTask?.cancel()
         telnetListenTask = Task { [weak self] in
-            guard let self else { return }
-            for await line in telnet.updates {
+            for await line in lines {
+                guard let self else { return }
+                print("[DenonLog] Telnet < \(line)")
                 parseTelnetLine(line)
             }
+            print("[DenonLog] Telnet stream ended")
         }
     }
 
     /// Denon Telnet プロトコルのレスポンス行を解析して状態を更新する。
     private func parseTelnetLine(_ line: String) {
-        // MS... — サラウンドモード変更通知（AVR 側での変更も追跡できる）
+        // 本体や付属リモコンでの操作も Telnet で通知される。HTTP のポーリングは操作がないと間隔が広がる
+        // （最大 10 分）ので、ここで即座に反映する。アプリで操作した直後（同期ガード中）は上書きしない
+        // MV45 / MV455 — メイン音量（"MVMAX 98" は最大音量の設定なので無視する）
+        if line.hasPrefix("MV"), !line.hasPrefix("MVMAX") {
+            let digits = String(line.dropFirst(2))
+            if digits.allSatisfy(\.isNumber), let raw = Double(digits), !shouldIgnoreSync(for: "volume") {
+                let unit = digits.count == 3 ? raw / 10 : raw
+                avr.volumeDB = unit - 80
+            }
+            return
+        }
+        if line == "MUON" || line == "MUOFF" {
+            if !shouldIgnoreSync(for: "mute") { avr.isMuted = line == "MUON" }
+            return
+        }
+        if line == "PWON" || line == "PWSTANDBY" {
+            if !shouldIgnoreSync(for: "power") { avr.isPoweredOn = line == "PWON" }
+            return
+        }
+        // SIHDMI1 など — 入力
+        if line.hasPrefix("SI") {
+            let code = String(line.dropFirst(2))
+            if InputSource(rawValue: code) != nil, !shouldIgnoreSync(for: "input") { avr.inputID = code }
+            return
+        }
+
+        // MS... — サラウンドモード変更通知（AVR 側での変更も追跡できる）。
+        // Movie / Music / Game を選ぶと "MSDOLBY ATMOS" のように実際の方式名が来るので、その場合は
+        // 続けて届くモードグループの通知（SSSMG）でボタンを決める
         if line.hasPrefix("MS") {
             let code = String(line.dropFirst(2))
-            if let mode = SurroundMode(rawCode: code) {
+            guard !shouldIgnoreSync(for: "surround") else { return }
+            if let mode = SurroundMode(rawValue: code) {
                 avr.surroundMode = mode
+                denonModeIsSpecific = true
+            } else {
+                denonModeIsSpecific = false
             }
+            return
+        }
+        // OPSMLALL MOV031Dolby Atmos/DSurr — 選べるサウンドモードの一覧。グループ 3 文字、番号 2 桁、
+        // 選択中なら 1、名前の順。選択中の行から今のモードが分かる（AVR-X3800H など）
+        if line.hasPrefix("OPSMLALL ") {
+            let item = line.dropFirst(9)
+            guard item.count > 6, item[item.index(item.startIndex, offsetBy: 5)] == "1",
+                  !shouldIgnoreSync(for: "surround") else { return }
+            let group = String(item.prefix(3))
+            let name = item.dropFirst(6).lowercased()
+            switch name {
+            case "stereo":      avr.surroundMode = .stereo;     denonModeIsSpecific = true
+            case "direct":      avr.surroundMode = .direct;     denonModeIsSpecific = true
+            case "pure direct": avr.surroundMode = .pureDirect; denonModeIsSpecific = true
+            case "auro-3d":     avr.surroundMode = .auro3D;     denonModeIsSpecific = true
+            default:
+                if let mode = Self.denonMode(forGroup: group) { avr.surroundMode = mode }
+                denonModeIsSpecific = false
+            }
+            return
+        }
+        // SSSMG MOV / MUS / GAM / PUR — サウンドモードのグループ（AVR-X3800H など）
+        if line.hasPrefix("SSSMG ") {
+            guard !shouldIgnoreSync(for: "surround"), !denonModeIsSpecific else { return }
+            if let mode = Self.denonMode(forGroup: String(line.dropFirst(6))) { avr.surroundMode = mode }
             return
         }
 
@@ -405,6 +608,21 @@ final class MainViewModel {
         }
     }
 
+    /// 直前の MS 通知が、ボタンと対応する方式名（STEREO、DIRECT など）だったか。
+    /// そうなら、後から届くグループの通知（Stereo は Movie グループに入っている）で上書きしない
+    private var denonModeIsSpecific = false
+
+    /// Denon のサウンドモードのグループに対応するボタン
+    private static func denonMode(forGroup group: String) -> SurroundMode? {
+        switch group {
+        case "MOV": .movie
+        case "MUS": .music
+        case "GAM": .game
+        case "PUR": .direct
+        default:    nil
+        }
+    }
+
     private func formatMHz(_ mhz: Double) -> String {
         // 87.5 → "87.5" / 76.1 → "76.1" (小数第1位まで表示)
         String(format: "%.1f", mhz)
@@ -412,10 +630,10 @@ final class MainViewModel {
 
     // MARK: - Power
 
-    func setPower(_ on: Bool) { 
+    func setPower(_ on: Bool) {
         markOperation(for: "power")
         avr.isPoweredOn = on
-        send(on ? "PWON" : "PWSTANDBY") 
+        dispatch(denon: on ? "PWON" : "PWSTANDBY", feature: .power) { try await $0.setPower(zone: "main", on: on) }
     }
     func togglePower()        { setPower(!avr.isPoweredOn) }
 
@@ -423,81 +641,136 @@ final class MainViewModel {
 
     func volumeUp() {
         markOperation(for: "volume")
-        avr.volumeDB += 0.5
-        send("MVUP")
+        avr.volumeDB = min(capabilities.volumeRangeDB.upperBound, avr.volumeDB + 0.5)
+        dispatch(denon: "MVUP", feature: .volume) { try await $0.stepVolume(zone: "main", up: true) }
     }
     func volumeDown() {
         markOperation(for: "volume")
-        avr.volumeDB -= 0.5
-        send("MVDOWN")
+        avr.volumeDB = max(capabilities.volumeRangeDB.lowerBound, avr.volumeDB - 0.5)
+        dispatch(denon: "MVDOWN", feature: .volume) { try await $0.stepVolume(zone: "main", up: false) }
     }
-    func setVolume(_ db: Double) { 
+    func setVolume(_ db: Double) {
         markOperation(for: "volume")
         avr.volumeDB = db
-        send(AVRState.volumeCommand(forDB: db)) 
+        dispatch(denon: AVRState.volumeCommand(forDB: db), feature: .volume) { try await $0.setVolume(zone: "main", db: db) }
     }
-    func setMute(_ on: Bool) { 
+    func setMute(_ on: Bool) {
         markOperation(for: "mute")
         avr.isMuted = on
-        send(on ? "MUON" : "MUOFF") 
+        dispatch(denon: on ? "MUON" : "MUOFF", feature: .mute) { try await $0.setMute(zone: "main", on: on) }
     }
     func toggleMute()           { setMute(!avr.isMuted) }
 
     // MARK: - Input
 
-    func setInput(_ input: InputSource) {
+    /// 表示中の機器の入力一覧（非表示にしたものを除く）
+    var visibleInputs: [ReceiverInput] { inputNames.visible(capabilities.inputs) }
+
+    /// 選択中の入力の表示用情報
+    var currentInput: ReceiverInput { capabilities.input(for: avr.inputID) }
+
+    var isTunerInputSelected: Bool { capabilities.isTunerInput(avr.inputID) }
+
+    func setInput(_ input: InputSource) { setInput(id: input.rawValue) }
+    func setInput(_ input: ReceiverInput) { setInput(id: input.id) }
+
+    func setInput(id: String) {
         markOperation(for: "input")
-        avr.input = input   // 楽観的更新（UIへ即時反映）
-        send(input.command)
+        avr.inputID = id   // 楽観的更新（UIへ即時反映）
+        dispatch(denon: "SI\(id)", feature: .input) { try await $0.setInput(zone: "main", id: id) }
     }
 
-    // MARK: - Surround（HTTP では取得不可 → ローカル追跡 + Telnet 通知で補正）
+    /// チューナーに切り替える（チューナー画面の「TUNER に切り替え」）
+    func selectTunerInput() {
+        guard let id = capabilities.tunerInputID else { return }
+        setInput(id: id)
+    }
 
-    func setSurroundMode(_ mode: SurroundMode) {
+    // MARK: - Surround / Sound mode（Denon は HTTP では取得不可 → ローカル追跡 + Telnet 通知で補正）
+
+    var currentSoundMode: SoundModeOption { capabilities.soundMode(for: avr.soundModeID) }
+
+    /// サウンドモードのボタンを選択状態にするか。Denon の Pure Direct にはボタンがないので Direct を選択状態にする
+    func isSoundModeSelected(_ mode: SoundModeOption) -> Bool {
+        if avr.soundModeID == mode.id { return true }
+        return capabilities.brand.usesDenonProtocol
+            && avr.soundModeID == SurroundMode.pureDirect.rawValue && mode.id == SurroundMode.direct.rawValue
+    }
+
+    func setSurroundMode(_ mode: SurroundMode) { setSoundMode(id: mode.rawValue) }
+    func setSoundMode(_ mode: SoundModeOption) { setSoundMode(id: mode.id) }
+
+    func setSoundMode(id: String) {
         markOperation(for: "surround")
-        send(mode.command)
-        avr.surroundMode = mode
+        // AVR-X3800H はスペース入りの MS コマンドを受け付けないためスペースを除去する（SurroundMode.command と同じ）
+        dispatch(denon: "MS" + id.replacingOccurrences(of: " ", with: ""), feature: .soundMode) {
+            try await $0.setSoundMode(id: id)
+        }
+        avr.soundModeID = id
+    }
+
+    /// ゾーンの音量の表示。Denon は本体と同じ目盛り（dB + 80）、ほかのメーカーは dB
+    func zoneVolumeLabel(_ db: Double) -> String {
+        capabilities.showsNativeVolumeScale ? String(format: "%.1f", db + 80.0) : String(format: "%.1f dB", db)
     }
 
     // MARK: - Zone 2
 
-    func setZone2Power(_ on: Bool) { send(on ? "Z2ON" : "Z2OFF") }
-    func zone2VolumeUp()           { send("Z2UP") }
-    func zone2VolumeDown()         { send("Z2DOWN") }
-    func setZone2Mute(_ on: Bool)  { send(on ? "Z2MUON" : "Z2MUOFF") }
+    func setZone2Power(_ on: Bool) {
+        dispatch(denon: on ? "Z2ON" : "Z2OFF", feature: .zone2) { try await $0.setPower(zone: "zone2", on: on) }
+    }
+    func zone2VolumeUp() {
+        dispatch(denon: "Z2UP", feature: .zone2) { try await $0.stepVolume(zone: "zone2", up: true) }
+    }
+    func zone2VolumeDown() {
+        dispatch(denon: "Z2DOWN", feature: .zone2) { try await $0.stepVolume(zone: "zone2", up: false) }
+    }
+    func setZone2Mute(_ on: Bool) {
+        dispatch(denon: on ? "Z2MUON" : "Z2MUOFF", feature: .zone2) { try await $0.setMute(zone: "zone2", on: on) }
+    }
 
     // MARK: - Zone 3
 
-    func setZone3Power(_ on: Bool) { send(on ? "Z3ON" : "Z3OFF") }
-    func zone3VolumeUp()           { send("Z3UP") }
-    func zone3VolumeDown()         { send("Z3DOWN") }
+    func setZone3Power(_ on: Bool) {
+        dispatch(denon: on ? "Z3ON" : "Z3OFF", feature: .zone3) { try await $0.setPower(zone: "zone3", on: on) }
+    }
+    func zone3VolumeUp() {
+        dispatch(denon: "Z3UP", feature: .zone3) { try await $0.stepVolume(zone: "zone3", up: true) }
+    }
+    func zone3VolumeDown() {
+        dispatch(denon: "Z3DOWN", feature: .zone3) { try await $0.stepVolume(zone: "zone3", up: false) }
+    }
 
     // MARK: - OSD Navigation
 
-    func cursorUp()     { send("MNCUP") }
-    func cursorDown()   { send("MNCDN") }
-    func cursorLeft()   { send("MNCLT") }
-    func cursorRight()  { send("MNCRT") }
-    func cursorEnter()  { send("MNENT") }
-    func navBack()      { send("MNRTN") }
-    func infoButton()   { send("MNINF") }
-    func optionButton() { send("MNOPT") }
-    func setupMenu()    { send("MNMEN ON") }
+    func cursorUp()     { remote("MNCUP", .up) }
+    func cursorDown()   { remote("MNCDN", .down) }
+    func cursorLeft()   { remote("MNCLT", .left) }
+    func cursorRight()  { remote("MNCRT", .right) }
+    func cursorEnter()  { remote("MNENT", .enter) }
+    func navBack()      { remote("MNRTN", .back) }
+    func infoButton()   { remote("MNINF", .info) }
+    func optionButton() { remote("MNOPT", .option) }
+    func setupMenu()    { remote("MNMEN ON", .setup) }
+
+    private func remote(_ denon: String, _ key: YamahaClient.RemoteKey) {
+        dispatch(denon: denon, feature: .remote) { try await $0.remote(key) }
+    }
 
     // MARK: - Tuner
 
     func setTunerBand(_ band: TunerBand) {
         avr.tunerBand = band   // 楽観的更新（HTTP ポーリング応答を待たずに即時反映）
-        send(band.selectCommand)
+        dispatch(denon: band.selectCommand, feature: .tuner) { try await $0.setTunerBand(band) }
     }
 
     /// プリセット ↑。
-    /// スキャン済みリストがあればそのリスト内を循環（空スロット・スキップを自動回避）。
-    /// 未スキャンなら単純に +1 し、56 を超えたら 1 に戻る。
+    /// 取得済みのリストがあればそのリスト内を循環（空スロット・スキップを自動回避）。
+    /// 未取得なら単純に +1 し、最大数を超えたら 1 に戻る。
     func tunerPresetUp() {
         let presets = tunerPresets
         if presets.isEmpty {
-            let next = (avr.tunerPreset % 56) + 1
+            let next = (avr.tunerPreset % maxTunerSlots) + 1
             selectTunerPreset(next)
         } else {
             let cur = avr.tunerPreset
@@ -513,7 +786,7 @@ final class MainViewModel {
     func tunerPresetDown() {
         let presets = tunerPresets
         if presets.isEmpty {
-            let prev = avr.tunerPreset <= 1 ? 56 : avr.tunerPreset - 1
+            let prev = avr.tunerPreset <= 1 ? maxTunerSlots : avr.tunerPreset - 1
             selectTunerPreset(prev)
         } else {
             let cur = avr.tunerPreset
@@ -525,14 +798,20 @@ final class MainViewModel {
         }
     }
 
-    func tunerFreqUp()   { send(avr.tunerBand.freqUpCommand) }
-    func tunerFreqDown() { send(avr.tunerBand.freqDownCommand) }
+    func tunerFreqUp() {
+        let band = avr.tunerBand
+        dispatch(denon: band.freqUpCommand, feature: .tuner) { try await $0.stepTunerFrequency(band: band, up: true) }
+    }
+    func tunerFreqDown() {
+        let band = avr.tunerBand
+        dispatch(denon: band.freqDownCommand, feature: .tuner) { try await $0.stepTunerFrequency(band: band, up: false) }
+    }
 
     /// プリセット選択。
-    /// HTTP では読み返せないのでローカル追跡。Telnet が接続されていれば
+    /// Denon は HTTP では読み返せないのでローカル追跡。Telnet が接続されていれば
     /// 周波数と局名は自動的に更新される。
     func selectTunerPreset(_ n: Int) {
-        send(String(format: "TPAN%02d", n))
+        dispatch(denon: String(format: "TPAN%02d", n), feature: .tuner) { try await $0.recallPreset(id: n) }
         avr.tunerPreset = n
         avr.tunerStationName = ""   // 更新を待つ
         avr.tunerFrequency = ""     // 更新を待つ
@@ -542,29 +821,30 @@ final class MainViewModel {
 
     /// スキャン生データ（フィルタ前）
     var tunerAllPresets: [TunerPreset] = []
-    
-    /// 最大プリセット数
-    let maxTunerSlots = 56
+
+    /// 最大プリセット数（Denon は 56、Yamaha は機器が返す数）
+    var maxTunerSlots: Int { capabilities.tunerPresetCount }
 
     /// 除外する周波数（カンマ区切り MHz、例: "90.0" or "90.0, 85.0"）
     /// デフォルトは "90.0"（空きスロットの代表値）
     var tunerSkipFrequencies: String = UserDefaults.standard.string(forKey: "tunerSkipFrequencies") ?? "90.0"
 
-    /// 除外周波数を適用し、重複を排除したプリセット一覧
+    /// 除外周波数を適用し、重複を排除したプリセット一覧。
+    /// 除外周波数は、空きスロットも周波数を返す Denon のためのもの。Yamaha は空きを返さないので適用しない
     var tunerPresets: [TunerPreset] {
-        let skipSet = skipFreqSet(from: tunerSkipFrequencies)
+        let skipSet = capabilities.tunerPresetsNeedScan ? skipFreqSet(from: tunerSkipFrequencies) : []
         var seen = Set<String>()
         return tunerAllPresets.filter { p in
             // 1. 除外周波数チェック
             if let f = Double(p.frequency.trimmingCharacters(in: .whitespacesAndNewlines)) {
                 if skipSet.contains(f) { return false }
             }
-            
+
             // 2. 重複チェック（数値として正規化した周波数 + バンド）
             let freqVal = Double(p.frequency.trimmingCharacters(in: .whitespacesAndNewlines)) ?? 0.0
             let key = "\(p.band.rawValue)_\(freqVal)"
             if seen.contains(key) { return false }
-            
+
             seen.insert(key)
             return true
         }
@@ -587,7 +867,7 @@ final class MainViewModel {
     private var tunerScanTask: Task<Void, Never>?
 
     /// チューナープリセット一覧を取得する。
-    /// まず formTuner_TunerPresetXml.xml を一括取得して試み（高速・移動なし）、
+    /// Yamaha は一括で取れる。Denon はまず formTuner_TunerPresetXml.xml を一括取得して試み（高速・移動なし）、
     /// 取得できない場合は Telnet ベーススキャンにフォールバックする。
     func startTunerScan() {
         guard !isScanningTuner else { return }
@@ -598,9 +878,20 @@ final class MainViewModel {
         tunerScanTask = Task { [weak self] in
             guard let self else { return }
 
+            if usingYamaha {
+                let presets = await yamaha.fetchTunerPresets() ?? []
+                if Task.isCancelled { return }
+                tunerScanProgress = maxTunerSlots
+                tunerAllPresets = presets
+                if !presets.isEmpty { recordFeatureSuccess(.tuner) }
+                saveTunerPresets()
+                isScanningTuner = false
+                return
+            }
+
             // ── Phase 1: XML 一括取得 ─────────────────────────────────────
             if let xmlPresets = await client.fetchTunerPresetsFromXml(), !xmlPresets.isEmpty, !Task.isCancelled {
-                tunerScanProgress = 56
+                tunerScanProgress = maxTunerSlots
                 tunerAllPresets = xmlPresets
                 saveTunerPresets()
                 isScanningTuner = false
@@ -671,9 +962,24 @@ final class MainViewModel {
         isScanningTuner = false
     }
 
+    /// 取得したプリセットはメーカーごとに保存する（Denon は 1.1.x までと同じキー）
+    private static func tunerPresetsKey(for brand: ReceiverBrand) -> String {
+        brand == .yamaha ? "savedTunerPresets.yamaha" : "savedTunerPresets"
+    }
+
     private func saveTunerPresets() {
         if let data = try? JSONEncoder().encode(tunerAllPresets) {
-            UserDefaults.standard.set(data, forKey: "savedTunerPresets")
+            UserDefaults.standard.set(data, forKey: Self.tunerPresetsKey(for: capabilities.brand))
+        }
+    }
+
+    /// 接続したメーカーの保存済みプリセットを読み込む
+    private func loadTunerPresets(for brand: ReceiverBrand) {
+        if let data = UserDefaults.standard.data(forKey: Self.tunerPresetsKey(for: brand)),
+           let saved = try? JSONDecoder().decode([TunerPreset].self, from: data) {
+            tunerAllPresets = saved
+        } else {
+            tunerAllPresets = []
         }
     }
 
@@ -688,7 +994,7 @@ final class MainViewModel {
         tunerDiagLog = ""
         Task { [weak self] in
             guard let self else { return }
-            let log = await client.fetchTunerDiagnostics()
+            let log = usingYamaha ? await yamaha.diagnostics() : await client.fetchTunerDiagnostics()
             await MainActor.run { [weak self] in
                 self?.tunerDiagLog = log
                 self?.isFetchingTunerDiag = false
@@ -699,34 +1005,77 @@ final class MainViewModel {
     // MARK: - Presets
 
     func applyPreset(_ preset: Preset) {
-        setInput(preset.input)
+        guard preset.isUsable(with: capabilities.brand) else { return }
+        setInput(id: preset.input)
         setVolume(preset.volumeDB)
-        setSurroundMode(preset.surroundMode)
+        setSoundMode(id: preset.surroundMode)
     }
 
     func saveCurrentAsPreset(name: String, emoji: String) {
         let preset = Preset(
             name: name, emoji: emoji,
-            input: avr.input,
+            input: avr.inputID,
             volumeDB: avr.volumeDB,
-            surroundMode: avr.surroundMode
+            surroundMode: avr.soundModeID,
+            brand: capabilities.brand
         )
         presetStore.save(preset)
     }
 
+    /// 接続中の機器で使えるプリセット
+    var usablePresets: [Preset] {
+        presetStore.presets.filter { $0.isUsable(with: capabilities.brand) }
+    }
+
     // MARK: - Private helper
 
-    private func send(_ command: String) {
+    /// 操作を接続中の機器に送る。Denon / Marantz は Telnet・HTTP のコマンド文字列、Yamaha は YXC
+    private func dispatch(denon command: String, feature: CompatibilityFeature,
+                          yamaha action: @escaping @Sendable (YamahaClient) async throws -> Void) {
+        // ゾーン・リモコン・チューナーを含め、ユーザー操作はすべてここを通る
+        lastUserOperationAt = Date()
+        guard usingYamaha else {
+            send(command, feature: feature)
+            return
+        }
+        let client = yamaha
+        Task { [weak self] in
+            do {
+                try await action(client)
+                self?.recordFeatureSuccess(feature)
+            } catch let error as YamahaError {
+                // 機器が操作を断った（今の状態ではできない操作など）。通信は生きているので切断扱いにしない
+                DiagnosticsLog.shared.record("yamaha: command rejected (\(feature.rawValue))")
+                self?.showCommandError(error.localizedDescription)
+            } catch {
+                guard let self else { return }
+                UsageTracker.recordFailure()
+                handleDisconnect()
+                showCommandError(String(localized: "通信に失敗しました。ネットワークを確認してください。"))
+                await recoverConnection(.command)
+            }
+        }
+    }
+
+    /// 動作報告の画面の初期値に使うため、この接続で成功した操作を記録する
+    func recordFeatureSuccess(_ feature: CompatibilityFeature) {
+        sessionSucceededFeatures.insert(feature)
+    }
+
+    private func send(_ command: String, feature: CompatibilityFeature? = nil) {
         Task { [weak self] in
             guard let self else { return }
             do {
                 try await telnet.send(command)
+                if let feature { self.recordFeatureSuccess(feature) }
             } catch {
                 // Telnet 未接続 or 失敗 → HTTP フォールバック
                 do {
                     try await client.send(command)
+                    if let feature { self.recordFeatureSuccess(feature) }
                 } catch {
                     print("[DenonLog] All communication failed for command: \(command)")
+                    UsageTracker.recordFailure()
                     handleDisconnect()
                     showCommandError(String(localized: "通信に失敗しました。ネットワークを確認してください。"))
                     // コマンドの失敗も自動復旧に回す（参照: upgraded-guacamole 2ca9191）
@@ -758,6 +1107,7 @@ final class MainViewModel {
     private func markOperation(for key: String) {
         // 操作後 3秒間は同期を無視する
         ignoreSyncUntil[key] = Date().addingTimeInterval(3.0)
+        lastUserOperationAt = Date()
     }
 
     // MARK: - Lifecycle
@@ -807,15 +1157,16 @@ final class MainViewModel {
 
         let savedPort = UserDefaults.standard.integer(forKey: "defaultPort")
         let port = savedPort > 0 ? savedPort : 8080
-        var reachable = await client.isReachable(host: host, port: port)
+        let isYamaha = (Self.savedBrand(forHost: host) ?? capabilities.brand) == .yamaha
+        var reachable = isYamaha ? await yamaha.isReachable(host: host) : await client.isReachable(host: host, port: port)
         if !reachable && trigger == .resume {
             try? await Task.sleep(for: .seconds(1.5))
-            reachable = await client.isReachable(host: host, port: port)
+            reachable = isYamaha ? await yamaha.isReachable(host: host) : await client.isReachable(host: host, port: port)
         }
 
         if reachable {
             if connectionStatus.isConnected {
-                await client.pollNow()
+                if usingYamaha { await yamaha.pollNow() } else { await client.pollNow() }
                 DiagnosticsLog.shared.record("recover: still reachable, refreshed")
             } else {
                 await connect(host: host, allowReheal: false)
@@ -859,6 +1210,36 @@ final class MainViewModel {
         let args = ProcessInfo.processInfo.arguments
         guard let i = args.firstIndex(of: "-uiDemoTab"), i + 1 < args.count else { return nil }
         return args[i + 1]
+    }
+
+    /// 開発用: 起動時に検索も自動復旧もせず、このアドレスにだけ接続する（`-debugConnectHost 127.0.0.1`）。
+    /// scripts/mock-yamaha.py などの模擬サーバーで試すときに、LAN 上の実機へつながないようにするため。
+    /// 自動接続を止めるため `-autoConnect NO` と一緒に使う
+    nonisolated static var debugConnectHost: String? {
+        let args = ProcessInfo.processInfo.arguments
+        guard let i = args.firstIndex(of: "-debugConnectHost"), i + 1 < args.count else { return nil }
+        return args[i + 1]
+    }
+
+    /// 開発用: 接続後に一通りの操作を順に送る（`-debugExercise`）。模擬サーバーのログで届いた内容を確かめる
+    func runDebugExercise() async {
+        guard ProcessInfo.processInfo.arguments.contains("-debugExercise") else { return }
+        let steps: [(String, () -> Void)] = [
+            ("volume -40", { self.setVolume(-40) }), ("volume up", { self.volumeUp() }),
+            ("mute on", { self.setMute(true) }), ("mute off", { self.setMute(false) }),
+            ("input hdmi2", { self.setInput(id: self.capabilities.inputs.dropFirst().first?.id ?? "") }),
+            ("sound mode", { self.setSoundMode(id: self.capabilities.soundModes.first?.id ?? "") }),
+            ("zone2 on", { self.setZone2Power(true) }), ("zone2 up", { self.zone2VolumeUp() }),
+            ("tuner", { self.selectTunerInput() }), ("presets", { self.startTunerScan() }),
+            ("preset 2", { self.selectTunerPreset(2) }), ("freq up", { self.tunerFreqUp() }),
+            ("cursor up", { self.cursorUp() }), ("enter", { self.cursorEnter() }), ("setup", { self.setupMenu() }),
+        ]
+        for (name, step) in steps {
+            print("[DenonLog] debugExercise: \(name)")
+            step()
+            try? await Task.sleep(for: .milliseconds(700))
+        }
+        print("[DenonLog] debugExercise: done, succeeded=\(sessionSucceededFeatures.map(\.rawValue).sorted())")
     }
 
     /// 接続中の見た目にするための固定の状態を入れる

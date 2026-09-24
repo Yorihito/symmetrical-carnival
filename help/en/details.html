@@ -27,8 +27,9 @@
     <p class="lede">Supported models, network requirements, troubleshooting, and how to report issues.</p>
 
     <h2>Supported Models</h2>
-    <p>Works with AV receivers that support network control (HTTP API on port 8080). Verified on the Denon AVR-X3800H. Check your receiver's manual or product page to confirm it supports network control.</p>
+    <p>Works with AV receivers that support network control. Verified on the Denon AVR-X3800H and the Yamaha RX-V581. Check your receiver's manual or product page to confirm it supports network control.</p>
     <p>This is an unofficial app made by an independent developer and is not affiliated with any manufacturer. Product names are used only to indicate compatibility; trademarks belong to their respective owners.</p>
+    <p>Reports from users are collected in the <a href="compatibility.html">supported models list</a>.</p>
 
     <h2>Network Requirements</h2>
     <div class="card">
@@ -37,7 +38,7 @@
     </div>
     <div class="card">
         <h3>Ports used</h3>
-        <p>Control uses HTTP (TCP 8080); some status notifications use Telnet (TCP 23). Make sure these ports aren't blocked by your router or receiver.</p>
+        <p>Denon and Marantz receivers are controlled over HTTP (TCP 8080) and send status updates over Telnet (TCP 23). Yamaha receivers are controlled over HTTP (TCP 80) and send status updates over UDP. Make sure these aren't blocked by your router or receiver.</p>
     </div>
     <div class="card">
         <h3>If the IP address changes</h3>
