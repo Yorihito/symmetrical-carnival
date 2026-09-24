@@ -13,6 +13,7 @@ struct SettingsView: View {
     @Binding var showConnection: Bool
     @State private var showResetAlert = false
     @State private var showProblemReport = false
+    @State private var showCompatibilityReport = false
 
     var body: some View {
         Form {
@@ -28,6 +29,12 @@ struct SettingsView: View {
         .navigationBarTitleDisplayMode(.large)
         .sheet(isPresented: $showProblemReport) {
             ProblemReportView()
+                .environment(vm)
+                .environment(\.locale, locale)
+                .environment(\.localizedBundle, bundle)
+        }
+        .sheet(isPresented: $showCompatibilityReport) {
+            CompatibilityReportView()
                 .environment(vm)
                 .environment(\.locale, locale)
                 .environment(\.localizedBundle, bundle)
@@ -208,6 +215,23 @@ struct SettingsView: View {
             .foregroundStyle(.primary)
 
             Text("バグ報告や機能のリクエストを GitHub の Issue として送信します。", bundle: bundle)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+            Button {
+                showCompatibilityReport = true
+            } label: {
+                Label {
+                    Text("この機種での動作を報告する", bundle: bundle)
+                } icon: {
+                    Image(systemName: "checkmark.seal")
+                }
+            }
+            .buttonStyle(.plain)
+            .foregroundStyle(vm.avr.isConnected ? .primary : .secondary)
+            .disabled(!vm.avr.isConnected)
+
+            Text("お使いの機種で動いたかどうかを送ると、対応機種の一覧に反映されます。", bundle: bundle)
                 .font(.caption)
                 .foregroundStyle(.secondary)
 

@@ -275,3 +275,34 @@
 "AVR からの応答を読み取れませんでした。" = "Could not read the response from the AVR.";
 "この機種は、アプリからの本体メニューの操作に対応していません。" = "This model does not support controlling its on-screen menus from the app.";
 "スロット %lld / %lld を確認中..." = "Checking slot %lld / %lld...";
+
+/* Compatibility reports (1.2.0) */
+"AVR に接続すると、その機種での動作を報告できます。" = "Connect to your AVR to report how the app works with it.";
+"動作を報告" = "Report Compatibility";
+"機種" = "Model";
+"機種名は AVR から自動で取得しています。" = "The model name is read from your AVR automatically.";
+"全体として" = "Overall";
+"問題なく使える" = "Works";
+"一部使えない" = "Partly";
+"使えない" = "Doesn't work";
+"詳しい様子は「ご意見・ご要望を送る」からバグ報告として送ることもできます。" = "You can also send details as a bug report from “Send Feedback.”";
+"自動検出" = "Auto-discovery";
+"サウンドモード" = "Sound mode";
+"ゾーン 2" = "Zone 2";
+"ゾーン 3" = "Zone 3";
+"リモコン画面" = "Remote";
+"IP アドレスが変わった後の再接続" = "Reconnect after IP address change";
+"動いた" = "Worked";
+"動かない" = "Didn't work";
+"使っていない" = "Not used";
+"機能ごと" = "By feature";
+"使った機能だけで大丈夫です。この接続で操作できた機能は、最初から「動いた」を選んでいます。" = "Only answer for features you used. Features that worked during this connection are already set to “Worked.”";
+"コメント（任意）" = "Comment (optional)";
+"送信" = "Send";
+"ご報告ありがとうございます。" = "Thank you for your report.";
+"対応機種の一覧を見る" = "View Supported Models";
+"報告は 1 日 1 回ほど集計して、一覧に反映します。" = "Reports are collected about once a day and added to the list.";
+"App Store で評価する" = "Rate on the App Store";
+"よろしければ、App Store での評価もお願いします。" = "If you like the app, a rating on the App Store would help a lot.";
+"この機種での動作を報告する" = "Report How It Works with Your Model";
+"お使いの機種で動いたかどうかを送ると、対応機種の一覧に反映されます。" = "Tell us whether the app works with your model. Reports are added to the supported models list.";

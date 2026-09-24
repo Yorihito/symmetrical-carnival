@@ -180,6 +180,57 @@ enum ProblemReporter {
         }
     }
 
+    // MARK: - Compatibility report
+
+    /// 動作報告を送る。タイトルと本文は Worker が作るので、送るのは構造化したデータと任意のコメントだけ
+    static func submitCompatibility(_ report: CompatibilityReport, comment: String,
+                                    session: URLSession = .shared) async throws -> URL {
+        guard let endpoint = endpoint() else { throw SubmitError.notConfigured }
+        let compat = try JSONSerialization.jsonObject(with: JSONEncoder().encode(report))
+        var request = URLRequest(url: endpoint)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONSerialization.data(withJSONObject: [
+            "category": "compatibility",
+            "compat": compat,
+            "body": comment,
+        ] as [String: Any])
+        do {
+            let (data, response) = try await session.data(for: request)
+            guard let http = response as? HTTPURLResponse else { throw SubmitError.malformedResponse }
+            guard (200..<300).contains(http.statusCode) else { throw SubmitError.server(http.statusCode) }
+            guard let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                  let urlString = object["url"] as? String,
+                  let url = URL(string: urlString) else {
+                throw SubmitError.malformedResponse
+            }
+            return url
+        } catch let error as SubmitError {
+            throw error
+        } catch {
+            throw SubmitError.transport(error.localizedDescription)
+        }
+    }
+
+    /// Worker に届かないときのフォールバック。集計スクリプトが拾えるよう、本文の末尾に機械用のデータを入れる
+    static func prefilledCompatibilityIssueURL(_ report: CompatibilityReport, comment: String) -> URL? {
+        let brand = ReceiverBrand(rawValue: report.brand)?.displayName ?? report.brand
+        var body = comment.isEmpty ? "" : comment + "\n\n"
+        for (key, value) in report.features.sorted(by: { $0.key < $1.key }) {
+            body += "- \(key): \(value == .ok ? "ok" : "ng")\n"
+        }
+        if let data = try? JSONEncoder().encode(report), let json = String(data: data, encoding: .utf8) {
+            body += "\n<!-- avr-compat\n\(json.replacingOccurrences(of: "--", with: "- -"))\n-->"
+        }
+        var components = URLComponents(string: "https://github.com/\(repo)/issues/new")
+        components?.queryItems = [
+            URLQueryItem(name: "title", value: "[動作報告] \(brand) \(report.model) — \(report.overall.rawValue)"),
+            URLQueryItem(name: "body", value: body),
+            URLQueryItem(name: "labels", value: "compatibility"),
+        ]
+        return components?.url
+    }
+
     // MARK: - Fallback
 
     /// プロキシが未設定・到達不能なときのフォールバック: GitHub の「Issue を作成」画面を

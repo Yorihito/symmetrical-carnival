@@ -80,3 +80,28 @@ enum CompatibilityModelStatus: String, Sendable {
     /// 動作報告をお願いする必要がない（開発者確認済み、または十分な報告がある）
     var isConfirmed: Bool { self == .verified || self == .reported }
 }
+
+/// この端末から動作報告を送った機種の記録（同じ機種に何度もお願いしないため）
+enum CompatibilityReportLog {
+    private static let key = "compatibilityReportedModels"
+
+    private static func id(_ brand: ReceiverBrand, _ model: String) -> String {
+        "\(brand.rawValue):\(model.lowercased())"
+    }
+
+    static func hasReported(brand: ReceiverBrand, model: String) -> Bool {
+        (UserDefaults.standard.stringArray(forKey: key) ?? []).contains(id(brand, model))
+    }
+
+    static func markReported(brand: ReceiverBrand, model: String) {
+        var list = UserDefaults.standard.stringArray(forKey: key) ?? []
+        let entry = id(brand, model)
+        guard !list.contains(entry) else { return }
+        list.append(entry)
+        UserDefaults.standard.set(list, forKey: key)
+    }
+
+    #if DEBUG
+    static func debugClear() { UserDefaults.standard.removeObject(forKey: key) }
+    #endif
+}

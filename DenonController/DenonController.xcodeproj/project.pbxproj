@@ -20,6 +20,7 @@
 		14F36167FA4F2BD39F9B1F75 /* ProblemReporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDF1FA1D97040B3C00675C2C /* ProblemReporter.swift */; };
 		1661486C7A095436F3B9CF79 /* Network.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1C21F089DD18EF96A1FB1D37 /* Network.framework */; };
 		18BC2655A7A945363CD3EF1A /* InputView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 371B2F4E3F7CEE3A934FE1DC /* InputView.swift */; };
+		191466263B20A3FF391D2011 /* CompatibilityDirectory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38FFB9ABE6B2B4B2711C1341 /* CompatibilityDirectory.swift */; };
 		1E31B61684414568011C77E0 /* DenonControllerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48CC524B97F708FFD31253DA /* DenonControllerApp.swift */; };
 		1E876FDB15C53E820184D209 /* InputSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9ECA17A4A0B3A093DB6F604 /* InputSource.swift */; };
 		2114C9A9C177E05A75B528C3 /* HelpSiteLinks.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCCBCF2FC5C91D12F8A8E660 /* HelpSiteLinks.swift */; };
@@ -85,6 +86,7 @@
 		DA56A1BF00A89DE4B12BECB2 /* DeviceInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 271AF613F454DB67A569A133 /* DeviceInfo.swift */; };
 		DF7700969F9383B5CDA18534 /* ProblemReportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63E026C54E7A9A9382069B71 /* ProblemReportView.swift */; };
 		E073BAB275455B3D6569E0CA /* TunerPreset.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C3EE3F5E05059A0B9CC8309 /* TunerPreset.swift */; };
+		E1A501F0DE5A849DA88BB66F /* CompatibilityDirectory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38FFB9ABE6B2B4B2711C1341 /* CompatibilityDirectory.swift */; };
 		E6C1323447E13E49F82EEB59 /* DiagnosticsLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99D0A3750A0A270EC589E0F3 /* DiagnosticsLog.swift */; };
 		E8223854D0A25620B23FFA87 /* ConnectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EBA445EDC221C01FA9C6049 /* ConnectionView.swift */; };
 		E99FF3946B1A1C2271CC67B8 /* AVRState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DBDB1F2094291B09A369428 /* AVRState.swift */; };
@@ -92,6 +94,7 @@
 		ED1B5B29837A12210B6FDC38 /* ReceiverTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E84D74EF58BCEEC97216267 /* ReceiverTypes.swift */; };
 		EE614F6A701643C3ACE29B46 /* TelnetClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2FEF8CF0CF7104302E3474B /* TelnetClient.swift */; };
 		F0632EC557B94DBD5F4B1671 /* ConnectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C3874D625282B482D38AE6A /* ConnectionView.swift */; };
+		F30240704C9B115782F66631 /* CompatibilityReportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DFB7AE9758DAD05D049CB8E /* CompatibilityReportView.swift */; };
 		F85DA1958EAB9A9D07F93D5C /* SurroundMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F00BCCBB5642689C5E0B915 /* SurroundMode.swift */; };
 		FA5F210C12AC9F361029D2F8 /* ZoneView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7F395F8FE0341BC628627D5 /* ZoneView.swift */; };
 /* End PBXBuildFile section */
@@ -112,6 +115,7 @@
 		343AE4A2F026CBD4298DB560 /* YamahaCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YamahaCatalog.swift; sourceTree = "<group>"; };
 		371B2F4E3F7CEE3A934FE1DC /* InputView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputView.swift; sourceTree = "<group>"; };
 		385C6F0B0CEDBB1BBB00DA9A /* SupportStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupportStore.swift; sourceTree = "<group>"; };
+		38FFB9ABE6B2B4B2711C1341 /* CompatibilityDirectory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompatibilityDirectory.swift; sourceTree = "<group>"; };
 		48CC524B97F708FFD31253DA /* DenonControllerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DenonControllerApp.swift; sourceTree = "<group>"; };
 		495D17163A2E55D86ADB4C94 /* InputNameStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputNameStore.swift; sourceTree = "<group>"; };
 		5494C1E27FAC2CB79410897E /* DashboardLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardLayout.swift; sourceTree = "<group>"; };
@@ -139,6 +143,7 @@
 		958D2993EF1099E008D5F991 /* SupportRequestManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupportRequestManager.swift; sourceTree = "<group>"; };
 		99D0A3750A0A270EC589E0F3 /* DiagnosticsLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticsLog.swift; sourceTree = "<group>"; };
 		9AEBFDA374E25758961C3B07 /* InputView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputView.swift; sourceTree = "<group>"; };
+		9DFB7AE9758DAD05D049CB8E /* CompatibilityReportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompatibilityReportView.swift; sourceTree = "<group>"; };
 		9E3F661D100D83AE3D90486C /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
 		A20BE8F10BC0930A047050EF /* MenuBarPopoverView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarPopoverView.swift; sourceTree = "<group>"; };
 		A2C97D129A06A4A87956F7FD /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -244,6 +249,7 @@
 		421210C7FBE8D36D0031F6CC /* Compatibility */ = {
 			isa = PBXGroup;
 			children = (
+				38FFB9ABE6B2B4B2711C1341 /* CompatibilityDirectory.swift */,
 				F7D936B158AA858CCB39074A /* CompatibilityReport.swift */,
 			);
 			path = Compatibility;
@@ -382,6 +388,7 @@
 		D80C86CEA3FCE982D7B10ABA /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				9DFB7AE9758DAD05D049CB8E /* CompatibilityReportView.swift */,
 				6C3874D625282B482D38AE6A /* ConnectionView.swift */,
 				EBCC033BDB61A8099289FAA5 /* ContentView.swift */,
 				5494C1E27FAC2CB79410897E /* DashboardLayout.swift */,
@@ -609,7 +616,9 @@
 				1045CFDE17400F0C299B117A /* AVRHTTPClient.swift in Sources */,
 				D5B636D1118D2749307334E6 /* AVRState.swift in Sources */,
 				2F263825EEA8AFE4C9A46AE6 /* CardView.swift in Sources */,
+				E1A501F0DE5A849DA88BB66F /* CompatibilityDirectory.swift in Sources */,
 				548E134AAD1F6E32CC111B80 /* CompatibilityReport.swift in Sources */,
+				F30240704C9B115782F66631 /* CompatibilityReportView.swift in Sources */,
 				F0632EC557B94DBD5F4B1671 /* ConnectionView.swift in Sources */,
 				54CE9FA2CDE5781F438F6B9B /* ContentView.swift in Sources */,
 				738334988E65F7F1CCE4681E /* DashboardLayout.swift in Sources */,
@@ -656,6 +665,7 @@
 				9D457112D11E0B3126B14B2A /* AVRHTTPClient.swift in Sources */,
 				E99FF3946B1A1C2271CC67B8 /* AVRState.swift in Sources */,
 				A552B2384A64070F14595C87 /* AppDelegate.swift in Sources */,
+				191466263B20A3FF391D2011 /* CompatibilityDirectory.swift in Sources */,
 				D53504782E99AE327EC0C377 /* CompatibilityReport.swift in Sources */,
 				E8223854D0A25620B23FFA87 /* ConnectionView.swift in Sources */,
 				D3615836D1796E560FAFCB1E /* ContentView.swift in Sources */,

@@ -12,6 +12,11 @@ enum HelpSiteLinks {
         URL(string: isEnglish(locale) ? "\(base)/en/index.html" : "\(base)/index.html")!
     }
 
+    /// 対応機種の一覧（動作報告から自動で作るページ）
+    static func compatibility(locale: Locale) -> URL {
+        URL(string: isEnglish(locale) ? "\(base)/en/compatibility.html" : "\(base)/compatibility.html")!
+    }
+
     static func privacyPolicy(locale: Locale) -> URL {
         URL(string: isEnglish(locale) ? "\(base)/en/privacy.html" : "\(base)/privacy.html")!
     }
