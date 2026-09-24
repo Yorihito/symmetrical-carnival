@@ -9,12 +9,13 @@ Phase 0 と Phase 1 の主要部分を実装済み。詳細は各セクション
   `accessibilityLabel` 付与（電源・音量・ミュート・Zone2/3電源・リモコンD-pad・メニューバー主要ボタン）。
 - **Phase 1**: ヘルプサイトは `help/` 配下に index/details/privacy を ja/en で作成し、GitHub Pagesで
   公開済み。問題報告・機能リクエストは `ProblemReporter` / `ProblemReportView` とCloudflare Worker
-  コードまで実装済み。Workerは未デプロイで、現時点ではGitHub `issues/new` の事前入力URLを開く
-  フォールバックが動作する。レビュー依頼機能と、音量ダイアルの1回限りの紹介も実装済み。
+  コードまで実装済み。Worker はデプロイ済み（`avr-controller-report-proxy`）で、届かないときは GitHub `issues/new` の
+  事前入力 URL を開くフォールバックが動作する。レビュー依頼機能と、音量ダイアルの1回限りの紹介も実装済み。
   包括的なオンボーディング / What's New は未実装。
 - **Phase 3（収益化）**: 実装済み（2026-09-21 決定）。既存無料機能は有料化せず、**消耗型の投げ銭を
   3 段**用意する。設定に常設し、しばらく無事に使っている人には一度だけ案内する。応援した人の要望は
-  優先的に検討し、`supporter` ラベルで見分ける。App Store Connect での商品登録が残る。
+  優先的に検討し、`supporter` ラベルで見分ける。App Store Connect での商品登録も完了し、
+  1.1.0 とともに 2026-09-24 に承認・公開された。
 
 ## 背景・目的
 
@@ -249,11 +250,11 @@ tipをIAPで提供することを認めている。繰り返し購入できる�
 
 ## 判断が必要な項目（実装着手前にユーザーに確認）
 
-1. ~~収益化の詳細（Phase 3）~~ → 解決済み。消耗型の投げ銭 3 段で実装（Phase 3 参照）。**残タスク**:
-   App Store Connect での商品登録（エージェント側では実行できない手動作業）。
+1. ~~収益化の詳細（Phase 3）~~ → 解決済み。消耗型の投げ銭 3 段で実装（Phase 3 参照）。商品登録も完了
+   （2026-09-24、1.1.0 と一緒に承認）。
 2. ~~ヘルプサイトの公開~~ → 解決済み。`help/` を push、GitHub Pages を有効化し、
-   `https://yorihito.github.io/symmetrical-carnival/` で公開中。**残タスク**: ASC の Support URL /
-   Privacy Policy URL をこの新しい URL に更新すること（エージェント側では実行できない手動作業）。
+   `https://yorihito.github.io/symmetrical-carnival/` で公開中。ASC の Support URL /
+   Privacy Policy URL もこの URL に更新済み（1.1.0 の提出時。プライバシーポリシーは日本語 `privacy.html`、英語 `en/privacy.html`）。
 3. ~~問題報告の送信先リポジトリ~~ → 解決済み。このリポジトリ（`Yorihito/symmetrical-carnival`）の
    まま、Worker プロキシ経由で Issue を作成する方式に更新した（1-B 参照）。
 4. **Worker のデプロイ**: `server/` のコードは用意済みだが、`wrangler kv namespace create` /
@@ -281,8 +282,9 @@ tipをIAPで提供することを認めている。繰り返し購入できる�
       `server/`（Worker・デプロイ手順一式、未デプロイ）／`ReviewRequestManager`＋レビュー依頼導線／
       ヘルプサイト（`help/`）作成
 - [x] **Phase 1（公開作業）**: `help/` と Pages ワークフローの push／GitHub Pages 有効化
-- [ ] **Phase 1（残タスク）**: ASC の Support・Privacy URL 更新／Worker のデプロイ／
-      オンボーディング＋What's New（次回以降）
-- [ ] **Phase 2**: DEBUG デモモード＋`simctl` スクショ自動化／ASO 微調整／提出フロー運用確立
-- [x] **Phase 3**: 投げ銭型 IAP（消耗型 3 段）の実装。App Store Connect での商品登録が残る
+- [ ] **Phase 1（残タスク）**: オンボーディング＋What's New（次回以降）。ASC の Support・Privacy URL 更新と
+      Worker のデプロイは完了
+- [ ] **Phase 2**: ASO 微調整（名前からメーカー名を外した後の検索流入を見て判断）。DEBUG デモモード＋`simctl`
+      スクショ自動化（`scripts/capture-screenshots.sh`）と提出フロー（`docs/AppStore/`）は完了
+- [x] **Phase 3**: 投げ銭型 IAP（消耗型 3 段）の実装と App Store Connect での商品登録（2026-09-24 承認）
 - [ ] **Phase 4**（任意）: 単体テスト整備 → CI → （必要なら）テレメトリ
