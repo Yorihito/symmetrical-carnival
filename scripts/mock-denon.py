@@ -42,6 +42,10 @@ def apply_command(cmd):
         state["ms"] = cmd[2:]
         notify("MS" + state["ms"])
         return
+    elif cmd.startswith("SSSMG "):
+        # サウンドモードのグループ（MOV/MUS/GAM/PUR）。実機は MS の後にこれを送ってくる
+        notify(cmd)
+        return
     elif cmd == "Z2ON": state["z2power"] = "ON"
     elif cmd == "Z2UP": state["z2vol"] += 0.5
     else:

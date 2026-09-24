@@ -530,11 +530,29 @@ final class MainViewModel {
             return
         }
 
-        // MS... — サラウンドモード変更通知（AVR 側での変更も追跡できる）
+        // MS... — サラウンドモード変更通知（AVR 側での変更も追跡できる）。
+        // Movie / Music / Game を選ぶと "MSDOLBY ATMOS" のように実際の方式名が来るので、その場合は
+        // 続けて届くモードグループの通知（SSSMG）でボタンを決める
         if line.hasPrefix("MS") {
             let code = String(line.dropFirst(2))
-            if let mode = SurroundMode(rawCode: code) {
+            guard !shouldIgnoreSync(for: "surround") else { return }
+            if let mode = SurroundMode(rawValue: code) {
                 avr.surroundMode = mode
+                denonModeIsSpecific = true
+            } else {
+                denonModeIsSpecific = false
+            }
+            return
+        }
+        // SSSMG MOV / MUS / GAM / PUR — サウンドモードのグループ（AVR-X3800H など）
+        if line.hasPrefix("SSSMG ") {
+            guard !shouldIgnoreSync(for: "surround"), !denonModeIsSpecific else { return }
+            switch String(line.dropFirst(6)) {
+            case "MOV": avr.surroundMode = .movie
+            case "MUS": avr.surroundMode = .music
+            case "GAM": avr.surroundMode = .game
+            case "PUR": avr.surroundMode = .direct
+            default: break
             }
             return
         }
@@ -568,6 +586,10 @@ final class MainViewModel {
             return
         }
     }
+
+    /// 直前の MS 通知が、ボタンと対応する方式名（STEREO、DIRECT など）だったか。
+    /// そうなら、後から届くグループの通知（Stereo は Movie グループに入っている）で上書きしない
+    private var denonModeIsSpecific = false
 
     private func formatMHz(_ mhz: Double) -> String {
         // 87.5 → "87.5" / 76.1 → "76.1" (小数第1位まで表示)
@@ -635,6 +657,13 @@ final class MainViewModel {
     // MARK: - Surround / Sound mode（Denon は HTTP では取得不可 → ローカル追跡 + Telnet 通知で補正）
 
     var currentSoundMode: SoundModeOption { capabilities.soundMode(for: avr.soundModeID) }
+
+    /// サウンドモードのボタンを選択状態にするか。Denon の Pure Direct にはボタンがないので Direct を選択状態にする
+    func isSoundModeSelected(_ mode: SoundModeOption) -> Bool {
+        if avr.soundModeID == mode.id { return true }
+        return capabilities.brand.usesDenonProtocol
+            && avr.soundModeID == SurroundMode.pureDirect.rawValue && mode.id == SurroundMode.direct.rawValue
+    }
 
     func setSurroundMode(_ mode: SurroundMode) { setSoundMode(id: mode.rawValue) }
     func setSoundMode(_ mode: SoundModeOption) { setSoundMode(id: mode.id) }

@@ -301,7 +301,7 @@ struct DashboardView: View {
                     ForEach(vm.capabilities.soundModes) { mode in
                         SurroundChip(
                             mode: mode,
-                            isSelected: vm.avr.soundModeID == mode.id,
+                            isSelected: vm.isSoundModeSelected(mode),
                             isEnabled: vm.avr.isConnected && vm.avr.isPoweredOn
                         ) {
                             hapticTrigger += 1
