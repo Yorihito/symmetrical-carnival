@@ -34,7 +34,7 @@ final class CompatibilityDirectory {
 
     /// 開発者が実機で確かめた機種（help/data/verified.json と同じ）。一覧を取れない環境
     /// （インターネットにつながらない Wi-Fi など）でも、これらの機種には動作報告をお願いしない
-    private static let builtInVerified: [(ReceiverBrand, String)] = [(.denon, "avr-x3800h")]
+    private static let builtInVerified: [(ReceiverBrand, String)] = [(.denon, "avr-x3800h"), (.yamaha, "rx-v581")]
 
     /// 機種の状態。「問題なく使える」の報告が 3 件以上あれば、報告のお願いはもう要らないものとして扱う
     func status(brand: ReceiverBrand, model: String) -> CompatibilityModelStatus {

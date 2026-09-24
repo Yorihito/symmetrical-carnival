@@ -53,7 +53,7 @@ App Store Connect に入力する iOS アプリのメタデータです。1.1.0 
 > すべての機能を無料で使えます。アプリを気に入っていただけたら、設定の「開発を応援する」から投げ銭で応援していただけるとうれしいです（機能は増えません）。
 >
 > 【対応機種】
-> ネットワーク制御（HTTP / ポート 8080）に対応した AV レシーバーで使えます。動作確認済み機種は Denon AVR-X3800H です。お使いの AV レシーバーがネットワーク制御に対応しているかは、取扱説明書でご確認ください。
+> ネットワーク制御に対応した AV レシーバーで使えます。動作確認済み機種は Denon AVR-X3800H と Yamaha RX-V581 です。お使いの AV レシーバーがネットワーク制御に対応しているかは、取扱説明書でご確認ください。
 >
 > ※ 本アプリは個人が開発した非公式アプリで、各メーカーとは提携していません。製品名は対応機種を示す目的でのみ記載しており、各社の商標は各社に帰属します。
 
@@ -97,7 +97,7 @@ App Store Connect に入力する iOS アプリのメタデータです。1.1.0 
 > Every feature is free. If you enjoy the app, you can leave a tip in Settings > Support Development (tips do not unlock features).
 >
 > COMPATIBILITY
-> Works with AV receivers that support network control (HTTP on port 8080). Verified on the Denon AVR-X3800H. Check your receiver's manual to confirm it supports network control.
+> Works with AV receivers that support network control. Verified on the Denon AVR-X3800H and the Yamaha RX-V581. Check your receiver's manual to confirm it supports network control.
 >
 > This is an unofficial app made by an independent developer and is not affiliated with any manufacturer. Product names are used only to indicate compatibility; trademarks belong to their respective owners.
 
@@ -111,8 +111,8 @@ App Store Connect に入力する iOS アプリのメタデータです。1.1.0 
 
 日本語:
 > 【対応機種】
-> ネットワーク制御（HTTP / ポート 8080）に対応した AV レシーバーで使えます。動作確認済みの機種はサポートページをご覧ください。
+> ネットワーク制御に対応した AV レシーバーで使えます。動作確認済みの機種はサポートページをご覧ください。
 
 English:
 > COMPATIBILITY
-> Works with AV receivers that support network control (HTTP on port 8080). See the support page for tested models.
+> Works with AV receivers that support network control. See the support page for tested models.
