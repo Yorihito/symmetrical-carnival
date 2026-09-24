@@ -12,10 +12,21 @@
 import json
 import os
 import re
+import socket
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse, parse_qs
 
 MODERN = os.environ.get("MODERN") == "1"
+
+# 状態変化の通知（UDP）の送り先。リクエストの X-AppPort ヘッダーで登録される（実機は 10 分で切れる）
+event_targets = {}
+
+
+def send_event(payload):
+    data = json.dumps(payload).encode()
+    for (ip, port) in list(event_targets.items()):
+        socket.socket(socket.AF_INET, socket.SOCK_DGRAM).sendto(data, (ip, port))
+        print("EVENT ->", ip, port, payload, flush=True)
 
 state = {
     "main": {"power": "on", "volume": 97, "mute": False, "input": "hdmi1",
@@ -80,6 +91,16 @@ class Handler(BaseHTTPRequestHandler):
         q = {k: v[0] for k, v in parse_qs(url.query).items()}
         path = url.path
         print(self.client_address[0], "GET", self.path, flush=True)
+        if self.headers.get("X-AppPort"):
+            event_targets[self.client_address[0]] = int(self.headers["X-AppPort"])
+        # 本体や付属リモコンでの操作の真似: /debug/remote?volume=90 / mute=true / input=hdmi2
+        if path == "/debug/remote":
+            z = state["main"]
+            if "volume" in q: z["volume"] = int(q["volume"])
+            if "mute" in q: z["mute"] = q["mute"] == "true"
+            if "input" in q: z["input"] = q["input"]
+            send_event({"main": {k: z[k] for k in ("power", "input", "volume", "mute")}, "device_id": "00A0DEAABBCC"})
+            return self.reply(200, "ok", "text/plain")
         if path == "/YamahaRemoteControl/desc.xml" and not MODERN:
             return self.reply(200, '<?xml version="1.0"?><Unit_Description Version="1.0">'
                               '<Cmd_List><Define ID="P1">Main_Zone,Cursor_Control,Cursor</Define>'

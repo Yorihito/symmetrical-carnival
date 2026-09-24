@@ -97,6 +97,11 @@ actor YamahaClient {
     private var lastMainVolumeDB: Double?
     private var lastZone2VolumeStep: Int?
 
+    /// 本体の状態変化の通知（UDP）。届いたらすぐに状態を読み直す
+    private let events = YamahaEventListener()
+    /// YXC のリクエストに付けるヘッダー。通知の送り先のポートを本体に知らせる（10 分ごとに延長が必要なので毎回付ける）
+    private var eventHeaders: [String: String] = [:]
+
     private var pollTask: Task<Void, Never>?
     private var continuation: AsyncStream<YamahaSnapshot>.Continuation?
     private var lastActivity = Date()
@@ -142,6 +147,15 @@ actor YamahaClient {
         let caps = await buildCapabilities(host: host, features: features, names: names)
         await calibrateVolumeIfPossible(host: host)
         self.host = host
+        if let port = events.start(expectedHost: host, onEvent: { [weak self] data in
+            Task { await self?.handleEvent(data) }
+        }) {
+            eventHeaders = ["X-AppName": "MusicCast/1.0(iOS)", "X-AppPort": String(port)]
+            print("[DenonLog] Yamaha: listening for events on UDP \(port)")
+        } else {
+            eventHeaders = [:]
+            print("[DenonLog] Yamaha: event listener unavailable; polling only")
+        }
 
         var info = DeviceInfo()
         info.modelName = identity.modelName
@@ -158,6 +172,8 @@ actor YamahaClient {
     }
 
     func disconnect() {
+        events.stop()
+        eventHeaders = [:]
         pollTask?.cancel()
         pollTask = nil
         continuation?.finish()
@@ -542,7 +558,14 @@ actor YamahaClient {
     // MARK: - HTTP
 
     private func get(_ path: String) async throws -> [String: Any] {
-        try await Self.getJSON(host: host, path: base + path, timeout: 5)
+        try await Self.getJSON(host: host, path: base + path, timeout: 5, headers: eventHeaders)
+    }
+
+    /// 本体から状態変化の通知が届いた。中身（変わった項目だけが入る）は使わず、状態をまとめて読み直す
+    private func handleEvent(_ data: Data) {
+        guard continuation != nil else { return }
+        print("[DenonLog] Yamaha event: \(String(data: data, encoding: .utf8)?.prefix(200) ?? "")")
+        pollNow()
     }
 
     /// 操作を送り、response_code が 0 でなければ `YamahaError.rejected` を投げる
@@ -553,8 +576,9 @@ actor YamahaClient {
         noteActivity()
     }
 
-    private static func getJSON(host: String, path: String, timeout: Int) async throws -> [String: Any] {
-        let res = try await LocalHTTP.get(host: host, port: port, path: path, timeout: timeout)
+    private static func getJSON(host: String, path: String, timeout: Int,
+                                headers: [String: String] = [:]) async throws -> [String: Any] {
+        let res = try await LocalHTTP.get(host: host, port: port, path: path, timeout: timeout, headers: headers)
         guard res.status == 200,
               let object = try? JSONSerialization.jsonObject(with: res.body) as? [String: Any]
         else { throw YamahaError.badResponse }

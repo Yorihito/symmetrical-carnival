@@ -22,6 +22,7 @@
 		1661486C7A095436F3B9CF79 /* Network.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1C21F089DD18EF96A1FB1D37 /* Network.framework */; };
 		18BC2655A7A945363CD3EF1A /* InputView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 371B2F4E3F7CEE3A934FE1DC /* InputView.swift */; };
 		191466263B20A3FF391D2011 /* CompatibilityDirectory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38FFB9ABE6B2B4B2711C1341 /* CompatibilityDirectory.swift */; };
+		1B3A7DEF82A51EA15DE69CDC /* YamahaEventListener.swift in Sources */ = {isa = PBXBuildFile; fileRef = 400D3E6F5EAD47E2BA07AFF7 /* YamahaEventListener.swift */; };
 		1E31B61684414568011C77E0 /* DenonControllerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48CC524B97F708FFD31253DA /* DenonControllerApp.swift */; };
 		1E876FDB15C53E820184D209 /* InputSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9ECA17A4A0B3A093DB6F604 /* InputSource.swift */; };
 		2114C9A9C177E05A75B528C3 /* HelpSiteLinks.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCCBCF2FC5C91D12F8A8E660 /* HelpSiteLinks.swift */; };
@@ -93,6 +94,7 @@
 		DF7700969F9383B5CDA18534 /* ProblemReportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63E026C54E7A9A9382069B71 /* ProblemReportView.swift */; };
 		E073BAB275455B3D6569E0CA /* TunerPreset.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C3EE3F5E05059A0B9CC8309 /* TunerPreset.swift */; };
 		E1A501F0DE5A849DA88BB66F /* CompatibilityDirectory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38FFB9ABE6B2B4B2711C1341 /* CompatibilityDirectory.swift */; };
+		E207F93DD2579E7F81708F68 /* YamahaEventListener.swift in Sources */ = {isa = PBXBuildFile; fileRef = 400D3E6F5EAD47E2BA07AFF7 /* YamahaEventListener.swift */; };
 		E21EC0837E0CA31D38097919 /* CompatibilityPromptPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7D10C31AAC54376B4797EA4 /* CompatibilityPromptPolicy.swift */; };
 		E6C1323447E13E49F82EEB59 /* DiagnosticsLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99D0A3750A0A270EC589E0F3 /* DiagnosticsLog.swift */; };
 		E8223854D0A25620B23FFA87 /* ConnectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EBA445EDC221C01FA9C6049 /* ConnectionView.swift */; };
@@ -125,6 +127,7 @@
 		371B2F4E3F7CEE3A934FE1DC /* InputView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputView.swift; sourceTree = "<group>"; };
 		385C6F0B0CEDBB1BBB00DA9A /* SupportStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupportStore.swift; sourceTree = "<group>"; };
 		38FFB9ABE6B2B4B2711C1341 /* CompatibilityDirectory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompatibilityDirectory.swift; sourceTree = "<group>"; };
+		400D3E6F5EAD47E2BA07AFF7 /* YamahaEventListener.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YamahaEventListener.swift; sourceTree = "<group>"; };
 		48CC524B97F708FFD31253DA /* DenonControllerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DenonControllerApp.swift; sourceTree = "<group>"; };
 		495D17163A2E55D86ADB4C94 /* InputNameStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputNameStore.swift; sourceTree = "<group>"; };
 		507153F6DE625535713643DA /* PromptCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PromptCoordinator.swift; sourceTree = "<group>"; };
@@ -397,6 +400,7 @@
 				1A00BF5F14989E8C48AE08AB /* MDNSDiscovery.swift */,
 				A2FEF8CF0CF7104302E3474B /* TelnetClient.swift */,
 				94908E18A94C14FCB9F05BF5 /* YamahaClient.swift */,
+				400D3E6F5EAD47E2BA07AFF7 /* YamahaEventListener.swift */,
 			);
 			path = Network;
 			sourceTree = "<group>";
@@ -674,6 +678,7 @@
 				68E65267FE353572BC4B7CBC /* VolumeControlView.swift in Sources */,
 				7EF4B5CCD7026023368B64D7 /* YamahaCatalog.swift in Sources */,
 				9EAF9DF1A774976CDCC855C8 /* YamahaClient.swift in Sources */,
+				E207F93DD2579E7F81708F68 /* YamahaEventListener.swift in Sources */,
 				FA5F210C12AC9F361029D2F8 /* ZoneView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -726,6 +731,7 @@
 				D06FB4A0EF2802537377E32F /* VolumeControlView.swift in Sources */,
 				E9C531BD98341E4868EC6124 /* YamahaCatalog.swift in Sources */,
 				8D2B47C3CB979DDAB0556C78 /* YamahaClient.swift in Sources */,
+				1B3A7DEF82A51EA15DE69CDC /* YamahaEventListener.swift in Sources */,
 				B3F1365972CF77F7177704C6 /* ZoneView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
