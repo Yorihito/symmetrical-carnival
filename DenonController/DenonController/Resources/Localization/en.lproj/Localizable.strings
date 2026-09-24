@@ -306,3 +306,7 @@
 "よろしければ、App Store での評価もお願いします。" = "If you like the app, a rating on the App Store would help a lot.";
 "この機種での動作を報告する" = "Report How It Works with Your Model";
 "お使いの機種で動いたかどうかを送ると、対応機種の一覧に反映されます。" = "Tell us whether the app works with your model. Reports are added to the supported models list.";
+
+/* In-app prompts (1.2.0) */
+"この機種はまだ動作確認されていません。動いたかどうか教えてください" = "This model hasn't been confirmed to work yet. Please let us know if it worked for you.";
+"報告する" = "Report";

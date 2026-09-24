@@ -120,7 +120,7 @@ struct ContentView: View {
                 showingVolumeDialIntroduction = true
                 return
             }
-            guard ReviewRequestManager.shouldRequest() else { return }
+            guard ReviewRequestManager.shouldRequest(brand: vm.capabilities.brand, model: vm.avr.deviceInfo.modelName) else { return }
             requestReview()
             ReviewRequestManager.markRequested()
         }

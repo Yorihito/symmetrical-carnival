@@ -65,6 +65,9 @@ final class MainViewModel {
     /// この接続で実際に成功した操作（動作報告の画面の初期値に使う）
     private(set) var sessionSucceededFeatures: Set<CompatibilityFeature> = []
 
+    /// 直近のユーザー操作の時刻。お願い・案内を出す「区切り」の判定に使う（設計: in-app-prompts-design.md 2.1）
+    private(set) var lastUserOperationAt: Date?
+
     // MARK: - Private
     private let client = AVRHTTPClient()
     private let telnet = TelnetClient()
@@ -245,6 +248,7 @@ final class MainViewModel {
             errorMessage = error.localizedDescription
             connectionStatus = .error(error.localizedDescription)
             avr.isConnected = false
+            UsageTracker.recordFailure()
             // record() redacts IPs/MACs as a backstop, but error.localizedDescription
             // can otherwise echo the host we just tried to reach.
             DiagnosticsLog.shared.record("connect: failed - \(error.localizedDescription)")
@@ -389,7 +393,8 @@ final class MainViewModel {
         avr.deviceInfo  = info
         lastConnectedHost = host
         Self.saveBrand(caps.brand, forHost: host)
-        ReviewRequestManager.recordSuccess()
+        UsageTracker.recordSuccessfulConnection(brand: caps.brand, model: info.modelName)
+        Task { await CompatibilityDirectory.shared.refreshIfNeeded() }
         DiagnosticsLog.shared.record("connect: success (\(caps.brand.rawValue) \(info.modelName))")
 
         // MAC アドレスを保存しておく（次回起動時に IP が変わっていても同一機体として再検出できるように）
@@ -408,6 +413,7 @@ final class MainViewModel {
         // IP が変わった可能性があるので自動復旧に回す（ユーザー操作による切断では走らない）。
         // updateTask は再接続時にキャンセルされるため、復旧は別タスクで行う。
         if !Task.isCancelled {
+            UsageTracker.recordFailure()
             DiagnosticsLog.shared.record("poll: AVR unreachable, recovering")
             Task { [weak self] in await self?.recoverConnection(.poll) }
         }
@@ -919,6 +925,8 @@ final class MainViewModel {
     /// 操作を接続中の機器に送る。Denon / Marantz は Telnet・HTTP のコマンド文字列、Yamaha は YXC
     private func dispatch(denon command: String, feature: CompatibilityFeature,
                           yamaha action: @escaping @Sendable (YamahaClient) async throws -> Void) {
+        // ゾーン・リモコン・チューナーを含め、ユーザー操作はすべてここを通る
+        lastUserOperationAt = Date()
         guard usingYamaha else {
             send(command, feature: feature)
             return
@@ -934,6 +942,7 @@ final class MainViewModel {
                 self?.showCommandError(error.localizedDescription)
             } catch {
                 guard let self else { return }
+                UsageTracker.recordFailure()
                 handleDisconnect()
                 showCommandError(String(localized: "通信に失敗しました。ネットワークを確認してください。"))
                 await recoverConnection(.command)
@@ -959,6 +968,7 @@ final class MainViewModel {
                     if let feature { self.recordFeatureSuccess(feature) }
                 } catch {
                     print("[DenonLog] All communication failed for command: \(command)")
+                    UsageTracker.recordFailure()
                     handleDisconnect()
                     showCommandError(String(localized: "通信に失敗しました。ネットワークを確認してください。"))
                     // コマンドの失敗も自動復旧に回す（参照: upgraded-guacamole 2ca9191）
@@ -990,6 +1000,7 @@ final class MainViewModel {
     private func markOperation(for key: String) {
         // 操作後 3秒間は同期を無視する
         ignoreSyncUntil[key] = Date().addingTimeInterval(3.0)
+        lastUserOperationAt = Date()
     }
 
     // MARK: - Lifecycle

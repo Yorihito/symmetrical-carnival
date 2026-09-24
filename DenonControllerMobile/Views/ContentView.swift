@@ -4,6 +4,7 @@ import StoreKit
 struct ContentView: View {
     @Environment(MainViewModel.self) private var vm
     @Environment(\.requestReview) private var requestReview
+    @Environment(\.scenePhase) private var scenePhase
     @State private var showConnection = false
     @AppStorage("appLanguage") private var appLanguage = "system"
     @AppStorage("volumeControlStyle") private var volumeControlStyle = "slider"
@@ -13,6 +14,14 @@ struct ContentView: View {
     @State private var showingSupportRequest = false
     @State private var showingSupportSheet = false
     @State private var selectedTab = ContentView.initialTab
+
+    // MARK: - In-app prompts (お願い・案内の調整。設計: docs/in-app-prompts-design.md)
+    @State private var showingCompatibilityBanner = false
+    @State private var showingCompatibilityReportSheet = false
+    @State private var connectedAt: Date?
+    @State private var lastEvaluatedOperationAt: Date?
+    @State private var pauseWatchTask: Task<Void, Never>?
+    @State private var compatBannerAutoHideTask: Task<Void, Never>?
 
     /// 起動時に選ぶタブ。DEBUG ビルドのスクリーンショット撮影では起動引数 `-uiDemoTab` で指定する
     nonisolated private static var initialTab: String {
@@ -54,10 +63,21 @@ struct ContentView: View {
                 noticeOverlay(key: key)
                     .zIndex(3)
             }
+
+            // 動作報告の案内（ダッシュボード下部の小さな表示。モーダルではない）
+            if showingCompatibilityBanner {
+                compatibilityBannerOverlay
+                    .zIndex(4)
+            }
         }
         .animation(.spring(), value: vm.errorMessage)
         .animation(.spring(), value: vm.transientNoticeKey)
+        .animation(.spring(), value: showingCompatibilityBanner)
         .onAppear {
+            #if DEBUG
+            // テスト用: お願い・利用実績の記録を全部消してから起動する（起動引数 -promptReset）
+            PromptCoordinator.debugResetIfRequested()
+            #endif
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
                 withAnimation(.easeOut(duration: 0.5)) {
                     isSplashScreenActive = false
@@ -79,32 +99,40 @@ struct ContentView: View {
             }
         }
         .onChange(of: vm.connectionStatus) { _, status in
-            guard status == .connected else { return }
+            guard status == .connected else {
+                pauseWatchTask?.cancel()
+                pauseWatchTask = nil
+                connectedAt = nil
+                lastEvaluatedOperationAt = nil
+                return
+            }
             #if DEBUG
             if MainViewModel.isScreenshotDemo { return }   // 撮影中は接続時のダイアログを出さない
             #endif
-            if !hasShownVolumeDialIntroduction {
-                let delay = isSplashScreenActive ? 1.7 : 0.2
-                DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
-                    guard !hasShownVolumeDialIntroduction else { return }
-                    showingVolumeDialIntroduction = true
-                }
-                return
+            connectedAt = Date()
+            lastEvaluatedOperationAt = nil
+
+            // 音量ダイアルの案内だけは例外: 操作を待たず、接続直後に出す
+            // （新しいバージョンへの更新直後に知らせたいため。設計: in-app-prompts-design.md 2.1）
+            let delay = isSplashScreenActive ? 1.7 : 0.2
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+                presentVolumeDialIntroIfNeeded()
+                startPauseWatch()
             }
-            if ReviewRequestManager.shouldRequest() {
-                requestReview()
-                ReviewRequestManager.markRequested()
-                return
+        }
+        .onChange(of: scenePhase) { _, phase in
+            if phase != .active {
+                pauseWatchTask?.cancel()
+                pauseWatchTask = nil
+            } else if vm.connectionStatus == .connected, connectedAt != nil {
+                startPauseWatch()
             }
-            // 評価のお願いより長く使ってくれている人に、一度だけ開発の応援をお願いする
-            if SupportRequestManager.shouldRequest() {
-                let delay = isSplashScreenActive ? 1.7 : 0.2
-                DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
-                    guard SupportRequestManager.shouldRequest() else { return }
-                    SupportRequestManager.markRequested()
-                    showingSupportRequest = true
-                }
-            }
+        }
+        .sheet(isPresented: $showingCompatibilityReportSheet) {
+            CompatibilityReportView()
+                .environment(vm)
+                .environment(\.locale, appLocale)
+                .environment(\.localizedBundle, lBundle)
         }
         .alert(Text("開発を応援しませんか？", bundle: lBundle), isPresented: $showingSupportRequest) {
             Button(LS("応援する", lBundle)) { showingSupportSheet = true }
@@ -220,6 +248,142 @@ struct ContentView: View {
             Spacer()
         }
         .transition(.move(edge: .top).combined(with: .opacity))
+    }
+
+    /// 動作報告の案内。既存の一時的なお知らせ（`noticeOverlay`）と同じ色調で、画面下部に出す。
+    /// モーダルではないので、他の操作を妨げない。
+    private var compatibilityBannerOverlay: some View {
+        VStack {
+            Spacer()
+            HStack(alignment: .top, spacing: 12) {
+                Image(systemName: "checkmark.circle.fill")
+                    .padding(.top, 2)
+                Text("この機種はまだ動作確認されていません。動いたかどうか教えてください", bundle: lBundle)
+                    .font(.subheadline.weight(.medium))
+                    .fixedSize(horizontal: false, vertical: true)
+                Spacer(minLength: 8)
+                VStack(spacing: 10) {
+                    Button {
+                        compatBannerAutoHideTask?.cancel()
+                        showingCompatibilityBanner = false
+                        showingCompatibilityReportSheet = true
+                    } label: {
+                        Text("報告する", bundle: lBundle)
+                            .font(.subheadline.weight(.semibold))
+                    }
+                    .buttonStyle(.plain)
+                    Button {
+                        dismissCompatibilityBanner()
+                    } label: {
+                        Image(systemName: "xmark")
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .foregroundStyle(.white)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .background(Color.green.opacity(0.9), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .shadow(radius: 4)
+            .padding(.horizontal, 16)
+            .padding(.bottom, 12)
+        }
+        .transition(.move(edge: .bottom).combined(with: .opacity))
+    }
+
+    // MARK: - In-app prompts
+
+    /// シートやアラートなど、画面に何か出ているか(出ていれば見送る。設計: in-app-prompts-design.md 2.1)
+    private var hasPresentedUI: Bool {
+        showConnection || showingSupportRequest || showingSupportSheet
+            || showingVolumeDialIntroduction || showingCompatibilityReportSheet
+    }
+
+    private func promptContext() -> PromptCoordinator.Context {
+        PromptCoordinator.Context(
+            brand: vm.capabilities.brand,
+            model: vm.avr.deviceInfo.modelName,
+            hasPresentedUI: hasPresentedUI
+        )
+    }
+
+    /// 音量ダイアルの案内だけは、操作の区切りを待たず接続直後に出す(既存の挙動を維持)。
+    private func presentVolumeDialIntroIfNeeded() {
+        #if DEBUG
+        if MainViewModel.isScreenshotDemo { return }
+        #endif
+        guard !hasShownVolumeDialIntroduction, !hasPresentedUI else { return }
+        let context = promptContext()
+        guard case .featureIntro(let intro) = PromptCoordinator.next(context: context) else { return }
+        PromptCoordinator.markShown(.featureIntro(intro), context: context)
+        switch intro {
+        case .volumeDial: showingVolumeDialIntroduction = true
+        }
+    }
+
+    /// 接続後、操作が 1 回以上あってから 5 秒間操作がない「区切り」を待って、お願い・案内を出す。
+    /// 1 秒ごとにポーリングし、同じ操作に対して 2 回出さないよう `lastEvaluatedOperationAt` で覚えておく。
+    private func startPauseWatch() {
+        pauseWatchTask?.cancel()
+        pauseWatchTask = Task { @MainActor in
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(1))
+                if Task.isCancelled { return }
+                guard vm.connectionStatus == .connected else { return }
+                guard let connectedAt, let lastOp = vm.lastUserOperationAt, lastOp > connectedAt else { continue }
+                guard lastOp != lastEvaluatedOperationAt else { continue }
+                guard Date().timeIntervalSince(lastOp) >= 5 else { continue }
+                lastEvaluatedOperationAt = lastOp
+                presentNextPromptAfterPause()
+            }
+        }
+    }
+
+    private func presentNextPromptAfterPause() {
+        #if DEBUG
+        if MainViewModel.isScreenshotDemo { return }
+        #endif
+        guard !hasPresentedUI else { return }
+        let context = promptContext()
+        guard let prompt = PromptCoordinator.next(context: context) else { return }
+        present(prompt, context: context)
+    }
+
+    private func present(_ prompt: InAppPrompt, context: PromptCoordinator.Context) {
+        switch prompt {
+        case .featureIntro(let intro):
+            PromptCoordinator.markShown(prompt, context: context)
+            switch intro {
+            case .volumeDial: showingVolumeDialIntroduction = true
+            }
+        case .review:
+            requestReview()
+            PromptCoordinator.markShown(prompt, context: context)
+        case .support:
+            PromptCoordinator.markShown(prompt, context: context)
+            showingSupportRequest = true
+        case .compatibility:
+            PromptCoordinator.markShown(prompt, context: context)
+            showingCompatibilityBanner = true
+            scheduleCompatibilityBannerAutoHide()
+        }
+    }
+
+    private func dismissCompatibilityBanner() {
+        compatBannerAutoHideTask?.cancel()
+        showingCompatibilityBanner = false
+        PromptCoordinator.markDismissed(.compatibility, context: promptContext())
+    }
+
+    /// 20 秒で自動的に隠す。閉じた(✕)ときとは違い、機種ごとの 30 日クールダウンは掛けない
+    /// (「出した」扱いのまま。設計: in-app-prompts-design.md 3.3)
+    private func scheduleCompatibilityBannerAutoHide() {
+        compatBannerAutoHideTask?.cancel()
+        compatBannerAutoHideTask = Task { @MainActor in
+            try? await Task.sleep(for: .seconds(20))
+            guard !Task.isCancelled else { return }
+            showingCompatibilityBanner = false
+        }
     }
 
     private func autoConnect() {
