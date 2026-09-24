@@ -343,9 +343,12 @@ final class MainViewModel {
         Task { [weak self] in
             guard let self else { return }
             do {
-                try await telnet.connect(host: host, port: 23)
+                let lines = try await telnet.connect(host: host, port: 23)
+                // 待っている間に別の接続が始まっていたら、この Telnet の受信は使わない
+                guard self.currentConnectionID == connectionID else { return }
                 self.connectionLog.append("  -> Telnet connected successfully")
-                startTelnetListening()
+                DiagnosticsLog.shared.record("telnet: connected")
+                startTelnetListening(lines)
             } catch {
                 self.connectionLog.append("  -> Telnet failed (optional): \(error.localizedDescription)")
             }
@@ -482,11 +485,11 @@ final class MainViewModel {
 
     // MARK: - Telnet Listener
 
-    private func startTelnetListening() {
+    private func startTelnetListening(_ lines: AsyncStream<String>) {
         telnetListenTask?.cancel()
         telnetListenTask = Task { [weak self] in
-            guard let self else { return }
-            for await line in telnet.updates {
+            for await line in lines {
+                guard let self else { return }
                 parseTelnetLine(line)
             }
         }

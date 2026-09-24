@@ -8,32 +8,27 @@ import Darwin
 
 actor TelnetClient {
 
-    // MARK: Public stream
-
-    nonisolated let updates: AsyncStream<String>
-    private nonisolated let continuation: AsyncStream<String>.Continuation
-
     // MARK: Private state
 
     private var fd: Int32 = -1
     private var receiveTask: Task<Void, Never>?
+    /// 今の接続の受信行を流す先。接続ごとに作り直す。
+    /// AsyncStream は受け取り側のタスクがキャンセルされると終わってしまい、二度と使えない。
+    /// 1 本を使い回していた 1.1.x では、再接続（起動直後の自動接続と復帰時の再接続が重なる場合を含む）の後に
+    /// Telnet の通知がまったく届かなくなっていた
+    private var continuation: AsyncStream<String>.Continuation?
 
     // MARK: Init / Deinit
 
-    init() {
-        let (stream, cont) = AsyncStream<String>.makeStream()
-        updates = stream
-        continuation = cont
-    }
-
     deinit {
         if fd >= 0 { Darwin.close(fd) }
-        continuation.finish()
+        continuation?.finish()
     }
 
     // MARK: - Connect
 
-    func connect(host: String, port: UInt16 = 23) async throws {
+    /// 接続して、受信した行（Denon の応答・状態変化の通知）を流すストリームを返す
+    func connect(host: String, port: UInt16 = 23) async throws -> AsyncStream<String> {
         await internalDisconnect()
 
         // sockaddr_in を構築（var への &参照を分離するためヘルパーで生成）
@@ -83,7 +78,10 @@ actor TelnetClient {
         setsockopt(newFd, SOL_SOCKET, SO_RCVTIMEO, &tvRecv, socklen_t(MemoryLayout<timeval>.size))
 
         fd = newFd
-        startReceiving()
+        let (stream, cont) = AsyncStream<String>.makeStream()
+        continuation = cont
+        startReceiving(into: cont)
+        return stream
     }
 
     private static func makeSockAddr(host: String, port: UInt16) throws -> sockaddr_in {
@@ -130,6 +128,8 @@ actor TelnetClient {
     private func internalDisconnect() async {
         receiveTask?.cancel()
         receiveTask = nil
+        continuation?.finish()
+        continuation = nil
         if fd >= 0 {
             Darwin.close(fd)
             fd = -1
@@ -138,10 +138,9 @@ actor TelnetClient {
 
     // MARK: - Receive Loop
 
-    private func startReceiving() {
+    private func startReceiving(into cont: AsyncStream<String>.Continuation) {
         receiveTask?.cancel()
         let currentFd = fd
-        let cont = continuation
 
         receiveTask = Task.detached(priority: .background) {
             var buf = [UInt8](repeating: 0, count: 4096)
@@ -160,6 +159,7 @@ actor TelnetClient {
                         if !trimmed.isEmpty { _ = cont.yield(trimmed) }
                     }
                 } else if n == 0 {
+                    cont.finish()
                     break   // 接続終了
                 }
                 // n < 0: SO_RCVTIMEO による EAGAIN → ループ継続してキャンセルを確認
