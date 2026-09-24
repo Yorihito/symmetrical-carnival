@@ -93,6 +93,8 @@ actor YamahaClient {
     private var yncMenuPath: [String]?
 
     private var lastMainVolumeStep: Int?
+    /// dB で直接やり取りする機種で、最後に分かっているメインゾーンの音量
+    private var lastMainVolumeDB: Double?
     private var lastZone2VolumeStep: Int?
 
     private var pollTask: Task<Void, Never>?
@@ -130,14 +132,16 @@ actor YamahaClient {
     // MARK: - Connect
 
     func connect(host: String) async throws -> (DeviceInfo, ReceiverCapabilities, YamahaIdentity, AsyncStream<YamahaSnapshot>) {
-        self.host = host
+        // 接続中のリクエストは引数の host だけを使う。起動直後は自動接続と復帰時の再接続が重なることがあり、
+        // その間に別の接続の disconnect() が self.host を消しても、この接続が壊れないようにするため
         guard let identity = await Self.identify(host: host, timeout: 5) else {
             throw AVRError.connectionFailed(String(localized: "AVR から正常応答がありません"))
         }
-        let features = try await get("/system/getFeatures")
-        let names = try? await get("/system/getNameText")
-        let caps = await buildCapabilities(features: features, names: names)
-        await calibrateVolumeIfPossible()
+        let features = try await Self.getJSON(host: host, path: base + "/system/getFeatures", timeout: 5)
+        let names = try? await Self.getJSON(host: host, path: base + "/system/getNameText", timeout: 5)
+        let caps = await buildCapabilities(host: host, features: features, names: names)
+        await calibrateVolumeIfPossible(host: host)
+        self.host = host
 
         var info = DeviceInfo()
         info.modelName = identity.modelName
@@ -175,7 +179,7 @@ actor YamahaClient {
 
     // MARK: - Capabilities
 
-    private func buildCapabilities(features: [String: Any], names: [String: Any]?) async -> ReceiverCapabilities {
+    private func buildCapabilities(host: String, features: [String: Any], names: [String: Any]?) async -> ReceiverCapabilities {
         let system = features["system"] as? [String: Any] ?? [:]
         let zones = features["zone"] as? [[String: Any]] ?? []
         let main = zones.first { ($0["id"] as? String) == "main" } ?? [:]
@@ -233,7 +237,7 @@ actor YamahaClient {
         }
 
         // リモコン画面: YXC で送れなければ YNC を調べる
-        if !yxcCursor { await loadYNCPaths() }
+        if !yxcCursor { await loadYNCPaths(host: host) }
         let remote = yxcCursor || yncCursorPath != nil
 
         return ReceiverCapabilities(
@@ -254,7 +258,7 @@ actor YamahaClient {
 
     /// YNC の説明ファイルから、メインゾーンのカーソル・メニュー操作の XML の入れ子を読む。
     /// 例: `Main_Zone,Cursor_Control,Cursor` → `<Main_Zone><Cursor_Control><Cursor>Up</Cursor>…`
-    private func loadYNCPaths() async {
+    private func loadYNCPaths(host: String) async {
         guard let res = try? await LocalHTTP.get(host: host, port: Self.port, path: "/YamahaRemoteControl/desc.xml", timeout: 5),
               res.status == 200, let xml = String(data: res.body, encoding: .utf8) else { return }
         var cursor: [String]?
@@ -275,7 +279,7 @@ actor YamahaClient {
     }
 
     /// YXC の音量値と dB の対応を、YNC の dB 表示で確かめる（YNC がない機種では既定値のまま）
-    private func calibrateVolumeIfPossible() async {
+    private func calibrateVolumeIfPossible(host: String) async {
         guard !scale.usesActualDB else { return }
         let body = #"<YAMAHA_AV cmd="GET"><Main_Zone><Basic_Status>GetParam</Basic_Status></Main_Zone></YAMAHA_AV>"#
         guard let res = try? await LocalHTTP.post(host: host, port: Self.port, path: "/YamahaRemoteControl/ctrl", body: body, timeout: 5),
@@ -283,7 +287,7 @@ actor YamahaClient {
               let lvl = xml.range(of: "<Lvl>"),
               let val = Self.tag("Val", in: xml, from: lvl.upperBound).flatMap(Double.init),
               let exp = Self.tag("Exp", in: xml, from: lvl.upperBound).flatMap(Double.init),
-              let status = try? await get("/main/getStatus"),
+              let status = try? await Self.getJSON(host: host, path: base + "/main/getStatus", timeout: 5),
               let step = status["volume"] as? Int
         else { return }
         let db = val / pow(10, exp)
@@ -304,7 +308,9 @@ actor YamahaClient {
 
     func setVolume(zone: String, db: Double) async throws {
         if zone == "main", scale.usesActualDB {
-            try await command("/main/setActualVolume?mode=db&value=\(String(format: "%.1f", db))")
+            let clamped = min(scale.rangeDB.upperBound, max(scale.rangeDB.lowerBound, db))
+            try await command("/main/setActualVolume?mode=db&value=\(String(format: "%.1f", clamped))")
+            lastMainVolumeDB = clamped
             return
         }
         let v = scale.step(forDB: db)
@@ -314,6 +320,10 @@ actor YamahaClient {
 
     /// 1 段階上げ下げする。API 1.17 より前の機種にも対応するため、今の値から計算して送る
     func stepVolume(zone: String, up: Bool) async throws {
+        if zone == "main", scale.usesActualDB, let db = lastMainVolumeDB {
+            try await setVolume(zone: "main", db: db + (up ? 0.5 : -0.5))
+            return
+        }
         let current = zone == "main" ? lastMainVolumeStep : lastZone2VolumeStep
         guard let current else {
             try await command("/\(zone)/setVolume?volume=\(up ? "up" : "down")")
@@ -491,6 +501,7 @@ actor YamahaClient {
         if let actual = main["actual_volume"] as? [String: Any], (actual["unit"] as? String) == "dB",
            let value = Self.number(actual["value"]) {
             snap.volumeDB = value
+            lastMainVolumeDB = value
         } else if let v = main["volume"] as? Int {
             snap.volumeDB = scale.db(fromStep: v)
         }

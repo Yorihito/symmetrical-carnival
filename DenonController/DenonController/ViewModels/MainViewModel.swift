@@ -109,7 +109,9 @@ final class MainViewModel {
         let savedHost = UserDefaults.standard.string(forKey: "defaultHost") ?? ""
         if !savedHost.isEmpty {
             await connect(host: savedHost)
-            if connectionStatus.isConnected { return }
+            // 起動直後は復帰時の自動復旧（recoverConnection）も同じアドレスへ接続しにいく。
+            // こちらの接続が後から始まった接続に置き換えられた場合も含め、もう接続済みか接続中なら検索はしない
+            if connectionStatus.isConnected || connectionStatus == .connecting { return }
         }
 
         connectionStatus = .connecting
@@ -120,6 +122,8 @@ final class MainViewModel {
         let (found, _) = await MDNSScanner.scan()
         let savedMac = DeviceInfo.normalizedMac(UserDefaults.standard.string(forKey: "defaultMacAddress") ?? "")
         let macMatch = savedMac.isEmpty ? nil : found.first(where: { $0.macAddress == savedMac })
+        // 検索している間に別の経路で接続できていたら、その状態を上書きしない
+        if connectionStatus.isConnected { return }
         guard let device = macMatch ?? (found.count == 1 ? found.first : nil) else {
             DiagnosticsLog.shared.record("autoConnect: fallback scan found \(found.count) AVR(s), none selected")
             connectionStatus = .disconnected
@@ -233,6 +237,8 @@ final class MainViewModel {
             print("[DenonLog] Success: Fully connected to \(host)")
 
         } catch {
+            // 待っている間に新しい接続が始まっていたら、古い接続の失敗で画面の状態を上書きしない
+            guard currentConnectionID == connectionID else { return }
             print("[DenonLog] Fatal Error: \(error.localizedDescription)")
             connectionLog.append("Fatal Error: \(error.localizedDescription)")
             connectingDetail = ""
@@ -336,6 +342,8 @@ final class MainViewModel {
     private func connectYamaha(host: String, connectionID: UUID) async throws {
         connectionLog.append("Step 2: Connecting to Yamaha Extended Control (port \(YamahaClient.port))...")
         let (info, caps, _, updates) = try await yamaha.connect(host: host)
+        // 待っている間に新しい接続が始まっていたら、この接続の結果は使わない
+        guard currentConnectionID == connectionID else { throw CancellationError() }
         usingYamaha = true
         loadTunerPresets(for: .yamaha)
         connectionLog.append("Step 3: Finalizing app state...")
@@ -1084,6 +1092,36 @@ final class MainViewModel {
         let args = ProcessInfo.processInfo.arguments
         guard let i = args.firstIndex(of: "-uiDemoTab"), i + 1 < args.count else { return nil }
         return args[i + 1]
+    }
+
+    /// 開発用: 起動時に検索も自動復旧もせず、このアドレスにだけ接続する（`-debugConnectHost 127.0.0.1`）。
+    /// scripts/mock-yamaha.py などの模擬サーバーで試すときに、LAN 上の実機へつながないようにするため。
+    /// 自動接続を止めるため `-autoConnect NO` と一緒に使う
+    nonisolated static var debugConnectHost: String? {
+        let args = ProcessInfo.processInfo.arguments
+        guard let i = args.firstIndex(of: "-debugConnectHost"), i + 1 < args.count else { return nil }
+        return args[i + 1]
+    }
+
+    /// 開発用: 接続後に一通りの操作を順に送る（`-debugExercise`）。模擬サーバーのログで届いた内容を確かめる
+    func runDebugExercise() async {
+        guard ProcessInfo.processInfo.arguments.contains("-debugExercise") else { return }
+        let steps: [(String, () -> Void)] = [
+            ("volume -40", { self.setVolume(-40) }), ("volume up", { self.volumeUp() }),
+            ("mute on", { self.setMute(true) }), ("mute off", { self.setMute(false) }),
+            ("input hdmi2", { self.setInput(id: self.capabilities.inputs.dropFirst().first?.id ?? "") }),
+            ("sound mode", { self.setSoundMode(id: self.capabilities.soundModes.first?.id ?? "") }),
+            ("zone2 on", { self.setZone2Power(true) }), ("zone2 up", { self.zone2VolumeUp() }),
+            ("tuner", { self.selectTunerInput() }), ("presets", { self.startTunerScan() }),
+            ("preset 2", { self.selectTunerPreset(2) }), ("freq up", { self.tunerFreqUp() }),
+            ("cursor up", { self.cursorUp() }), ("enter", { self.cursorEnter() }), ("setup", { self.setupMenu() }),
+        ]
+        for (name, step) in steps {
+            print("[DenonLog] debugExercise: \(name)")
+            step()
+            try? await Task.sleep(for: .milliseconds(700))
+        }
+        print("[DenonLog] debugExercise: done, succeeded=\(sessionSucceededFeatures.map(\.rawValue).sorted())")
     }
 
     /// 接続中の見た目にするための固定の状態を入れる

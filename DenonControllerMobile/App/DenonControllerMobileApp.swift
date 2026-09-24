@@ -32,6 +32,14 @@ struct DenonControllerMobileApp: App {
                 .onAppear { applyWindowBackground() }
                 // 取引の監視は起動直後から行う（承認待ちだった投げ銭の完了を取りこぼさないため）
                 .task { await supportStore.start() }
+                #if DEBUG
+                .task {
+                    if let host = MainViewModel.debugConnectHost {
+                        await vm.connect(host: host, allowReheal: false)
+                        await vm.runDebugExercise()
+                    }
+                }
+                #endif
         }
     }
 
