@@ -34,8 +34,11 @@ struct DenonControllerMobileApp: App {
                 .task { await supportStore.start() }
                 #if DEBUG
                 .task {
-                    if let host = MainViewModel.debugConnectHost {
-                        await vm.connect(host: host, allowReheal: false)
+                    if let target = MainViewModel.debugConnectHost {
+                        // "host" または "host:port"（ポートを付けると Denon として接続する）
+                        let parts = target.split(separator: ":").map(String.init)
+                        let port = parts.count > 1 ? Int(parts[1]) : nil
+                        await vm.connect(host: parts[0], port: port, brand: port == nil ? nil : .denon, allowReheal: false)
                         await vm.runDebugExercise()
                     }
                 }
