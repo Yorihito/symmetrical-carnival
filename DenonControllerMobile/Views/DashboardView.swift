@@ -263,24 +263,42 @@ struct DashboardView: View {
             .padding(.horizontal, 20)
             .padding(.top, 14)
 
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 10) {
-                    Spacer(minLength: 10)
-                    ForEach(vm.visibleInputs) { source in
-                        InputChip(
-                            source: source,
-                            name: source.name(using: vm.inputNames),
-                            isSelected: vm.avr.inputID == source.id,
-                            isEnabled: vm.avr.isConnected && vm.avr.isPoweredOn
-                        ) {
-                            hapticTrigger += 1
-                            vm.setInput(source)
+            ScrollViewReader { proxy in
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 10) {
+                        Spacer(minLength: 10)
+                        ForEach(vm.visibleInputs) { source in
+                            InputChip(
+                                source: source,
+                                name: source.name(using: vm.inputNames),
+                                isSelected: vm.avr.inputID == source.id,
+                                isEnabled: vm.avr.isConnected && vm.avr.isPoweredOn
+                            ) {
+                                hapticTrigger += 1
+                                vm.setInput(source)
+                            }
+                            .id(source.id)
                         }
+                        Spacer(minLength: 10)
                     }
-                    Spacer(minLength: 10)
+                }
+                // 選択中のボタンが画面の外にあると分かりにくいので、見える位置までスクロールする
+                // （本体やリモコンで切り替えた場合も含む）
+                .onAppear { proxy.scrollTo(vm.avr.inputID, anchor: .center) }
+                .onChange(of: vm.avr.inputID) { _, id in
+                    withAnimation(.easeInOut(duration: 0.3)) { proxy.scrollTo(id, anchor: .center) }
                 }
             }
             .padding(.bottom, 14)
+        }
+    }
+
+    private func scrollToSelectedSoundMode(_ proxy: ScrollViewProxy, animated: Bool) {
+        guard let id = vm.capabilities.soundModes.first(where: { vm.isSoundModeSelected($0) })?.id else { return }
+        if animated {
+            withAnimation(.easeInOut(duration: 0.3)) { proxy.scrollTo(id, anchor: .center) }
+        } else {
+            proxy.scrollTo(id, anchor: .center)
         }
     }
 
@@ -295,21 +313,27 @@ struct DashboardView: View {
                 .padding(.horizontal, 20)
                 .padding(.top, 14)
 
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 10) {
-                    Spacer(minLength: 10)
-                    ForEach(vm.capabilities.soundModes) { mode in
-                        SurroundChip(
-                            mode: mode,
-                            isSelected: vm.isSoundModeSelected(mode),
-                            isEnabled: vm.avr.isConnected && vm.avr.isPoweredOn
-                        ) {
-                            hapticTrigger += 1
-                            vm.setSoundMode(mode)
+            ScrollViewReader { proxy in
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 10) {
+                        Spacer(minLength: 10)
+                        ForEach(vm.capabilities.soundModes) { mode in
+                            SurroundChip(
+                                mode: mode,
+                                isSelected: vm.isSoundModeSelected(mode),
+                                isEnabled: vm.avr.isConnected && vm.avr.isPoweredOn
+                            ) {
+                                hapticTrigger += 1
+                                vm.setSoundMode(mode)
+                            }
+                            .id(mode.id)
                         }
+                        Spacer(minLength: 10)
                     }
-                    Spacer(minLength: 10)
                 }
+                // 選択中のボタンが見える位置までスクロールする（入力ソースと同じ）
+                .onAppear { scrollToSelectedSoundMode(proxy, animated: false) }
+                .onChange(of: vm.avr.soundModeID) { _, _ in scrollToSelectedSoundMode(proxy, animated: true) }
             }
             .padding(.bottom, 20)
         }
